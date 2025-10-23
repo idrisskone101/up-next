@@ -1,0 +1,39 @@
+name: Claude PR Assistant
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  claude-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run Claude Code Action
+        uses: anthropic/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # optional: model, prompt, file filters, etc.
+          # model: claude-3.5-sonnet
+          # prompt: "Analyze the issue or comment and create or update a PR if code changes are required."
+
+      # optional: post-comment summarizing what happened
+      - name: Comment summary on PR
+        if: always()
+        run: |
+          echo "Claude Code Action completed." > summary.txt
+          gh pr comment ${{ github.event.pull_request.number }} --body-file summary.txt || true
