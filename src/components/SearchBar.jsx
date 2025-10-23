@@ -1,0 +1,123 @@
+import { useState, useEffect, useRef } from "react";
+
+/**
+ * Large, centered search input component with auto-focus
+ */
+export function SearchBar({ onSearch, loading }) {
+  const [query, setQuery] = useState("");
+  const inputRef = useRef(null);
+
+  // Auto-focus on mount
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      onSearch(query.trim());
+    }
+  };
+
+  const handleClear = () => {
+    setQuery("");
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="w-full max-w-3xl mx-auto px-4 animate-slide-up">
+      <form onSubmit={handleSubmit} className="relative">
+        {/* Search icon */}
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
+          <svg
+            className="w-6 h-6 text-white/50"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+
+        {/* Input field */}
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search for movies and TV shows..."
+          disabled={loading}
+          className="w-full pl-16 pr-32 py-5 text-lg text-white placeholder-white/40
+                     glass rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-400/50
+                     focus:border-cyan-400/50 transition-all duration-200
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+        />
+
+        {/* Clear button */}
+        {query && !loading && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-28 top-1/2 -translate-y-1/2 p-2 text-white/50
+                     hover:text-white/80 transition-colors"
+            aria-label="Clear search"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        )}
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={!query.trim() || loading}
+          className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2.5
+                     bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium
+                     rounded-xl hover:from-cyan-600 hover:to-blue-600
+                     disabled:opacity-40 disabled:cursor-not-allowed
+                     transition-all duration-200 hover:scale-105 active:scale-95"
+        >
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <span>Searching</span>
+            </div>
+          ) : (
+            "Search"
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}

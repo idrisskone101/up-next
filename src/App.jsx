@@ -1,0 +1,207 @@
+import { SearchBar } from "./components/SearchBar";
+import { LoadingSpinner } from "./components/LoadingSpinner";
+import { ResultsGrid } from "./components/ResultsGrid";
+import { useSearch } from "./hooks/useSearch";
+
+function App() {
+  const { results, loading, error, searchMetadata, search, reset } =
+    useSearch();
+
+  const hasResults = results.length > 0;
+  const showEmptyState = !loading && !hasResults && !error && !searchMetadata;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-black">
+      {/* Header */}
+      <header className="pt-12 pb-8">
+        <div className="text-center mb-8">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight">
+            up
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+              Next
+            </span>
+          </h1>
+          <p className="text-white/60 text-lg">
+            Discover your next favorite with AI-powered semantic search
+          </p>
+        </div>
+
+        {/* Search Bar */}
+        <SearchBar onSearch={search} loading={loading} />
+      </header>
+
+      {/* Main Content */}
+      <main className="pb-12">
+        {/* Loading State */}
+        {loading && (
+          <LoadingSpinner
+            message={
+              searchMetadata?.weights
+                ? `Searching with ${
+                    Object.entries(searchMetadata.weights).sort(
+                      (a, b) => b[1] - a[1],
+                    )[0][0]
+                  }-focused weights...`
+                : "Analyzing query..."
+            }
+          />
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="glass rounded-xl p-6 text-center animate-fade-in">
+              <div className="text-red-400 mb-2">
+                <svg
+                  className="w-12 h-12 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Oops! Something went wrong
+              </h3>
+              <p className="text-white/70 mb-4">{error}</p>
+              <button
+                onClick={reset}
+                className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* No Results State */}
+        {!loading && searchMetadata && results.length === 0 && !error && (
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="glass rounded-xl p-8 text-center animate-fade-in">
+              <div className="text-white/40 mb-4">
+                <svg
+                  className="w-16 h-16 mx-auto"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-semibold text-white mb-2">
+                No matches found
+              </h3>
+              <p className="text-white/60">
+                Try a different search or adjust your query
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Results */}
+        {hasResults && !loading && (
+          <ResultsGrid results={results} searchMetadata={searchMetadata} />
+        )}
+
+        {/* Empty State - Initial */}
+        {showEmptyState && (
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="glass rounded-xl p-8 animate-fade-in">
+              <h2 className="text-2xl font-bold text-white mb-6 text-center">
+                Try searching for...
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {[
+                  {
+                    query: "cozy romantic comedies",
+                    icon: "💕",
+                    desc: "Vibe-focused search",
+                  },
+                  {
+                    query: "dark revenge thriller",
+                    icon: "🎭",
+                    desc: "Balanced search",
+                  },
+                  {
+                    query: "Christopher Nolan films",
+                    icon: "🎬",
+                    desc: "Metadata-focused",
+                  },
+                  {
+                    query: "time travel paradox story",
+                    icon: "⏰",
+                    desc: "Content-focused",
+                  },
+                  {
+                    query: "heartwarming coming-of-age",
+                    icon: "🌟",
+                    desc: "Mixed signals",
+                  },
+                  {
+                    query: "mind-bending sci-fi",
+                    icon: "🧠",
+                    desc: "Vibe + content",
+                  },
+                ].map(({ query, icon, desc }) => (
+                  <button
+                    key={query}
+                    onClick={() => search(query)}
+                    className="glass glass-hover rounded-lg p-4 text-left group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-3xl">{icon}</span>
+                      <div className="flex-1">
+                        <div className="text-white font-medium group-hover:text-cyan-300 transition-colors">
+                          {query}
+                        </div>
+                        <div className="text-sm text-white/50 mt-1">{desc}</div>
+                      </div>
+                      <svg
+                        className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/10 text-center text-sm text-white/60">
+                <p>
+                  Powered by multi-embedding semantic search with LLM-driven
+                  weight adjustment
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="pb-8 text-center text-white/40 text-sm">
+        <p>Made with AI-powered semantic search • {new Date().getFullYear()}</p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
