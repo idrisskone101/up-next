@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { ScoreBreakdown } from "./ScoreBreakdown";
+import { TrailerPlayer } from "./TrailerPlayer";
 
 /**
  * Modal component for expanded movie/TV show details
@@ -42,6 +43,8 @@ export function MovieModal({ movie, onClose }) {
     metadata_score,
     combined_score,
     strongest_signal,
+    tmdb_id,
+    id,
   } = movie;
 
   const posterUrl = poster_path
@@ -187,6 +190,20 @@ export function MovieModal({ movie, onClose }) {
                 </h1>
                 <p className="text-lg text-white/60">{year}</p>
               </div>
+
+              {/* Trailer */}
+              {(tmdb_id || id) && (
+                <div>
+                  <h3 className="text-sm font-semibold text-white/80 mb-3 uppercase tracking-wide">
+                    Trailer
+                  </h3>
+                  <TrailerPlayer
+                    tmdbId={tmdb_id || id}
+                    mediaType={kind === "tv" ? "tv" : "movie"}
+                    title={title}
+                  />
+                </div>
+              )}
 
               {/* Overview */}
               {overview && (

@@ -8,6 +8,7 @@ export const config = {
   openaiApiKey: process.env.OPENAI_API_KEY,
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+  tmdbToken: process.env.TMDB_TOKEN,
   port: process.env.PORT || 5001,
 };
 

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
 import { searchTitles, checkConnection } from "./search.js";
+import { fetchTrailer } from "./tmdb.js";
 
 const app = express();
 const PORT = config.port;
@@ -87,6 +88,53 @@ app.post("/api/search", async (req, res) => {
       message: error.message,
       fallbackUsed: true,
       weights: { content: 0.4, vibe: 0.35, metadata: 0.25 },
+    });
+  }
+});
+
+/**
+ * Trailer endpoint
+ * GET /api/trailer/:tmdbId
+ * Query params: mediaType (movie or tv)
+ */
+app.get("/api/trailer/:tmdbId", async (req, res) => {
+  try {
+    const { tmdbId } = req.params;
+    const { mediaType = "movie" } = req.query;
+
+    // Validate TMDB ID
+    const id = parseInt(tmdbId, 10);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "Invalid TMDB ID",
+      });
+    }
+
+    // Check if TMDB token is configured
+    if (!config.tmdbToken) {
+      return res.status(503).json({
+        error: "Service unavailable",
+        message: "TMDB API not configured",
+      });
+    }
+
+    // Fetch trailer
+    const trailer = await fetchTrailer(id, mediaType);
+
+    if (!trailer) {
+      return res.status(404).json({
+        error: "Not found",
+        message: "No trailer found for this title",
+      });
+    }
+
+    res.json(trailer);
+  } catch (error) {
+    console.error("[API] Trailer error:", error);
+    res.status(500).json({
+      error: "Failed to fetch trailer",
+      message: error.message,
     });
   }
 });
