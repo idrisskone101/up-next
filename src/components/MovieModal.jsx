@@ -43,7 +43,6 @@ export function MovieModal({ movie, onClose }) {
     metadata_score,
     combined_score,
     strongest_signal,
-    tmdb_id,
     id,
   } = movie;
 
@@ -70,17 +69,17 @@ export function MovieModal({ movie, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-4 p-0 bg-black/80 backdrop-blur-sm md:animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto glass rounded-2xl animate-slide-up"
+        className="relative w-full max-w-4xl max-h-[90dvh] md:max-h-[90vh] overflow-y-auto glass rounded-2xl md:rounded-2xl rounded-none md:animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 glass rounded-full hover:bg-white/20 transition-colors"
+          className="absolute top-4 right-4 z-10 p-2 glass rounded-full md:hover:bg-white/20 md:transition-colors"
           aria-label="Close modal"
         >
           <svg
@@ -98,9 +97,9 @@ export function MovieModal({ movie, onClose }) {
           </svg>
         </button>
 
-        {/* Backdrop image */}
+        {/* Backdrop image - hidden on mobile */}
         {backdropUrl && (
-          <div className="relative h-64 md:h-80 overflow-hidden rounded-t-2xl">
+          <div className="relative hidden md:block h-64 md:h-80 overflow-hidden rounded-t-2xl">
             <img
               src={backdropUrl}
               alt={title}
@@ -110,8 +109,8 @@ export function MovieModal({ movie, onClose }) {
           </div>
         )}
 
-        <div className="p-6 md:p-8">
-          <div className="grid md:grid-cols-3 gap-8">
+        <div className="p-4 md:p-8">
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             {/* Left column - Poster and metadata */}
             <div className="md:col-span-1">
               {posterUrl && (
@@ -185,20 +184,20 @@ export function MovieModal({ movie, onClose }) {
             <div className="md:col-span-2 space-y-6">
               {/* Title and year */}
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
                   {title}
                 </h1>
-                <p className="text-lg text-white/60">{year}</p>
+                <p className="text-base md:text-lg text-white/60">{year}</p>
               </div>
 
               {/* Trailer */}
-              {(tmdb_id || id) && (
+              {id && (
                 <div>
                   <h3 className="text-sm font-semibold text-white/80 mb-3 uppercase tracking-wide">
                     Trailer
                   </h3>
                   <TrailerPlayer
-                    tmdbId={tmdb_id || id}
+                    tmdbId={id}
                     mediaType={kind === "tv" ? "tv" : "movie"}
                     title={title}
                   />

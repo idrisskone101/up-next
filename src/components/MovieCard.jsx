@@ -40,9 +40,9 @@ export function MovieCard({ movie, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="glass glass-hover rounded-xl overflow-hidden cursor-pointer
-                 transform transition-all duration-200 hover:scale-105 hover:shadow-2xl
-                 group animate-fade-in"
+      className="glass md:glass-hover rounded-xl overflow-hidden cursor-pointer
+                 md:transform md:transition-all md:duration-200 md:hover:scale-105 md:hover:shadow-2xl
+                 group md:animate-fade-in"
     >
       {/* Poster Image */}
       <div className="relative aspect-[2/3] bg-gradient-to-br from-cyan-900/20 to-blue-900/20 overflow-hidden">
@@ -50,7 +50,7 @@ export function MovieCard({ movie, onClick }) {
           <img
             src={posterUrl}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover md:group-hover:scale-110 md:transition-transform md:duration-300"
             loading="lazy"
           />
         ) : (
@@ -153,7 +153,7 @@ export function MovieCard({ movie, onClick }) {
         </p>
 
         {/* View Details hint */}
-        <div className="pt-2 text-xs text-cyan-300 group-hover:text-cyan-200 transition-colors">
+        <div className="pt-2 text-xs text-cyan-300 md:group-hover:text-cyan-200 md:transition-colors">
           Click to view details →
         </div>
       </div>

@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
 // Load environment variables first
 dotenv.config();
@@ -13,11 +13,7 @@ export const config = {
 };
 
 // Validate required environment variables
-const requiredEnvVars = [
-  'OPENAI_API_KEY',
-  'SUPABASE_URL',
-  'SUPABASE_ANON_KEY',
-];
+const requiredEnvVars = ["OPENAI_API_KEY", "SUPABASE_URL", "SUPABASE_ANON_KEY"];
 
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
