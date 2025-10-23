@@ -54,3 +54,30 @@ export async function checkHealth() {
     throw error;
   }
 }
+
+/**
+ * Fetch trailer for a movie or TV show
+ * @param {number} tmdbId - The TMDB ID
+ * @param {string} mediaType - 'movie' or 'tv'
+ * @returns {Promise<Object|null>} Trailer information or null if not found
+ */
+export async function fetchTrailer(tmdbId, mediaType = 'movie') {
+  try {
+    const response = await fetch(`${API_BASE_URL}/trailer/${tmdbId}?mediaType=${mediaType}`);
+
+    if (response.status === 404) {
+      return null; // No trailer found
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Trailer fetch error:', error);
+    return null; // Return null instead of throwing to gracefully handle missing trailers
+  }
+}

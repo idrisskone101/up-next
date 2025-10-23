@@ -6,6 +6,7 @@ A beautiful, semantic search application for movies and TV shows using multi-emb
 
 - **Multi-Embedding Semantic Search**: Uses 3 separate embeddings (content, vibe, metadata) for nuanced search results
 - **LLM-Powered Weight Adjustment**: GPT-4o-mini analyzes queries to determine optimal embedding weights
+- **YouTube Trailers**: Watch official trailers directly in the movie details modal
 - **Apple-Inspired UI**: Clean, minimal design with glass-morphism effects and smooth animations
 - **Responsive Design**: Works beautifully on mobile, tablet, and desktop
 - **Rich Movie Details**: View posters, scores, genres, vibes, themes, cast, and more
@@ -47,9 +48,13 @@ npm install
 
 ### 2. Environment Variables
 
-Your `.env` file should already contain:
+Create a `.env` file based on `.env.example`:
 
 ```bash
+# TMDB (Required for trailer feature)
+# Get your token from: https://www.themoviedb.org/settings/api
+TMDB_TOKEN=your-tmdb-read-access-token-here
+
 # Supabase
 SUPABASE_URL=REDACTED
 SUPABASE_ANON_KEY=your-anon-key
@@ -60,6 +65,11 @@ OPENAI_API_KEY=your-openai-key
 # Server
 PORT=5001
 ```
+
+**Note:** To enable the trailer feature, you need a TMDB API Read Access Token. Get one by:
+1. Creating an account at [themoviedb.org](https://www.themoviedb.org/)
+2. Going to Settings > API
+3. Copying your "API Read Access Token" (v4 auth)
 
 ### 3. Start Development Servers
 
@@ -108,6 +118,7 @@ upNext/
 │   ├── config.js          # Environment config
 │   ├── embeddings.js      # OpenAI integration
 │   ├── search.js          # Supabase queries
+│   ├── tmdb.js            # TMDB API integration
 │   └── index.js           # Express server
 ├── src/
 │   ├── components/
@@ -116,7 +127,8 @@ upNext/
 │   │   ├── MovieCard.jsx
 │   │   ├── ResultsGrid.jsx
 │   │   ├── MovieModal.jsx
-│   │   └── ScoreBreakdown.jsx
+│   │   ├── ScoreBreakdown.jsx
+│   │   └── TrailerPlayer.jsx
 │   ├── hooks/
 │   │   └── useSearch.js
 │   ├── lib/
@@ -147,6 +159,7 @@ upNext/
 
 ### MovieModal
 - Full movie details
+- YouTube trailer embed with auto-loading
 - Backdrop image
 - Cast and crew
 - Score breakdown visualization
@@ -159,6 +172,26 @@ upNext/
 - Color-coded visualization
 
 ## 🔧 API Endpoints
+
+### GET /api/trailer/:tmdbId
+
+Fetch trailer information from TMDB.
+
+**Query Parameters:**
+- `mediaType`: "movie" or "tv" (default: "movie")
+
+**Response:**
+```json
+{
+  "key": "dQw4w9WgXcQ",
+  "name": "Official Trailer",
+  "site": "YouTube",
+  "type": "Trailer",
+  "official": true,
+  "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "embedUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ"
+}
+```
 
 ### POST /api/search
 
@@ -264,6 +297,7 @@ npm run preview
 
 | Variable | Description | Required |
 |----------|-------------|----------|
+| `TMDB_TOKEN` | TMDB API Read Access Token | ✅ (for trailers) |
 | `SUPABASE_URL` | Supabase project URL | ✅ |
 | `SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ |
 | `OPENAI_API_KEY` | OpenAI API key | ✅ |
