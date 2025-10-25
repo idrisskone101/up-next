@@ -1,3 +1,4 @@
+import { ShimmeringText } from "./components/ui/ShimmeringText";
 import { SearchBar } from "./components/SearchBar";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 import { ResultsGrid } from "./components/ResultsGrid";
@@ -17,9 +18,7 @@ function App() {
         <div className="text-center mb-6 md:mb-8 px-4">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight">
             up
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              Next
-            </span>
+            <ShimmeringText text="Next" className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400" shimmeringColor="rgb(34, 211, 238)" color="rgb(96, 165, 250)" duration={1.5} />
           </h1>
           <p className="text-white/60 text-base md:text-lg">
             Discover your next favorite with AI-powered semantic search

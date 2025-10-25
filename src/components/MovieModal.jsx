@@ -86,7 +86,7 @@ export function MovieModal({ movie, onClose }) {
         {/* Close button - optimized for touch */}
         <button
           onClick={onClose}
-          className="sticky top-4 right-4 z-10 float-right p-3 glass rounded-full md:hover:bg-white/20 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="absolute top-4 right-4 z-20 p-3 glass rounded-full md:hover:bg-white/20 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Close modal"
         >
           <svg

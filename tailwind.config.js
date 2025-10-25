@@ -2,6 +2,12 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
+    variables: {
+      DEFAULT: {
+        primary: "rgb(96, 165, 250)",
+        "primary-foreground": "rgb(255, 255, 255)",
+      },
+    },
     extend: {
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
