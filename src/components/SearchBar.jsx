@@ -1,20 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 
 /**
- * Large, centered search input component with auto-focus
+ * Large, centered search input component with auto-focus - optimized for mobile touch
  */
 export function SearchBar({ onSearch, loading }) {
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
 
-  // Auto-focus on mount
+  // Auto-focus on mount (only on desktop)
   useEffect(() => {
-    inputRef.current?.focus();
+    // Don't auto-focus on mobile to prevent keyboard popping up
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+      inputRef.current?.focus();
+    }
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (query.trim()) {
+      // Blur input on mobile to dismiss keyboard
+      inputRef.current?.blur();
       onSearch(query.trim());
     }
   };
@@ -28,9 +34,9 @@ export function SearchBar({ onSearch, loading }) {
     <div className="w-full max-w-3xl mx-auto px-4 animate-slide-up">
       <form onSubmit={handleSubmit} className="relative">
         {/* Search icon */}
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
+        <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 pointer-events-none">
           <svg
-            className="w-6 h-6 text-white/50"
+            className="w-5 h-5 md:w-6 md:h-6 text-white/50"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -44,7 +50,7 @@ export function SearchBar({ onSearch, loading }) {
           </svg>
         </div>
 
-        {/* Input field */}
+        {/* Input field - optimized touch target */}
         <input
           ref={inputRef}
           type="text"
@@ -52,19 +58,21 @@ export function SearchBar({ onSearch, loading }) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search for movies and TV shows..."
           disabled={loading}
-          className="w-full pl-16 pr-32 py-5 text-lg text-white placeholder-white/40
+          className="w-full pl-12 md:pl-16 pr-24 md:pr-32 py-4 md:py-5 text-base md:text-lg text-white placeholder-white/40
                      glass rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-400/50
                      focus:border-cyan-400/50 transition-all duration-200
-                     disabled:opacity-50 disabled:cursor-not-allowed"
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     min-h-[56px] md:min-h-[auto]"
         />
 
-        {/* Clear button */}
+        {/* Clear button - larger touch target */}
         {query && !loading && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-28 top-1/2 -translate-y-1/2 p-2 text-white/50
-                     hover:text-white/80 transition-colors"
+            className="absolute right-20 md:right-28 top-1/2 -translate-y-1/2 p-2 md:p-2 text-white/50
+                     hover:text-white/80 transition-colors active:scale-90
+                     min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Clear search"
           >
             <svg
@@ -83,15 +91,16 @@ export function SearchBar({ onSearch, loading }) {
           </button>
         )}
 
-        {/* Submit button */}
+        {/* Submit button - optimized for touch */}
         <button
           type="submit"
           disabled={!query.trim() || loading}
-          className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2.5
+          className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 px-4 md:px-6 py-2.5 md:py-2.5
                      bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium
                      rounded-xl hover:from-cyan-600 hover:to-blue-600
                      disabled:opacity-40 disabled:cursor-not-allowed
-                     transition-all duration-200 hover:scale-105 active:scale-95"
+                     transition-all duration-200 md:hover:scale-105 active:scale-95
+                     min-h-[44px] text-sm md:text-base"
         >
           {loading ? (
             <div className="flex items-center gap-2">
@@ -111,7 +120,7 @@ export function SearchBar({ onSearch, loading }) {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <span>Searching</span>
+              <span className="hidden md:inline">Searching</span>
             </div>
           ) : (
             "Search"

@@ -3,7 +3,7 @@ import { ScoreBreakdown } from "./ScoreBreakdown";
 import { TrailerPlayer } from "./TrailerPlayer";
 
 /**
- * Modal component for expanded movie/TV show details
+ * Modal component for expanded movie/TV show details - optimized for mobile Safari
  */
 export function MovieModal({ movie, onClose }) {
   // Close on Escape key
@@ -17,9 +17,16 @@ export function MovieModal({ movie, onClose }) {
 
   // Prevent body scroll when modal is open
   useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.width = "";
     };
   }, []);
 
@@ -69,17 +76,17 @@ export function MovieModal({ movie, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-4 p-0 bg-black/80 backdrop-blur-sm md:animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90dvh] md:max-h-[90vh] overflow-y-auto glass rounded-2xl md:rounded-2xl rounded-none md:animate-slide-up"
+        className="relative w-full max-w-4xl h-dvh md:h-auto md:max-h-[90vh] overflow-y-auto glass md:rounded-2xl animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button */}
+        {/* Close button - optimized for touch */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 glass rounded-full md:hover:bg-white/20 md:transition-colors"
+          className="sticky top-4 right-4 z-10 float-right p-3 glass rounded-full md:hover:bg-white/20 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Close modal"
         >
           <svg
@@ -99,7 +106,7 @@ export function MovieModal({ movie, onClose }) {
 
         {/* Backdrop image - hidden on mobile */}
         {backdropUrl && (
-          <div className="relative hidden md:block h-64 md:h-80 overflow-hidden rounded-t-2xl">
+          <div className="relative hidden md:block h-64 md:h-80 overflow-hidden md:rounded-t-2xl">
             <img
               src={backdropUrl}
               alt={title}
@@ -109,7 +116,7 @@ export function MovieModal({ movie, onClose }) {
           </div>
         )}
 
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 pb-safe">
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             {/* Left column - Poster and metadata */}
             <div className="md:col-span-1">

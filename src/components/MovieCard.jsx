@@ -1,5 +1,5 @@
 /**
- * Individual movie/TV show card component
+ * Individual movie/TV show card component - optimized for mobile touch
  */
 export function MovieCard({ movie, onClick }) {
   const {
@@ -42,7 +42,8 @@ export function MovieCard({ movie, onClick }) {
       onClick={onClick}
       className="glass md:glass-hover rounded-xl overflow-hidden cursor-pointer
                  md:transform md:transition-all md:duration-200 md:hover:scale-105 md:hover:shadow-2xl
-                 group md:animate-fade-in"
+                 group animate-fade-in active:scale-95 transition-transform"
+      style={{ touchAction: 'manipulation' }}
     >
       {/* Poster Image */}
       <div className="relative aspect-[2/3] bg-gradient-to-br from-cyan-900/20 to-blue-900/20 overflow-hidden">
@@ -90,10 +91,10 @@ export function MovieCard({ movie, onClick }) {
       <div className="p-4 space-y-3">
         {/* Title and Year */}
         <div>
-          <h3 className="text-lg font-bold text-white line-clamp-2 leading-tight">
+          <h3 className="text-base md:text-lg font-bold text-white line-clamp-2 leading-tight">
             {title}
           </h3>
-          <div className="flex items-center gap-2 mt-1 text-sm text-white/60">
+          <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-white/60">
             <span>{year}</span>
             {runtime_minutes && (
               <>
@@ -148,13 +149,13 @@ export function MovieCard({ movie, onClick }) {
         )}
 
         {/* Overview */}
-        <p className="text-sm text-white/70 line-clamp-3 leading-relaxed">
+        <p className="text-xs md:text-sm text-white/70 line-clamp-3 leading-relaxed">
           {truncatedOverview}
         </p>
 
         {/* View Details hint */}
         <div className="pt-2 text-xs text-cyan-300 md:group-hover:text-cyan-200 md:transition-colors">
-          Click to view details →
+          Tap to view details →
         </div>
       </div>
     </div>
