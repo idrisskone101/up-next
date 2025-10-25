@@ -1,8 +1,14 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { config } from "./config.js";
 import { searchTitles, checkConnection } from "./search.js";
 import { fetchTrailer } from "./tmdb.js";
+
+// ESM module path resolution
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = config.port;
@@ -139,21 +145,36 @@ app.get("/api/trailer/:tmdbId", async (req, res) => {
   }
 });
 
-/**
- * Catch-all for undefined routes
- */
-app.use("*", (req, res) => {
-  res.status(404).json({
-    error: "Not found",
-    message: `Route ${req.method} ${req.originalUrl} not found`,
+// ===== SERVE STATIC FRONTEND FILES (only in production) =====
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.join(__dirname, "../dist");
+  
+  // Serve static files from Vite build output
+  app.use(express.static(distPath));
+
+  // SPA fallback: serve index.html for all non-API routes
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
   });
-});
+} else {
+  // In development, catch-all for undefined routes
+  app.use("*", (req, res) => {
+    res.status(404).json({
+      error: "Not found",
+      message: `Route ${req.method} ${req.originalUrl} not found`,
+    });
+  });
+}
 
 // Start server
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API endpoint: http://localhost:${PORT}/api/search`);
-  console.log(`❤️  Health check: http://localhost:${PORT}/api/health\n`);
+  console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
+  if (process.env.NODE_ENV === "production") {
+    console.log(`🎨 Serving static frontend from dist/`);
+  }
+  console.log();
 });
 
 // Graceful shutdown

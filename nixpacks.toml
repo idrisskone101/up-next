@@ -1,0 +1,19 @@
+# Nixpacks configuration for upNext full-stack deployment
+# This ensures Railway builds the Vite frontend AND runs the Express backend
+
+[phases.setup]
+nixPkgs = ['nodejs_20']
+
+[phases.install]
+cmds = ['npm ci']
+
+[phases.build]
+# Build Vite frontend to dist/ folder
+cmds = ['npm run build']
+
+[start]
+# Start Express server which serves both API routes and static frontend files
+cmd = 'node server/index.js'
+
+[variables]
+NODE_ENV = 'production'
