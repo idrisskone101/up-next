@@ -1,19 +1,17 @@
 /**
- * Elegant loading spinner component
+ * Loading state aligned with shadcn-inspired tokens.
  */
 export function LoadingSpinner({ message = "Searching..." }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
-      <div className="relative">
-        {/* Outer ring */}
-        <div className="w-16 h-16 border-4 border-purple-400/30 rounded-full"></div>
-
-        {/* Spinning ring */}
-        <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-purple-400 rounded-full animate-spin"></div>
+    <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+      <div className="relative flex h-16 w-16 items-center justify-center">
+        <div className="absolute inset-0 rounded-full border-2 border-primary/15" />
+        <div className="absolute inset-[6px] rounded-full border-2 border-transparent border-t-primary/70 animate-spin" />
+        <div className="h-5 w-5 rounded-full bg-primary/20" />
       </div>
 
       {message && (
-        <p className="mt-6 text-white/70 text-sm font-medium animate-pulse">
+        <p className="mt-6 text-sm font-medium text-muted-foreground animate-pulse">
           {message}
         </p>
       )}

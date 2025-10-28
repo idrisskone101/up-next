@@ -1,0 +1,11 @@
+# ~/.codex/config.toml
+
+# Enable experimental RMCP client support (only if using HTTP/stream MCP)
+experimental_use_rmcp_client = true
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@codex/mcp-playwright", "--browser=chromium"]
+env = { BROWSER = "chromium", HEADLESS = "true" }
+startup_timeout_sec = 60
+tool_timeout_sec = 120

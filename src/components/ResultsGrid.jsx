@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Badge } from "./ui/badge";
 import { MovieCard } from "./MovieCard";
 import { MovieModal } from "./MovieModal";
 
@@ -12,63 +13,65 @@ export function ResultsGrid({ results, searchMetadata }) {
     return null;
   }
 
+  const weights = searchMetadata?.weights;
+
   return (
     <>
-      <div className="w-full max-w-7xl mx-auto px-4 py-8">
-        {/* Search metadata */}
+      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
         {searchMetadata && (
-          <div className="mb-6 glass rounded-xl p-4 animate-fade-in">
-            <div className="flex flex-wrap items-center gap-4 text-sm">
-              <div>
-                <span className="text-white/60">Results: </span>
-                <span className="text-white font-semibold">
-                  {searchMetadata.count}
-                </span>
+          <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-background/75 p-6 shadow-soft backdrop-blur-xl sm:p-8">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 opacity-70" />
+            <div className="relative z-10 flex flex-wrap items-start justify-between gap-6 text-sm text-muted-foreground">
+              <div className="flex flex-col gap-2 text-foreground">
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/80 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/80" />
+                  Semantic pulse
+                </div>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-semibold">
+                    {searchMetadata.count}
+                  </span>
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground/60">
+                    matches
+                  </span>
+                </div>
               </div>
 
-              {searchMetadata.weights && (
-                <>
-                  <div className="hidden md:block h-4 w-px bg-white/20" />
-                  <div className="flex items-center gap-3">
-                    <span className="text-white/60">Weights:</span>
-                    <div className="flex gap-2">
-                      <span className="px-2 py-1 bg-blue-400/20 text-blue-200 rounded text-xs font-mono">
-                        C: {(searchMetadata.weights.content * 100).toFixed(0)}%
-                      </span>
-                      <span className="px-2 py-1 bg-cyan-400/20 text-cyan-200 rounded text-xs font-mono">
-                        V: {(searchMetadata.weights.vibe * 100).toFixed(0)}%
-                      </span>
-                      <span className="px-2 py-1 bg-blue-400/20 text-blue-200 rounded text-xs font-mono">
-                        M: {(searchMetadata.weights.metadata * 100).toFixed(0)}%
-                      </span>
-                    </div>
+              {weights && (
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+                    Signal mix
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="primary" className="font-mono">
+                      Content · {(weights.content * 100).toFixed(0)}%
+                    </Badge>
+                    <Badge variant="accent" className="font-mono">
+                      Vibe · {(weights.vibe * 100).toFixed(0)}%
+                    </Badge>
+                    <Badge className="font-mono">
+                      Metadata · {(weights.metadata * 100).toFixed(0)}%
+                    </Badge>
                   </div>
-                </>
+                </div>
               )}
 
               {searchMetadata.weightReasoning && (
-                <>
-                  <div className="hidden lg:block h-4 w-px bg-white/20" />
-                  <div className="text-white/70 italic text-xs max-w-md">
-                    {searchMetadata.weightReasoning}
-                  </div>
-                </>
+                <p className="max-w-xl flex-1 text-xs italic text-muted-foreground/80 sm:text-sm">
+                  {searchMetadata.weightReasoning}
+                </p>
               )}
 
               {searchMetadata.metadata?.duration_ms && (
-                <>
-                  <div className="hidden md:block h-4 w-px bg-white/20" />
-                  <div className="text-white/60 text-xs">
-                    {searchMetadata.metadata.duration_ms}ms
-                  </div>
-                </>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground/60">
+                  {searchMetadata.metadata.duration_ms}ms
+                </span>
               )}
             </div>
           </div>
         )}
 
-        {/* Results grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           {results.map((movie, index) => (
             <div
               key={movie.id}
@@ -84,7 +87,6 @@ export function ResultsGrid({ results, searchMetadata }) {
         </div>
       </div>
 
-      {/* Modal */}
       {selectedMovie && (
         <MovieModal
           movie={selectedMovie}

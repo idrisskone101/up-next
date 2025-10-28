@@ -1,28 +1,28 @@
 import { useEffect } from "react";
+import { X } from "lucide-react";
+import { Badge } from "./ui/badge";
 import { ScoreBreakdown } from "./ScoreBreakdown";
 import { TrailerPlayer } from "./TrailerPlayer";
 
 /**
- * Modal component for expanded movie/TV show details - optimized for mobile Safari
+ * Modal component for expanded movie/TV show details - tuned for mobile-first shadcn styling.
  */
 export function MovieModal({ movie, onClose }) {
-  // Close on Escape key
   useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === "Escape") onClose();
+    const handleEscape = (event) => {
+      if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     const originalPosition = document.body.style.position;
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.width = "100%";
-    
+
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.position = originalPosition;
@@ -70,241 +70,230 @@ export function MovieModal({ movie, onClose }) {
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
-  // Parse cast if it's a string
   const parsedCast = typeof cast === "string" ? JSON.parse(cast) : cast;
   const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 5) : [];
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-2xl transition duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl h-dvh md:h-auto md:max-h-[90vh] overflow-y-auto glass md:rounded-2xl animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
+        className="relative flex h-[95dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-border/40 bg-card/95 shadow-[0_40px_120px_-40px_rgba(6,182,212,0.35)] md:h-[88vh] md:max-h-[88vh] md:max-w-4xl md:rounded-[32px]"
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* Close button - optimized for touch */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-3 glass rounded-full md:hover:bg-white/20 transition-colors active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="absolute right-4 top-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-border/50 bg-background/80 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
           aria-label="Close modal"
         >
-          <svg
-            className="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <X className="h-5 w-5" />
         </button>
 
-        {/* Backdrop image - hidden on mobile */}
         {backdropUrl && (
-          <div className="relative hidden md:block h-64 md:h-80 overflow-hidden md:rounded-t-2xl">
+          <div className="relative hidden h-64 flex-shrink-0 overflow-hidden md:block">
             <img
               src={backdropUrl}
               alt={title}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/70 to-transparent" />
           </div>
         )}
 
-        <div className="p-4 md:p-8 pb-safe">
-          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-            {/* Left column - Poster and metadata */}
-            <div className="md:col-span-1">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-10 pb-safe pt-4 md:px-14 md:pt-6 lg:px-20">
+          <div className="grid gap-8 md:gap-10 md:grid-cols-[280px_minmax(0,1fr)]">
+            <div className="space-y-6">
               {posterUrl && (
-                <img
-                  src={posterUrl}
-                  alt={title}
-                  className="w-full rounded-xl shadow-2xl mb-6"
-                />
+                <div className="overflow-hidden rounded-3xl border border-border/40 bg-background/40 shadow-soft">
+                  <img
+                    src={posterUrl}
+                    alt={title}
+                    className="w-full object-cover"
+                  />
+                </div>
               )}
 
-              {/* Metadata badges */}
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-white/60">Type:</span>
-                  <span className="px-2 py-1 glass rounded text-white/90 uppercase font-semibold">
-                    {kind || "movie"}
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground/70">
+                    Type
                   </span>
+                  <Badge variant="outline" className="px-3">
+                    {kind || "movie"}
+                  </Badge>
                 </div>
 
                 {certification && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-white/60">Rating:</span>
-                    <span className="px-2 py-1 glass rounded text-white/90 font-semibold">
-                      {certification}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground/70">
+                      Rating
                     </span>
+                    <Badge className="px-3 py-1">{certification}</Badge>
                   </div>
                 )}
 
                 {runtime_minutes && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-white/60">Runtime:</span>
-                    <span className="text-white/90">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground/70">
+                      Runtime
+                    </span>
+                    <span className="rounded-full border border-border/50 px-3 py-1 text-xs font-medium text-foreground">
                       {formatRuntime(runtime_minutes)}
                     </span>
                   </div>
                 )}
 
                 {vote_average && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-white/60">Rating:</span>
-                    <div className="flex items-center gap-1 text-white/90">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground/70">
+                      Audience
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                       <svg
-                        className="w-4 h-4 text-yellow-400"
-                        fill="currentColor"
+                        className="h-3.5 w-3.5"
                         viewBox="0 0 20 20"
+                        fill="currentColor"
                       >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        <path d="M9.049 2.927a1 1 0 011.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
-                      <span>{vote_average.toFixed(1)}/10</span>
-                    </div>
+                      {vote_average.toFixed(1)}/10
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Score Breakdown */}
-              <div className="mt-6">
-                <h3 className="text-sm font-semibold text-white/80 mb-3">
-                  Match Scores
+              <div className="rounded-3xl border border-border/50 bg-background/70 p-5 shadow-soft">
+                <h3 className="text-sm font-semibold text-muted-foreground">
+                  Match scores
                 </h3>
-                <ScoreBreakdown
-                  contentScore={content_score}
-                  vibeScore={vibe_score}
-                  metadataScore={metadata_score}
-                  combinedScore={combined_score}
-                  strongestSignal={strongest_signal}
-                />
+                <div className="mt-4 space-y-4">
+                  <ScoreBreakdown
+                    contentScore={content_score}
+                    vibeScore={vibe_score}
+                    metadataScore={metadata_score}
+                    combinedScore={combined_score}
+                    strongestSignal={strongest_signal}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Right column - Details */}
-            <div className="md:col-span-2 space-y-6">
-              {/* Title and year */}
-              <div>
-                <h1 className="text-2xl md:text-4xl font-bold text-white mb-2">
+            <div className="space-y-8">
+              <header className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
+                  Released {year}
+                </div>
+                <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">
                   {title}
                 </h1>
-                <p className="text-base md:text-lg text-white/60">{year}</p>
-              </div>
+              </header>
 
-              {/* Trailer */}
               {id && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-3 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Trailer
-                  </h3>
-                  <TrailerPlayer
-                    tmdbId={id}
-                    mediaType={kind === "tv" ? "tv" : "movie"}
-                    title={title}
-                  />
-                </div>
+                  </h2>
+                  <div className="overflow-hidden rounded-2xl border border-border/50">
+                    <TrailerPlayer
+                      tmdbId={id}
+                      mediaType={kind === "tv" ? "tv" : "movie"}
+                      title={title}
+                    />
+                  </div>
+                </section>
               )}
 
-              {/* Overview */}
               {overview && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-2 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Overview
-                  </h3>
-                  <p className="text-white/90 leading-relaxed">{overview}</p>
-                </div>
+                  </h2>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {overview}
+                  </p>
+                </section>
               )}
 
-              {/* Director */}
               {director && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-2 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Director
-                  </h3>
-                  <p className="text-white/90">{director}</p>
-                </div>
+                  </h2>
+                  <p className="text-sm text-foreground">{director}</p>
+                </section>
               )}
 
-              {/* Cast */}
               {topCast.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-2 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Cast
-                  </h3>
+                  </h2>
                   <div className="flex flex-wrap gap-2">
-                    {topCast.map((actor, idx) => (
+                    {topCast.map((actor, index) => (
                       <span
-                        key={idx}
-                        className="px-3 py-1.5 glass rounded-lg text-sm text-white/90"
+                        key={index}
+                        className="rounded-full border border-border/50 bg-background/60 px-3 py-1.5 text-xs text-muted-foreground"
                       >
                         {actor.name || actor}
                       </span>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
-              {/* Genres */}
               {genres.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-2 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Genres
-                  </h3>
+                  </h2>
                   <div className="flex flex-wrap gap-2">
                     {genres.map((genre) => (
                       <span
                         key={genre}
-                        className="px-3 py-1.5 bg-white/10 rounded-lg text-sm text-white/90"
+                        className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
                       >
                         {genre}
                       </span>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
-              {/* Vibes */}
               {vibes.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-2 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Vibes
-                  </h3>
+                  </h2>
                   <div className="flex flex-wrap gap-2">
                     {vibes.map((vibe) => (
                       <span
                         key={vibe}
-                        className="px-3 py-1.5 bg-cyan-500/20 rounded-lg text-sm text-cyan-200"
+                        className="rounded-full border border-border/40 bg-secondary/60 px-3 py-1.5 text-xs font-medium text-secondary-foreground"
                       >
                         {vibe}
                       </span>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
-              {/* Themes */}
               {themes.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-white/80 mb-2 uppercase tracking-wide">
+                <section className="space-y-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Themes
-                  </h3>
+                  </h2>
                   <div className="flex flex-wrap gap-2">
                     {themes.map((theme) => (
                       <span
                         key={theme}
-                        className="px-3 py-1.5 bg-blue-500/20 rounded-lg text-sm text-blue-200"
+                        className="rounded-full border border-border/40 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent"
                       >
                         {theme}
                       </span>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
             </div>
           </div>

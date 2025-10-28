@@ -12,19 +12,19 @@ export function ScoreBreakdown({
     {
       label: "Content",
       score: contentScore,
-      color: "bg-blue-400",
+      color: "bg-primary",
       isStrongest: strongestSignal === "content",
     },
     {
       label: "Vibe",
       score: vibeScore,
-      color: "bg-cyan-400",
+      color: "bg-accent",
       isStrongest: strongestSignal === "vibe",
     },
     {
       label: "Metadata",
       score: metadataScore,
-      color: "bg-blue-400",
+      color: "bg-foreground/30",
       isStrongest: strongestSignal === "metadata",
     },
   ];
@@ -34,45 +34,50 @@ export function ScoreBreakdown({
   };
 
   return (
-    <div className="space-y-3">
-      {/* Combined score */}
-      <div className="mb-4 pb-4 border-b border-white/10">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-white">
-            Combined Match
-          </span>
-          <span className="text-lg font-bold text-cyan-300 font-mono">
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-border/40 bg-background/60 p-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Combined match
+            </p>
+            <p className="text-sm text-muted-foreground/80">
+              Weighted blend across semantic vectors
+            </p>
+          </div>
+          <span className="text-2xl font-semibold text-primary">
             {formatScore(combinedScore)}%
           </span>
         </div>
-        <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+        <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-muted/40">
           <div
-            className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full transition-all duration-500"
-            style={{ width: `${combinedScore * 100}%` }}
+            className="h-full rounded-full bg-gradient-to-r from-primary via-accent to-primary/80 transition-all duration-500"
+            style={{ width: `${(combinedScore || 0) * 100}%` }}
           />
         </div>
       </div>
 
-      {/* Individual scores */}
-      <div className="space-y-2.5">
+      <div className="space-y-3">
         {scoreData.map(({ label, score, color, isStrongest }) => (
-          <div key={label}>
-            <div className="flex justify-between items-center mb-1">
+          <div key={label} className="space-y-1.5">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/70">{label}</span>
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+                  {label}
+                </span>
                 {isStrongest && (
-                  <span className="px-2 py-0.5 text-[10px] font-semibold bg-yellow-400/20 text-yellow-300 rounded-full">
+                  <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
                     Strongest
                   </span>
                 )}
               </div>
-              <span className="text-xs font-mono text-white/80">
+              <span className="font-mono text-xs text-muted-foreground">
                 {formatScore(score)}%
               </span>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted/30">
               <div
-                className={`h-full ${color} rounded-full transition-all duration-500`}
+                className={`h-full rounded-full transition-all duration-500 ${color}`}
                 style={{ width: `${(score || 0) * 100}%` }}
               />
             </div>
