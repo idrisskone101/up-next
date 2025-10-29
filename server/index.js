@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createClient } from "@supabase/supabase-js";
 import { config } from "./config.js";
 import { searchTitles, checkConnection } from "./search.js";
 import { fetchTrailer } from "./tmdb.js";
@@ -9,6 +10,9 @@ import { fetchTrailer } from "./tmdb.js";
 // ESM module path resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Initialize Supabase client for recommendations
+const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
 const app = express();
 const PORT = config.port;
@@ -24,6 +28,47 @@ app.use((req, res, next) => {
 });
 
 /**
+ * Helper function to select diverse titles by genre and release year
+ */
+function selectDiverseTitles(titles, count = 8) {
+  if (!titles || titles.length === 0) return [];
+  if (titles.length <= count) return titles;
+
+  const selected = [];
+  const genresSeen = new Set();
+  const yearsSeen = new Set();
+
+  // First pass: prioritize diversity
+  for (const title of titles) {
+    if (selected.length >= count) break;
+
+    const genres = title.genres || [];
+    const year = title.release_date
+      ? new Date(title.release_date).getFullYear()
+      : null;
+    const hasNewGenre = genres.some((g) => !genresSeen.has(g));
+    const hasNewYear = year && !yearsSeen.has(year);
+
+    // Prefer titles that add genre or year diversity
+    if (hasNewGenre || hasNewYear || selected.length < count / 2) {
+      selected.push(title);
+      genres.forEach((g) => genresSeen.add(g));
+      if (year) yearsSeen.add(year);
+    }
+  }
+
+  // Second pass: fill remaining slots with highest rated
+  for (const title of titles) {
+    if (selected.length >= count) break;
+    if (!selected.includes(title)) {
+      selected.push(title);
+    }
+  }
+
+  return selected.slice(0, count);
+}
+
+/**
  * Health check endpoint
  */
 app.get("/api/health", async (req, res) => {
@@ -36,10 +81,52 @@ app.get("/api/health", async (req, res) => {
 });
 
 /**
- * Search endpoint
- * POST /api/search
- * Body: { query: string, matchCount?: number, matchThreshold?: number }
+ * Recommendations endpoint
+ * GET /api/recommendations
+ * Returns 8 curated/popular titles for homepage
  */
+app.get("/api/recommendations", async (req, res) => {
+  try {
+    console.log("[Recommendations] Fetching curated titles...");
+
+    // Query for high-quality titles with posters
+    const { data, error } = await supabase
+      .from("titles")
+      .select("*")
+      .gte("vote_average", 7.0)
+      .not("poster_path", "is", null)
+      .not("overview", "is", null)
+      .order("vote_average", { ascending: false })
+      .limit(30);
+
+    if (error) {
+      console.error("[Recommendations] Database error:", error);
+      return res.status(500).json({
+        error: "Database query failed",
+        message: error.message,
+      });
+    }
+
+    // Select 8 diverse titles
+    const recommendations = selectDiverseTitles(data, 20);
+
+    console.log(`[Recommendations] Returning ${recommendations.length} titles`);
+
+    res.json({
+      results: recommendations,
+      metadata: {
+        count: recommendations.length,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("[Recommendations] Error:", error);
+    res.status(500).json({
+      error: "Failed to fetch recommendations",
+      message: error.message,
+    });
+  }
+});
 app.post("/api/search", async (req, res) => {
   try {
     const { query, matchCount = 20, matchThreshold = 0.3 } = req.body;
@@ -148,7 +235,7 @@ app.get("/api/trailer/:tmdbId", async (req, res) => {
 // ===== SERVE STATIC FRONTEND FILES (only in production) =====
 if (process.env.NODE_ENV === "production") {
   const distPath = path.join(__dirname, "../dist");
-  
+
   // Serve static files from Vite build output
   app.use(express.static(distPath));
 

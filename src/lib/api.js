@@ -81,3 +81,24 @@ export async function fetchTrailer(tmdbId, mediaType = 'movie') {
     return null; // Return null instead of throwing to gracefully handle missing trailers
   }
 }
+
+/**
+ * Fetch recommended titles for homepage
+ * @returns {Promise<Object>} Recommended titles
+ */
+export async function fetchRecommendations() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/recommendations`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Recommendations fetch error:', error);
+    throw error;
+  }
+}

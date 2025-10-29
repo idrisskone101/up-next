@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, Search, X, Mic } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
@@ -31,6 +31,12 @@ export function SearchBar({ onSearch, loading }) {
     inputRef.current?.focus();
   };
 
+  const handleVoiceSearch = (event) => {
+    event.preventDefault();
+    // Placeholder for future voice search functionality
+    console.log("Voice search clicked");
+  };
+
   return (
     <div className="mx-auto w-full max-w-3xl px-2 sm:px-0">
       <form
@@ -45,9 +51,9 @@ export function SearchBar({ onSearch, loading }) {
               ref={inputRef}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search for a vibe, director, mood, or title…"
+              placeholder="Search movies..."
               disabled={loading}
-              className="h-12 w-full rounded-2xl border-none bg-transparent px-4 text-base font-medium text-foreground placeholder:text-muted-foreground/70 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-14 sm:rounded-3xl sm:pl-12 sm:text-lg"
+              className="h-12 w-full rounded-2xl border-none bg-transparent px-4 pr-12 text-base font-medium text-foreground placeholder:text-muted-foreground/70 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-14 sm:rounded-3xl sm:pl-12 sm:pr-14 sm:text-lg"
             />
             {query && !loading && (
               <Button
@@ -55,10 +61,22 @@ export function SearchBar({ onSearch, loading }) {
                 onClick={handleClear}
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-2xl text-muted-foreground transition hover:text-foreground sm:right-3"
+                className="absolute right-12 top-1/2 h-10 w-10 -translate-y-1/2 rounded-2xl text-muted-foreground transition hover:text-foreground sm:right-14"
                 aria-label="Clear"
               >
                 <X className="h-4 w-4" />
+              </Button>
+            )}
+            {!loading && (
+              <Button
+                type="button"
+                onClick={handleVoiceSearch}
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-2xl text-muted-foreground transition hover:text-foreground sm:right-3"
+                aria-label="Voice search"
+              >
+                <Mic className="h-4 w-4" />
               </Button>
             )}
           </div>

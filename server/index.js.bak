@@ -42,7 +42,7 @@ app.get("/api/health", async (req, res) => {
  */
 app.post("/api/search", async (req, res) => {
   try {
-    const { query, matchCount = 10, matchThreshold = 0.3 } = req.body;
+    const { query, matchCount = 20, matchThreshold = 0.3 } = req.body;
 
     // Validate request
     if (!query || typeof query !== "string" || query.trim().length === 0) {
