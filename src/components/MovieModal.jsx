@@ -80,11 +80,11 @@ export function MovieModal({ movie, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-2xl transition duration-200"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-2xl transition duration-200 p-4 sm:items-center sm:p-6"
       onClick={onClose}
     >
       <div
-        className="relative flex h-[96dvh] w-full flex-col overflow-hidden rounded-t-[32px] border border-border/40 bg-card/95 shadow-[0_40px_120px_-40px_rgba(6,182,212,0.35)] md:h-[88vh] md:max-h-[88vh] md:max-w-4xl md:rounded-[32px]"
+        className="relative flex w-full max-h-[90dvh] flex-col overflow-hidden rounded-[28px] border border-border/40 bg-card/95 shadow-[0_40px_120px_-40px_rgba(6,182,212,0.35)] md:max-h-[88dvh] md:max-w-4xl"
         onClick={(event) => event.stopPropagation()}
       >
         <button

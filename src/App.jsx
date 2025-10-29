@@ -53,20 +53,9 @@ function App() {
         <main className="container flex w-full flex-1 flex-col gap-10 pb-16 pt-4 md:gap-12 md:pb-20">
           {loading && (
             <div className="space-y-8">
-              <LoadingSpinner
-                message={
-                  searchMetadata?.weights
-                    ? `Analyzing ${
-                        Object.entries(searchMetadata.weights).sort(
-                          (a, b) => b[1] - a[1],
-                        )[0][0]
-                      } signals…`
-                    : "Parsing vibes and metadata…"
-                }
-              />
               {/* Skeleton loaders while searching */}
               <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
                   {[...Array(8)].map((_, index) => (
                     <SkeletonCard key={index} />
                   ))}
@@ -106,13 +95,13 @@ function App() {
           {showIntro && !loadingRecs && recommendations.length > 0 && (
             <section className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-semibold tracking-tight">Recommended For You</h2>
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {recommendations.map((movie) => (
                   <button
                     key={movie.id}
                     type="button"
                     onClick={() => setSelectedMovie(movie)}
-                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 text-left shadow-soft transition hover:-translate-y-1 hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 text-left shadow-soft transition sm:hover:-translate-y-1 sm:hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {/* Movie poster */}
                     <div className="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-primary/10 via-background/40 to-accent/10">
@@ -120,7 +109,7 @@ function App() {
                         <img
                           src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                           alt={movie.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-500 sm:group-hover:scale-105"
                           loading="lazy"
                         />
                       ) : (
@@ -140,7 +129,7 @@ function App() {
                           </svg>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 sm:group-hover:opacity-100" />
                     </div>
 
                     {/* Movie info */}

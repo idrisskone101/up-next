@@ -87,11 +87,11 @@ export function MovieCard({ movie, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 p-[1px] text-left shadow-soft transition ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:-translate-y-1 hover:shadow-2xl active:translate-y-0.5"
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 p-[1px] text-left shadow-soft transition ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:hover:-translate-y-1 sm:hover:shadow-2xl active:translate-y-0.5"
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-px rounded-[inherit] bg-gradient-to-br from-primary/15 via-transparent to-accent/25 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-px rounded-[inherit] bg-gradient-to-br from-primary/15 via-transparent to-accent/25 opacity-0 transition-opacity duration-500 sm:group-hover:opacity-100"
       />
       <div className="relative flex h-full flex-col overflow-hidden rounded-[inherit] bg-card/95">
         <div className="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-primary/10 via-background/40 to-accent/10">
@@ -99,7 +99,7 @@ export function MovieCard({ movie, onClick }) {
             <img
               src={posterUrl}
               alt={title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 sm:group-hover:scale-105"
               loading="lazy"
             />
           ) : (
@@ -120,7 +120,7 @@ export function MovieCard({ movie, onClick }) {
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 sm:group-hover:opacity-100" />
 
           {/* Media type icon badge */}
           <div className="absolute left-2 top-2 sm:left-4 sm:top-4">
@@ -144,7 +144,7 @@ export function MovieCard({ movie, onClick }) {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col gap-2 px-3 pb-4 pt-3 sm:gap-3 sm:px-5 sm:pb-6 sm:pt-5 md:px-6 md:pb-7 md:pt-6">
+        <div className="flex flex-1 flex-col gap-1.5 px-3 pb-3 pt-2.5 sm:gap-3 sm:px-5 sm:pb-6 sm:pt-5 md:px-6 md:pb-7 md:pt-6">
           <div className="space-y-1">
             <h3 className="text-sm font-semibold text-foreground line-clamp-2 sm:text-base md:text-lg">
               {title}
@@ -181,7 +181,7 @@ export function MovieCard({ movie, onClick }) {
               {safeGenres.slice(0, 1).map((genre) => (
                 <span
                   key={genre}
-                  className="inline-flex items-center rounded-md border border-border/50 bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground transition-colors group-hover:border-border/70 sm:px-2 sm:text-xs"
+                  className="inline-flex items-center rounded-md border border-border/50 bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground transition-colors sm:group-hover:border-border/70 sm:px-2 sm:text-xs"
                 >
                   {genre}
                 </span>
@@ -189,7 +189,7 @@ export function MovieCard({ movie, onClick }) {
               {safeGenres.slice(1, 2).map((genre) => (
                 <span
                   key={genre}
-                  className="hidden sm:inline-flex items-center rounded-md border border-border/50 bg-secondary/60 px-2 py-0.5 text-xs font-medium text-secondary-foreground transition-colors group-hover:border-border/70"
+                  className="hidden sm:inline-flex items-center rounded-md border border-border/50 bg-secondary/60 px-2 py-0.5 text-xs font-medium text-secondary-foreground transition-colors sm:group-hover:border-border/70"
                 >
                   {genre}
                 </span>
@@ -197,7 +197,7 @@ export function MovieCard({ movie, onClick }) {
               {safeVibes.slice(0, 1).map((vibe) => (
                 <span
                   key={vibe}
-                  className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20 transition-all group-hover:bg-primary/15 sm:px-2 sm:text-xs"
+                  className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20 transition-all sm:group-hover:bg-primary/15 sm:px-2 sm:text-xs"
                 >
                   {vibe}
                 </span>
@@ -205,7 +205,7 @@ export function MovieCard({ movie, onClick }) {
               {safeVibes.slice(1, 2).map((vibe) => (
                 <span
                   key={vibe}
-                  className="hidden sm:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20 transition-all group-hover:bg-primary/15"
+                  className="hidden sm:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20 transition-all sm:group-hover:bg-primary/15"
                 >
                   {vibe}
                 </span>
