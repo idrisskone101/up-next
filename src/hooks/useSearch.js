@@ -10,7 +10,7 @@ export function useSearch() {
   const [error, setError] = useState(null);
   const [searchMetadata, setSearchMetadata] = useState(null);
 
-  const search = useCallback(async (query, matchCount = 10, matchThreshold = 0.3) => {
+  const search = useCallback(async (query, matchCount = 20, matchThreshold = 0.3) => {
     if (!query || query.trim().length === 0) {
       setResults([]);
       setSearchMetadata(null);

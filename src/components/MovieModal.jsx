@@ -35,9 +35,9 @@ export function MovieModal({ movie, onClose }) {
     kind,
     release_date,
     overview,
-    genres = [],
-    vibes = [],
-    themes = [],
+    genres,
+    vibes,
+    themes,
     director,
     cast,
     vote_average,
@@ -52,6 +52,11 @@ export function MovieModal({ movie, onClose }) {
     strongest_signal,
     id,
   } = movie;
+
+  // Convert null values to empty arrays to prevent .length errors
+  const safeGenres = genres || [];
+  const safeVibes = vibes || [];
+  const safeThemes = themes || [];
 
   const posterUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
@@ -242,13 +247,13 @@ export function MovieModal({ movie, onClose }) {
                 </section>
               )}
 
-              {genres.length > 0 && (
+              {safeGenres.length > 0 && (
                 <section className="space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Genres
                   </h2>
                   <div className="flex flex-wrap gap-2">
-                    {genres.map((genre) => (
+                    {safeGenres.map((genre) => (
                       <span
                         key={genre}
                         className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
@@ -260,13 +265,13 @@ export function MovieModal({ movie, onClose }) {
                 </section>
               )}
 
-              {vibes.length > 0 && (
+              {safeVibes.length > 0 && (
                 <section className="space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Vibes
                   </h2>
                   <div className="flex flex-wrap gap-2">
-                    {vibes.map((vibe) => (
+                    {safeVibes.map((vibe) => (
                       <span
                         key={vibe}
                         className="rounded-full border border-border/40 bg-secondary/60 px-3 py-1.5 text-xs font-medium text-secondary-foreground"
@@ -278,13 +283,13 @@ export function MovieModal({ movie, onClose }) {
                 </section>
               )}
 
-              {themes.length > 0 && (
+              {safeThemes.length > 0 && (
                 <section className="space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Themes
                   </h2>
                   <div className="flex flex-wrap gap-2">
-                    {themes.map((theme) => (
+                    {safeThemes.map((theme) => (
                       <span
                         key={theme}
                         className="rounded-full border border-border/40 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent"

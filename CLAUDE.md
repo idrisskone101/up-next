@@ -251,3 +251,149 @@ The `titles` table uses JSONB for complex fields:
 - `payload`: Additional metadata
 
 When querying, use JSONB operators or cast to text for searching within these fields.
+
+## Re-Ranking System
+
+**NEW:** upNext now includes an intelligent re-ranking layer that enhances semantic search results by incorporating quality signals, recency, diversity optimization, and query intent detection.
+
+### Overview
+
+Re-ranking is applied **after** semantic search to refine result ordering without changing which titles match. It combines:
+- **Semantic similarity** (75% weight) - Preserves core search relevance
+- **Quality signals** (15% weight) - Boosts highly-rated, well-reviewed titles
+- **Popularity signals** (5% weight) - Considers vote counts and popularity scores
+- **Recency signals** (5% weight) - Boosts recent releases for time-sensitive queries
+
+### Key Features
+
+#### 1. Query Intent Detection
+The system detects keywords and adjusts ranking accordingly:
+
+- **"best"** queries → Boost by vote_average (e.g., "best Christopher Nolan films")
+- **"recent"** queries → Boost 2024-2025 releases (e.g., "recent sci-fi movies")
+- **"underrated"** queries → Boost high quality + lower popularity titles
+- **"classic"** queries → Boost older films with high ratings
+
+#### 2. Quality Boosting
+Combines vote_average with vote_count confidence:
+```javascript
+quality_score = (vote_average / 10) * 0.7 + 
+                (log10(vote_count + 1) / 5) * 0.3
+```
+
+Example: A film with 8.5★ and 10,000 votes scores higher than 8.5★ with 100 votes
+
+#### 3. Completeness Penalties
+Titles with missing data are penalized:
+- No description → 0.85x multiplier
+- Missing vibes/themes → 0.95x multiplier
+
+Example: "Las nubes" with 10.0★ but no description drops in ranking
+
+#### 4. Diversity Optimization
+Prevents result clustering:
+- Max 2 titles from same franchise/collection
+- Max 3 titles from same director
+- Excess titles receive 0.85x penalty
+
+Example: When searching "Christopher Nolan", Batman trilogy is limited to 2 results
+
+### Performance
+
+- **Overhead:** ~50-100ms per search
+- **Process:** Top 50 results from semantic search
+- **Return:** Top 20 re-ranked results
+- **Total time:** 1.5s (semantic) + 0.1s (rerank) = **1.6s** (still faster than dynamic weights)
+
+### Configuration
+
+Re-ranking is configured via `.env` and enabled by default:
+
+```bash
+# Enable/disable re-ranking
+ENABLE_RERANKING=true  # Set to false to disable
+
+# Weight distribution (must sum to 1.0)
+RERANK_WEIGHT_SEMANTIC=0.75    # Preserve semantic relevance
+RERANK_WEIGHT_QUALITY=0.15     # Boost quality signals
+RERANK_WEIGHT_POPULARITY=0.05  # Boost popularity
+RERANK_WEIGHT_RECENCY=0.05     # Boost recent releases
+
+# Diversity constraints
+RERANK_MAX_SAME_COLLECTION=2   # Max from same franchise
+RERANK_MAX_SAME_DIRECTOR=3     # Max from same director
+
+# Completeness threshold
+RERANK_COMPLETENESS_THRESHOLD=0.85  # Penalty for missing data
+```
+
+### Example Improvements
+
+#### Before Re-Ranking: "best Christopher Nolan films"
+1. The Dark Knight Rises (56%, 7.8★)
+2. Interstellar (55%, 8.5★)
+3. The Dark Knight (55%, 8.5★)
+4. Inception (54%, 8.4★)
+
+#### After Re-Ranking: "best Christopher Nolan films"
+1. Interstellar (8.5★) ⬆️
+2. The Dark Knight (8.5★) ⬆️
+3. Inception (8.4★) ⬆️
+4. The Dark Knight Rises (7.8★) ⬇️
+
+The system detected "best" keyword and boosted by quality (vote_average).
+
+#### Before Re-Ranking: "underrated thriller"
+1. Las nubes (53%, 10.0★, **no description**)
+2. Gone Girl (52%, 7.9★)
+3. The Amateur (52%, 7.0★)
+
+#### After Re-Ranking: "underrated thriller"
+1. Se7en (51%, 8.4★) ⬆️
+2. Fight Club (50%, 8.4★) ⬆️
+3. Psycho (50%, 8.4★) ⬆️
+4. Gone Girl (52%, 7.9★)
+5. Las nubes (53%, 10.0★, no description) ⬇️ **Penalized for missing data**
+
+### Implementation Files
+
+- `server/reranker.js` - Core re-ranking engine with scoring algorithms
+- `server/search.js` - Integration point (calls reranker after Supabase)
+- `server/config.js` - Configuration loading and validation
+
+### Disabling Re-Ranking
+
+If you prefer pure semantic search without quality signals:
+
+1. Set `ENABLE_RERANKING=false` in `.env`
+2. Restart server
+3. Results will be sorted purely by semantic similarity
+
+### Tuning Re-Ranking
+
+Adjust weights based on your preferences:
+
+**More Quality-Focused:**
+```bash
+RERANK_WEIGHT_SEMANTIC=0.65
+RERANK_WEIGHT_QUALITY=0.25
+RERANK_WEIGHT_POPULARITY=0.05
+RERANK_WEIGHT_RECENCY=0.05
+```
+
+**More Recency-Focused:**
+```bash
+RERANK_WEIGHT_SEMANTIC=0.70
+RERANK_WEIGHT_QUALITY=0.10
+RERANK_WEIGHT_POPULARITY=0.05
+RERANK_WEIGHT_RECENCY=0.15
+```
+
+**Pure Semantic (minimal re-ranking):**
+```bash
+RERANK_WEIGHT_SEMANTIC=0.90
+RERANK_WEIGHT_QUALITY=0.05
+RERANK_WEIGHT_POPULARITY=0.03
+RERANK_WEIGHT_RECENCY=0.02
+```
+

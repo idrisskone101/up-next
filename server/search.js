@@ -4,6 +4,7 @@ import {
   generateQueryEmbeddings,
   getFixedWeights,
 } from "./embeddings.js";
+import { rerankResults } from "./reranker.js";
 import { config } from "./config.js";
 
 // Initialize Supabase client
@@ -12,6 +13,7 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 /**
  * Main search handler - orchestrates query analysis, embedding generation, and database search
  * Supports both fixed weights (fast) and dynamic LLM-based weights (slower but adaptive)
+ * Now includes re-ranking to enhance results with quality signals
  *
  * @param {string} query - The user's search query
  * @param {number} matchCount - Number of results to return (default: 10)
@@ -20,11 +22,12 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
  */
 export async function searchTitles(
   query,
-  matchCount = 10,
+  matchCount = 20,
   matchThreshold = 0.3,
 ) {
   try {
     console.log(`[Search] Query: "${query}"`);
+    const searchStartTime = Date.now();
 
     // Step 1: Get weights (either fixed or dynamic based on config)
     let weights;
@@ -51,6 +54,7 @@ export async function searchTitles(
 
     // Step 3: Call Supabase RPC function for multi-embedding search
     console.log("[Search] Calling Supabase match_titles_multi...");
+    const dbStartTime = Date.now();
     const { data, error } = await supabase.rpc("match_titles_multi", {
       query_content_embedding: embeddings.content,
       query_vibe_embedding: embeddings.vibe,
@@ -61,15 +65,39 @@ export async function searchTitles(
       match_threshold: matchThreshold,
       match_count: matchCount,
     });
+    const dbEndTime = Date.now();
 
     if (error) {
       console.error("[Search] Supabase error:", error);
       throw new Error(`Database search failed: ${error.message}`);
     }
 
-    console.log(`[Search] Found ${data?.length || 0} results`);
+    console.log(`[Search] Found ${data?.length || 0} results from database (${dbEndTime - dbStartTime}ms)`);
 
-    // Step 4: Return formatted results
+    // Step 4: Re-rank results if enabled
+    let finalResults = data || [];
+    let rerankingApplied = false;
+    
+    if (config.enableReranking && finalResults.length > 0) {
+      try {
+        const rerankStartTime = Date.now();
+        finalResults = rerankResults(finalResults, query, config);
+        const rerankEndTime = Date.now();
+        rerankingApplied = true;
+        console.log(`[Search] Re-ranking completed (${rerankEndTime - rerankStartTime}ms)`);
+      } catch (rerankError) {
+        console.error("[Search] Re-ranking failed, using original results:", rerankError);
+        // Gracefully fall back to original results if re-ranking fails
+        finalResults = data || [];
+      }
+    } else if (!config.enableReranking) {
+      console.log("[Search] Re-ranking DISABLED in config");
+    }
+
+    const searchEndTime = Date.now();
+    console.log(`[Search] Total search time: ${searchEndTime - searchStartTime}ms`);
+
+    // Step 5: Return formatted results
     return {
       query,
       weights: {
@@ -79,8 +107,9 @@ export async function searchTitles(
       },
       weightReasoning: weights.reasoning,
       weightSource,
-      results: data || [],
-      count: data?.length || 0,
+      results: finalResults,
+      count: finalResults.length,
+      rerankingApplied,
     };
   } catch (error) {
     console.error("[Search] Error:", error);

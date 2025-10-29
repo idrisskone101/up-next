@@ -11,7 +11,7 @@ const API_BASE_URL = '/api';
  * @param {number} matchThreshold - Minimum similarity threshold
  * @returns {Promise<Object>} Search results
  */
-export async function searchMovies(query, matchCount = 10, matchThreshold = 0.3) {
+export async function searchMovies(query, matchCount = 20, matchThreshold = 0.3) {
   try {
     const response = await fetch(`${API_BASE_URL}/search`, {
       method: 'POST',
