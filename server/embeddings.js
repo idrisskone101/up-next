@@ -6,8 +6,24 @@ const openai = new OpenAI({
 });
 
 /**
+ * Returns fixed weights from configuration
+ * Used when USE_DYNAMIC_WEIGHTS is false for faster, consistent searches
+ *
+ * @returns {{content: number, vibe: number, metadata: number, reasoning: string}}
+ */
+export function getFixedWeights() {
+  return {
+    content: config.fixedWeights.content,
+    vibe: config.fixedWeights.vibe,
+    metadata: config.fixedWeights.metadata,
+    reasoning: "Using fixed weights from configuration",
+  };
+}
+
+/**
  * Analyzes user query intent and calculates optimal weights for each embedding type
  * Uses GPT-4o-mini to determine whether query focuses on content, vibe, or metadata
+ * NOTE: Only called when USE_DYNAMIC_WEIGHTS is true
  *
  * @param {string} query - The user's search query
  * @returns {Promise<{content: number, vibe: number, metadata: number, reasoning: string}>}
@@ -70,13 +86,8 @@ Return ONLY valid JSON:
     return result;
   } catch (error) {
     console.error("LLM weight analysis failed:", error);
-    // Return default weights as fallback
-    return {
-      content: 0.4,
-      vibe: 0.35,
-      metadata: 0.25,
-      reasoning: "Using default balanced weights (LLM analysis failed)",
-    };
+    // Fallback to configured fixed weights
+    return getFixedWeights();
   }
 }
 
@@ -98,6 +109,7 @@ export async function generateQueryEmbeddings(query) {
     // Generate all 3 embeddings in a single API call for efficiency
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
+      dimensions: 1536,
       input: [texts.content, texts.vibe, texts.metadata],
       encoding_format: "float",
     });

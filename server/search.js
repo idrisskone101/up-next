@@ -1,5 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import { analyzeQueryIntent, generateQueryEmbeddings } from "./embeddings.js";
+import {
+  analyzeQueryIntent,
+  generateQueryEmbeddings,
+  getFixedWeights,
+} from "./embeddings.js";
 import { config } from "./config.js";
 
 // Initialize Supabase client
@@ -7,6 +11,7 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
 /**
  * Main search handler - orchestrates query analysis, embedding generation, and database search
+ * Supports both fixed weights (fast) and dynamic LLM-based weights (slower but adaptive)
  *
  * @param {string} query - The user's search query
  * @param {number} matchCount - Number of results to return (default: 10)
@@ -21,10 +26,23 @@ export async function searchTitles(
   try {
     console.log(`[Search] Query: "${query}"`);
 
-    // Step 1: Analyze query intent to get optimal weights
-    console.log("[Search] Analyzing query intent with LLM...");
-    const weights = await analyzeQueryIntent(query);
-    console.log("[Search] Weights:", weights);
+    // Step 1: Get weights (either fixed or dynamic based on config)
+    let weights;
+    let weightSource;
+
+    if (config.useDynamicWeights) {
+      console.log("[Search] Using DYNAMIC weights (LLM analysis)...");
+      weights = await analyzeQueryIntent(query);
+      weightSource = "dynamic";
+    } else {
+      console.log("[Search] Using FIXED weights from config...");
+      weights = getFixedWeights();
+      weightSource = "fixed";
+    }
+
+    console.log(
+      `[Search] Weights (${weightSource}): content=${weights.content.toFixed(2)}, vibe=${weights.vibe.toFixed(2)}, metadata=${weights.metadata.toFixed(2)}`,
+    );
 
     // Step 2: Generate three embeddings for the query
     console.log("[Search] Generating embeddings...");
@@ -60,6 +78,7 @@ export async function searchTitles(
         metadata: weights.metadata,
       },
       weightReasoning: weights.reasoning,
+      weightSource,
       results: data || [],
       count: data?.length || 0,
     };

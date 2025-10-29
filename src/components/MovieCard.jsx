@@ -9,13 +9,17 @@ export function MovieCard({ movie, onClick }) {
     kind,
     release_date,
     overview,
-    genres = [],
-    vibes = [],
+    genres,
+    vibes,
     vote_average,
     poster_path,
     combined_score,
     runtime_minutes,
   } = movie;
+
+  // Handle null/undefined arrays safely
+  const safeGenres = genres || [];
+  const safeVibes = vibes || [];
 
   const posterUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
@@ -116,9 +120,9 @@ export function MovieCard({ movie, onClick }) {
             </div>
           </div>
 
-          {genres.length > 0 && (
+          {safeGenres.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {genres.slice(0, 3).map((genre) => (
+              {safeGenres.slice(0, 3).map((genre) => (
                 <span
                   key={genre}
                   className="rounded-full border border-border/40 bg-background/40 px-2.5 py-1 text-xs text-muted-foreground"
@@ -129,9 +133,9 @@ export function MovieCard({ movie, onClick }) {
             </div>
           )}
 
-          {vibes.length > 0 && (
+          {safeVibes.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {vibes.slice(0, 3).map((vibe) => (
+              {safeVibes.slice(0, 3).map((vibe) => (
                 <span
                   key={vibe}
                   className="rounded-full bg-gradient-to-r from-primary/15 to-accent/15 px-2.5 py-1 text-xs font-medium text-primary"

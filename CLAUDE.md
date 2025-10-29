@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-upNext is an AI-powered semantic movie and TV show search application using multi-embedding vector search with LLM-driven dynamic weight adjustment. The system uses three separate embeddings (content, vibe, metadata) for each title and employs GPT-4o-mini to analyze queries and determine optimal weighting strategies.
+upNext is an AI-powered semantic movie and TV show search application using multi-embedding vector search. The system uses three separate embeddings (content, vibe, metadata) for each title and supports both fixed weights (fast, consistent) and dynamic LLM-driven weight adjustment (adaptive).
 
 ## Development Commands
 
@@ -47,7 +47,9 @@ The core innovation is the three-embedding architecture:
 
 **Query Processing Flow:**
 1. User query → Backend `/api/search` endpoint
-2. GPT-4o-mini analyzes query intent and calculates optimal weights (e.g., "cozy romantic comedies" → vibe: 60%, metadata: 25%, content: 15%)
+2. **Weight Selection** (configurable):
+   - **Fixed Mode** (default): Uses pre-configured weights from .env (fast, consistent)
+   - **Dynamic Mode**: GPT-4o-mini analyzes query intent and calculates optimal weights
 3. Generate three separate query embeddings using OpenAI text-embedding-3-small
 4. Supabase RPC function `match_titles_multi()` performs weighted multi-vector search
 5. Results returned sorted by combined similarity score
@@ -57,9 +59,9 @@ The core innovation is the three-embedding architecture:
 **Key Files:**
 - `server/index.js` - Express server with API endpoints
 - `server/search.js` - Orchestrates query analysis, embedding generation, and database search
-- `server/embeddings.js` - GPT-4o-mini query analysis and OpenAI embedding generation
+- `server/embeddings.js` - Weight calculation (fixed or LLM) and OpenAI embedding generation
+- `server/config.js` - Environment configuration with weight settings
 - `server/tmdb.js` - TMDB API integration for trailers
-- `server/config.js` - Environment configuration
 
 **API Endpoints:**
 - `POST /api/search` - Main search endpoint (query, matchCount, matchThreshold)
@@ -100,24 +102,68 @@ TMDB_TOKEN=your-tmdb-read-access-token
 SUPABASE_URL=REDACTED
 SUPABASE_ANON_KEY=your-anon-key
 
-# OpenAI (GPT-4o-mini for analysis, text-embedding-3-small for embeddings)
+# OpenAI (text-embedding-3-small for embeddings, GPT-4o-mini for dynamic weights)
 OPENAI_API_KEY=your-openai-key
 
 # Server
 PORT=5001  # Optional, defaults to 5001
+
+# ===== WEIGHT CONFIGURATION =====
+
+# Weight Mode (default: false = fixed weights)
+USE_DYNAMIC_WEIGHTS=false  # Set to true to enable LLM-based weight analysis
+
+# Fixed Weights (only used when USE_DYNAMIC_WEIGHTS=false)
+# Must sum to 1.0 - adjust to optimize search relevance
+FIXED_WEIGHT_CONTENT=0.40    # Story/plot/narrative (0.0-1.0)
+FIXED_WEIGHT_VIBE=0.35       # Mood/tone/atmosphere (0.0-1.0)
+FIXED_WEIGHT_METADATA=0.25   # Genres/cast/director (0.0-1.0)
 ```
 
 ## Key Implementation Details
 
-### Weight Analysis (server/embeddings.js:analyzeQueryIntent)
+### Weight Configuration
 
-The LLM analyzes queries using specific rules:
-- Genre/franchise/director/actor mentions → METADATA priority (0.5-0.7)
-- Plot/story/theme descriptions → CONTENT priority (0.5-0.7)
-- Mood/feeling/atmosphere adjectives → VIBE priority (0.5-0.7)
-- Ambiguous queries → balanced weights (0.4, 0.35, 0.25)
+**Fixed Weights (Default - Recommended)**
+- Located in `server/config.js`, configured via `.env`
+- Fast: No LLM call, ~50-60% faster searches (1.5s vs 3-5s)
+- Consistent: Same query always returns same results
+- Cost-effective: No GPT-4o-mini API calls
+- Tunable: Adjust weights in `.env` without code changes
+- Server validates weights sum to 1.0 on startup
 
-Fallback weights if LLM fails: `{content: 0.4, vibe: 0.35, metadata: 0.25}`
+**Dynamic Weights (Optional)**
+- Set `USE_DYNAMIC_WEIGHTS=true` in `.env`
+- GPT-4o-mini analyzes each query and calculates optimal weights
+- Weighting rules:
+  - Genre/franchise/director/actor → METADATA priority (0.5-0.7)
+  - Plot/story/theme descriptions → CONTENT priority (0.5-0.7)
+  - Mood/feeling/atmosphere adjectives → VIBE priority (0.5-0.7)
+  - Ambiguous queries → balanced weights
+- Falls back to fixed weights if LLM fails
+
+**Tuning Fixed Weights:**
+```bash
+# Balanced (default)
+FIXED_WEIGHT_CONTENT=0.40
+FIXED_WEIGHT_VIBE=0.35
+FIXED_WEIGHT_METADATA=0.25
+
+# Content-heavy (for story/plot-focused users)
+FIXED_WEIGHT_CONTENT=0.60
+FIXED_WEIGHT_VIBE=0.25
+FIXED_WEIGHT_METADATA=0.15
+
+# Vibe-heavy (for mood/atmosphere-focused users)
+FIXED_WEIGHT_CONTENT=0.20
+FIXED_WEIGHT_VIBE=0.60
+FIXED_WEIGHT_METADATA=0.20
+
+# Metadata-heavy (for genre/actor/director searches)
+FIXED_WEIGHT_CONTENT=0.20
+FIXED_WEIGHT_VIBE=0.20
+FIXED_WEIGHT_METADATA=0.60
+```
 
 ### Embedding Generation (server/embeddings.js:generateQueryEmbeddings)
 
@@ -139,6 +185,7 @@ Each result includes:
 - Individual similarity scores for each embedding type (0-1 range)
 - Combined weighted score
 - Strongest signal indicator (which embedding matched best)
+- Weight source ("fixed" or "dynamic")
 - TMDB integration (poster images, trailers, backdrop images)
 
 ### Vite Proxy Configuration
@@ -158,12 +205,13 @@ server: {
 
 ## Important Notes
 
+- **Weight mode**: Fixed weights (default) are recommended for better performance and consistency
 - **No client-side re-ranking**: Database search results are final and sorted by combined score
-- **Average search time**: 3-5 seconds (LLM analysis ~1-2s, embedding generation ~1s, database ~0.5s)
+- **Search time**: ~1.5s with fixed weights, ~3-5s with dynamic weights
 - **Poster images**: Use TMDB CDN `https://image.tmdb.org/t/p/w500${poster_path}`
 - **TMDB integration**: Requires API Read Access Token from themoviedb.org for trailer feature
 - **Concurrent requests**: Backend handles multiple simultaneous searches
-- **Error handling**: Always uses fallback weights if LLM analysis fails
+- **Error handling**: Dynamic mode falls back to fixed weights if LLM analysis fails
 
 ## Code Patterns
 
@@ -182,9 +230,17 @@ server: {
 - Use color scheme: cyan/blue gradients for accents, white text, semi-transparent backgrounds
 - Add animations: `animate-fade-in`, `transition-all duration-200`, `hover:scale-105`
 
-### Modifying Weight Analysis
+### Modifying Weight Configuration
 
-Edit the system prompt in `server/embeddings.js:analyzeQueryIntent()`. The LLM must return JSON with weights summing to 1.0 and include reasoning. Always normalize weights if they don't sum to exactly 1.0.
+**For Fixed Weights:**
+- Edit `.env` file and update `FIXED_WEIGHT_*` values
+- Restart server (weights are validated on startup)
+- No code changes needed
+
+**For Dynamic Weight Logic:**
+- Edit system prompt in `server/embeddings.js:analyzeQueryIntent()`
+- LLM must return JSON with weights summing to 1.0 and include reasoning
+- Always normalize weights if they don't sum to exactly 1.0
 
 ## Database Schema Notes
 
