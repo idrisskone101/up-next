@@ -12,6 +12,8 @@ import {
 import { Navbar } from "./components/Navbar";
 import { SearchBar } from "./components/SearchBar";
 import { LoadingSpinner } from "./components/LoadingSpinner";
+import { SkeletonCard } from "./components/SkeletonCard";
+import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
 import { MovieModal } from "./components/MovieModal";
 import { useSearch } from "./hooks/useSearch";
@@ -27,70 +29,50 @@ function App() {
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      {/* Background effects */}
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-x-0 top-[-28%] mx-auto h-[520px] w-[520px] -translate-y-6 rounded-full bg-primary/12 blur-[220px] md:h-[660px] md:w-[660px]" />
-        <div className="absolute bottom-[-18%] left-[-25%] h-[420px] w-[420px] rounded-full bg-accent/12 blur-[200px] md:left-[-15%]" />
-        <div className="absolute inset-y-0 right-[-45%] hidden w-[70%] bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.16),_transparent_60%)] blur-3xl lg:block" />
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-background/70 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-grid-lg bg-[size:32px_32px] opacity-[0.05]" />
-        <div className="absolute inset-x-0 top-1/3 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-70 blur-[2px]" />
-      </div>
 
       <div className="relative flex min-h-dvh flex-col">
-        {/* Navbar */}
         <Navbar />
 
         {/* Hero Section */}
-        <header className="container w-full space-y-8 pb-12 pt-safe pt-12 md:space-y-10 md:pb-16 md:pt-16">
-          <div className="flex flex-col items-center gap-6 text-center sm:gap-7">
-            <div className="space-y-4">
-              <h1 className="text-balance text-4xl font-medium tracking-tight text-foreground sm:text-5xl md:text-6xl">
+        <header className="container w-full space-y-6 pb-10 pt-safe pt-8 md:space-y-8 md:pb-12 md:pt-12">
+          <div className="flex flex-col items-center gap-4 text-center sm:gap-5">
+            <div className="space-y-3">
+              <h1 className="text-balance text-3xl font-medium tracking-tight text-foreground sm:text-4xl md:text-5xl">
                 Discover your next favorite movie.
               </h1>
-              <p className="mx-auto max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Search for movies, genres, or actors and get personalized recommendations.
+              <p className="mx-auto max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground/80">
+                Search by vibe, genre, theme, or mood — powered by semantic AI.
               </p>
             </div>
           </div>
 
           <SearchBar onSearch={search} loading={loading} />
-
-          {/* Action buttons below search */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => e.preventDefault()}
-              className="rounded-full"
-            >
-              Browse Genres
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => e.preventDefault()}
-              className="rounded-full"
-            >
-              Trending Movies
-            </Button>
-          </div>
         </header>
 
         {/* Main Content */}
         <main className="container flex w-full flex-1 flex-col gap-10 pb-16 pt-4 md:gap-12 md:pb-20">
           {loading && (
-            <LoadingSpinner
-              message={
-                searchMetadata?.weights
-                  ? `Dialling up ${
-                      Object.entries(searchMetadata.weights).sort(
-                        (a, b) => b[1] - a[1],
-                      )[0][0]
-                    } signals…`
-                  : "Parsing vibes and metadata…"
-              }
-            />
+            <div className="space-y-8">
+              <LoadingSpinner
+                message={
+                  searchMetadata?.weights
+                    ? `Analyzing ${
+                        Object.entries(searchMetadata.weights).sort(
+                          (a, b) => b[1] - a[1],
+                        )[0][0]
+                      } signals…`
+                    : "Parsing vibes and metadata…"
+                }
+              />
+              {/* Skeleton loaders while searching */}
+              <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                  {[...Array(8)].map((_, index) => (
+                    <SkeletonCard key={index} />
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
 
           {error && !loading && (
@@ -113,33 +95,7 @@ function App() {
           )}
 
           {!loading && searchMetadata && results.length === 0 && !error && (
-            <Card className="mx-auto w-full max-w-3xl animate-scale-in text-center">
-              <CardHeader className="items-center gap-3">
-                <CardTitle className="text-2xl">
-                  Nothing matched just yet
-                </CardTitle>
-                <CardDescription>
-                  Tune your prompt with vibe descriptors, era, or pacing details
-                  to help the model triangulate the right titles.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap justify-center gap-2 text-sm text-muted-foreground">
-                  {[
-                    "slow burn mystery",
-                    "female-led heist",
-                    "post-apocalyptic hope",
-                  ].map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-full border border-border/50 px-3 py-1.5 text-xs uppercase tracking-wide"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <EmptyState type="no-results" query={searchMetadata.query} />
           )}
 
           {hasResults && !loading && (
@@ -150,7 +106,7 @@ function App() {
           {showIntro && !loadingRecs && recommendations.length > 0 && (
             <section className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-semibold tracking-tight">Recommended For You</h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {recommendations.map((movie) => (
                   <button
                     key={movie.id}

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Search, X, Mic } from "lucide-react";
+import { Search, Mic, MoreHorizontal } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
 /**
  * Responsive search bar inspired by shadcn/ui surface treatments.
- * Optimised for thumb reach and minimal taps on mobile.
+ * Optimized for thumb reach and minimal taps on mobile.
  */
 export function SearchBar({ onSearch, loading }) {
   const [query, setQuery] = useState("");
@@ -26,81 +26,42 @@ export function SearchBar({ onSearch, loading }) {
     }
   };
 
-  const handleClear = () => {
-    setQuery("");
-    inputRef.current?.focus();
-  };
-
-  const handleVoiceSearch = (event) => {
-    event.preventDefault();
-    // Placeholder for future voice search functionality
-    console.log("Voice search clicked");
-  };
-
   return (
     <div className="mx-auto w-full max-w-3xl px-2 sm:px-0">
-      <form
-        onSubmit={handleSubmit}
-        className="relative animate-slide-up overflow-hidden rounded-[28px] border border-border/40 bg-background/75 p-2 shadow-soft backdrop-blur-2xl sm:rounded-[34px] sm:p-2.5"
-      >
-        <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10 opacity-80" />
-        <div className="relative z-10 flex items-center gap-1.5">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-muted-foreground/70 sm:block" />
+      <div className="space-y-3">
+        <form onSubmit={handleSubmit}>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground/60" />
             <Input
               ref={inputRef}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search movies..."
+              placeholder="Search for movies or genres..."
               disabled={loading}
-              className="h-12 w-full rounded-2xl border-none bg-transparent px-4 pr-12 text-base font-medium text-foreground placeholder:text-muted-foreground/70 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:h-14 sm:rounded-3xl sm:pl-12 sm:pr-14 sm:text-lg"
+              className="h-14 w-full rounded-[28px] border-none bg-muted/40 px-12 pr-12 text-base text-foreground placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
             />
-            {query && !loading && (
-              <Button
-                type="button"
-                onClick={handleClear}
-                variant="ghost"
-                size="icon"
-                className="absolute right-12 top-1/2 h-10 w-10 -translate-y-1/2 rounded-2xl text-muted-foreground transition hover:text-foreground sm:right-14"
-                aria-label="Clear"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-            {!loading && (
-              <Button
-                type="button"
-                onClick={handleVoiceSearch}
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 h-10 w-10 -translate-y-1/2 rounded-2xl text-muted-foreground transition hover:text-foreground sm:right-3"
-                aria-label="Voice search"
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-            )}
+            <Mic className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground/60" />
           </div>
+        </form>
 
+        <div className="flex items-center gap-2">
           <Button
-            type="submit"
-            disabled={!query.trim() || loading}
-            size="lg"
-            className="h-12 rounded-2xl px-5 text-sm sm:h-14 sm:rounded-3xl sm:px-7 sm:text-base"
+            type="button"
+            variant="ghost"
+            className="h-10 rounded-full bg-muted/40 px-4 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground"
           >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="hidden sm:inline">Searching</span>
-              </>
-            ) : (
-              <>
-                <Search className="h-4 w-4 sm:hidden" />
-                <span>Search</span>
-              </>
-            )}
+            Add specific filters
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+          >
+            <MoreHorizontal className="h-5 w-5" />
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

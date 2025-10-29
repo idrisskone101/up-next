@@ -84,33 +84,33 @@ export function MovieModal({ movie, onClose }) {
       onClick={onClose}
     >
       <div
-        className="relative flex h-[95dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-border/40 bg-card/95 shadow-[0_40px_120px_-40px_rgba(6,182,212,0.35)] md:h-[88vh] md:max-h-[88vh] md:max-w-4xl md:rounded-[32px]"
+        className="relative flex h-[96dvh] w-full flex-col overflow-hidden rounded-t-[32px] border border-border/40 bg-card/95 shadow-[0_40px_120px_-40px_rgba(6,182,212,0.35)] md:h-[88vh] md:max-h-[88vh] md:max-w-4xl md:rounded-[32px]"
         onClick={(event) => event.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-border/50 bg-background/80 text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-border/50 bg-background/90 text-muted-foreground backdrop-blur-xl transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background md:h-12 md:w-12"
           aria-label="Close modal"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4 md:h-5 md:w-5" />
         </button>
 
         {backdropUrl && (
-          <div className="relative hidden h-64 flex-shrink-0 overflow-hidden md:block">
+          <div className="relative h-32 flex-shrink-0 overflow-hidden md:h-64">
             <img
               src={backdropUrl}
               alt={title}
               className="h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/70 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-card/30 md:via-card/70" />
           </div>
         )}
 
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-10 pb-safe pt-4 md:px-14 md:pt-6 lg:px-20">
-          <div className="grid gap-8 md:gap-10 md:grid-cols-[280px_minmax(0,1fr)]">
-            <div className="space-y-6">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-8 pt-3 md:px-14 md:pt-6 lg:px-20 md:pb-safe">
+          <div className="grid gap-6 md:gap-10 md:grid-cols-[280px_minmax(0,1fr)]">
+            <div className="space-y-4 md:space-y-6">
               {posterUrl && (
-                <div className="overflow-hidden rounded-3xl border border-border/40 bg-background/40 shadow-soft">
+                <div className="mx-auto w-48 overflow-hidden rounded-2xl border border-border/40 bg-background/40 shadow-soft md:w-full md:rounded-3xl">
                   <img
                     src={posterUrl}
                     alt={title}
@@ -119,7 +119,7 @@ export function MovieModal({ movie, onClose }) {
                 </div>
               )}
 
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="mx-auto flex max-w-sm flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground md:mx-0 md:block md:max-w-none md:space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs uppercase tracking-wide text-muted-foreground/70">
                     Type
@@ -168,7 +168,7 @@ export function MovieModal({ movie, onClose }) {
                 )}
               </div>
 
-              <div className="rounded-3xl border border-border/50 bg-background/70 p-5 shadow-soft">
+              <div className="rounded-2xl border border-border/50 bg-background/70 p-4 shadow-soft md:rounded-3xl md:p-5">
                 <h3 className="text-sm font-semibold text-muted-foreground">
                   Match scores
                 </h3>
@@ -184,22 +184,22 @@ export function MovieModal({ movie, onClose }) {
               </div>
             </div>
 
-            <div className="space-y-8">
-              <header className="space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
+            <div className="space-y-6 md:space-y-8">
+              <header className="space-y-2 md:space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1.5 text-xs uppercase tracking-wide text-muted-foreground md:px-4 md:py-2">
                   Released {year}
                 </div>
-                <h1 className="text-balance text-3xl font-semibold text-foreground sm:text-4xl">
+                <h1 className="text-balance text-2xl font-semibold text-foreground sm:text-3xl md:text-4xl">
                   {title}
                 </h1>
               </header>
 
               {id && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Trailer
                   </h2>
-                  <div className="overflow-hidden rounded-2xl border border-border/50">
+                  <div className="overflow-hidden rounded-xl border border-border/50 md:rounded-2xl">
                     <TrailerPlayer
                       tmdbId={id}
                       mediaType={kind === "tv" ? "tv" : "movie"}
@@ -210,7 +210,7 @@ export function MovieModal({ movie, onClose }) {
               )}
 
               {overview && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Overview
                   </h2>
@@ -221,7 +221,7 @@ export function MovieModal({ movie, onClose }) {
               )}
 
               {director && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Director
                   </h2>
@@ -230,15 +230,15 @@ export function MovieModal({ movie, onClose }) {
               )}
 
               {topCast.length > 0 && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Cast
                   </h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {topCast.map((actor, index) => (
                       <span
                         key={index}
-                        className="rounded-full border border-border/50 bg-background/60 px-3 py-1.5 text-xs text-muted-foreground"
+                        className="rounded-full border border-border/50 bg-background/60 px-2.5 py-1 text-xs text-muted-foreground md:px-3 md:py-1.5"
                       >
                         {actor.name || actor}
                       </span>
@@ -248,15 +248,15 @@ export function MovieModal({ movie, onClose }) {
               )}
 
               {safeGenres.length > 0 && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Genres
                   </h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {safeGenres.map((genre) => (
                       <span
                         key={genre}
-                        className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
+                        className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary md:px-3 md:py-1.5"
                       >
                         {genre}
                       </span>
@@ -266,15 +266,15 @@ export function MovieModal({ movie, onClose }) {
               )}
 
               {safeVibes.length > 0 && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Vibes
                   </h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {safeVibes.map((vibe) => (
                       <span
                         key={vibe}
-                        className="rounded-full border border-border/40 bg-secondary/60 px-3 py-1.5 text-xs font-medium text-secondary-foreground"
+                        className="rounded-full border border-border/40 bg-secondary/60 px-2.5 py-1 text-xs font-medium text-secondary-foreground md:px-3 md:py-1.5"
                       >
                         {vibe}
                       </span>
@@ -284,15 +284,15 @@ export function MovieModal({ movie, onClose }) {
               )}
 
               {safeThemes.length > 0 && (
-                <section className="space-y-3">
+                <section className="space-y-2 md:space-y-3">
                   <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Themes
                   </h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {safeThemes.map((theme) => (
                       <span
                         key={theme}
-                        className="rounded-full border border-border/40 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent"
+                        className="rounded-full border border-border/40 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent md:px-3 md:py-1.5"
                       >
                         {theme}
                       </span>

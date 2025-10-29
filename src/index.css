@@ -4,32 +4,49 @@
 
 @layer base {
   :root {
+    /* Background & Surface */
     --background: 222 47% 4%;
-    --foreground: 210 40% 97%;
-    --muted: 215 19% 17%;
-    --muted-foreground: 214 9% 65%;
-    --primary: 195 83% 61%;
-    --primary-foreground: 222 66% 11%;
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 214 100% 96%;
-    --accent: 196 71% 46%;
-    --accent-foreground: 214 100% 98%;
-    --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 218 32% 20%;
-    --input: 218 32% 20%;
-    --ring: 196 83% 65%;
-    --card: 222 40% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 40% 6%;
     --card-foreground: 214 100% 98%;
-    --popover: 222 47% 4%;
-    --popover-foreground: 214 31% 90%;
-    --shadow: 222 84% 3%;
+    --popover: 222 47% 5%;
+    --popover-foreground: 214 31% 92%;
+    
+    /* Primary Brand Colors */
+    --primary: 195 85% 65%;
+    --primary-foreground: 222 66% 10%;
+    --accent: 196 75% 50%;
+    --accent-foreground: 214 100% 98%;
+    
+    /* Secondary & Muted */
+    --secondary: 217 32% 18%;
+    --secondary-foreground: 214 100% 96%;
+    --muted: 215 20% 20%;
+    --muted-foreground: 214 12% 72%;
+    
+    /* Semantic Colors */
+    --destructive: 0 85% 62%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 142 76% 96%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 48 96% 89%;
+    
+    /* Borders & Inputs */
+    --border: 218 32% 22%;
+    --input: 218 32% 22%;
+    --ring: 196 85% 68%;
+    
+    /* Shadows */
+    --shadow: 222 84% 2%;
+    
+    /* Border Radius */
     --radius: 1rem;
   }
 
   .dark {
     --background: 222 47% 4%;
-    --foreground: 210 40% 97%;
+    --foreground: 210 40% 98%;
   }
 
   * {

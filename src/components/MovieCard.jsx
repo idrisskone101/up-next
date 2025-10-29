@@ -1,4 +1,48 @@
 import { Badge } from "./ui/badge";
+import { Film, Tv } from "lucide-react";
+
+/**
+ * CircularProgress component for match score visualization
+ */
+function CircularProgress({ percentage, size = 44 }) {
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-border/60"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="text-primary transition-all duration-500"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground sm:text-xs">
+        {Math.round(percentage)}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Individual movie/TV show card component tuned for the refreshed design.
@@ -78,36 +122,47 @@ export function MovieCard({ movie, onClick }) {
 
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-          <div className="absolute left-4 top-4 flex flex-col gap-2">
-            <Badge variant="outline" className="px-3 py-1 text-xs uppercase">
-              {kind || "movie"}
-            </Badge>
+          {/* Media type icon badge */}
+          <div className="absolute left-2 top-2 sm:left-4 sm:top-4">
+            {kind === "tv" ? (
+              <div className="flex items-center gap-1 rounded-full border border-border/60 bg-background/90 px-1.5 py-0.5 backdrop-blur-sm sm:gap-1.5 sm:px-2.5 sm:py-1">
+                <Tv className="h-2.5 w-2.5 text-primary sm:h-3 sm:w-3" />
+                <span className="text-[10px] font-medium uppercase tracking-wide text-foreground sm:text-xs">TV</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 rounded-full border border-border/60 bg-background/90 px-1.5 py-0.5 backdrop-blur-sm sm:gap-1.5 sm:px-2.5 sm:py-1">
+                <Film className="h-2.5 w-2.5 text-accent sm:h-3 sm:w-3" />
+                <span className="text-[10px] font-medium uppercase tracking-wide text-foreground sm:text-xs">Movie</span>
+              </div>
+            )}
           </div>
 
-          <div className="absolute right-4 top-4 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-semibold text-primary shadow-soft">
-            {(combined_score * 100).toFixed(0)}% match
+          {/* Circular match score */}
+          <div className="absolute right-2 top-2 flex flex-col items-center gap-0.5 rounded-xl border border-border/60 bg-background/95 p-1.5 backdrop-blur-sm shadow-lg sm:right-4 sm:top-4 sm:gap-1 sm:p-2">
+            <CircularProgress percentage={combined_score * 100} size={36} className="" />
+            <span className="text-[9px] font-medium uppercase tracking-wider text-muted-foreground sm:text-[10px]">Match</span>
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col gap-3 px-5 pb-6 pt-5 sm:px-6 sm:pb-7 sm:pt-6">
-          <div className="space-y-1.5">
-            <h3 className="text-base font-semibold text-foreground sm:text-lg">
+        <div className="flex flex-1 flex-col gap-2 px-3 pb-4 pt-3 sm:gap-3 sm:px-5 sm:pb-6 sm:pt-5 md:px-6 md:pb-7 md:pt-6">
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-foreground line-clamp-2 sm:text-base md:text-lg">
               {title}
             </h3>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground sm:gap-2 sm:text-xs md:text-sm">
               <span>{year}</span>
               {runtime_minutes && (
                 <>
                   <span className="text-muted-foreground/40">•</span>
-                  <span>{formatRuntime(runtime_minutes)}</span>
+                  <span className="hidden sm:inline">{formatRuntime(runtime_minutes)}</span>
                 </>
               )}
               {vote_average && (
                 <>
                   <span className="text-muted-foreground/40">•</span>
-                  <span className="inline-flex items-center gap-1">
+                  <span className="inline-flex items-center gap-0.5 sm:gap-1">
                     <svg
-                      className="h-3.5 w-3.5 text-amber-400"
+                      className="h-2.5 w-2.5 text-amber-400 sm:h-3.5 sm:w-3.5"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -120,25 +175,37 @@ export function MovieCard({ movie, onClick }) {
             </div>
           </div>
 
-          {safeGenres.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {safeGenres.slice(0, 3).map((genre) => (
+          {/* Combined genre and vibe tags */}
+          {(safeGenres.length > 0 || safeVibes.length > 0) && (
+            <div className="flex flex-wrap gap-1 sm:gap-1.5">
+              {safeGenres.slice(0, 1).map((genre) => (
                 <span
                   key={genre}
-                  className="rounded-full border border-border/40 bg-background/40 px-2.5 py-1 text-xs text-muted-foreground"
+                  className="inline-flex items-center rounded-md border border-border/50 bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground transition-colors group-hover:border-border/70 sm:px-2 sm:text-xs"
                 >
                   {genre}
                 </span>
               ))}
-            </div>
-          )}
-
-          {safeVibes.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {safeVibes.slice(0, 3).map((vibe) => (
+              {safeGenres.slice(1, 2).map((genre) => (
+                <span
+                  key={genre}
+                  className="hidden sm:inline-flex items-center rounded-md border border-border/50 bg-secondary/60 px-2 py-0.5 text-xs font-medium text-secondary-foreground transition-colors group-hover:border-border/70"
+                >
+                  {genre}
+                </span>
+              ))}
+              {safeVibes.slice(0, 1).map((vibe) => (
                 <span
                   key={vibe}
-                  className="rounded-full bg-gradient-to-r from-primary/15 to-accent/15 px-2.5 py-1 text-xs font-medium text-primary"
+                  className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20 transition-all group-hover:bg-primary/15 sm:px-2 sm:text-xs"
+                >
+                  {vibe}
+                </span>
+              ))}
+              {safeVibes.slice(1, 2).map((vibe) => (
+                <span
+                  key={vibe}
+                  className="hidden sm:inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20 transition-all group-hover:bg-primary/15"
                 >
                   {vibe}
                 </span>
@@ -146,9 +213,12 @@ export function MovieCard({ movie, onClick }) {
             </div>
           )}
 
-          <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground/90">
-            {truncatedOverview}
-          </p>
+          <div className="relative">
+            <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground/90 sm:line-clamp-3 sm:text-sm">
+              {overview || "No description available."}
+            </p>
+            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-card/95 to-transparent pointer-events-none sm:h-6" />
+          </div>
         </div>
       </div>
     </button>
