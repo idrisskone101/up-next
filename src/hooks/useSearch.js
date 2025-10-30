@@ -10,7 +10,7 @@ export function useSearch() {
   const [error, setError] = useState(null);
   const [searchMetadata, setSearchMetadata] = useState(null);
 
-  const search = useCallback(async (query, matchCount = 20, matchThreshold = 0.3) => {
+  const search = useCallback(async (query, matchCount = 50, matchThreshold = 0.4, kindFilter = null) => {
     if (!query || query.trim().length === 0) {
       setResults([]);
       setSearchMetadata(null);
@@ -21,7 +21,7 @@ export function useSearch() {
     setError(null);
 
     try {
-      const data = await searchMovies(query, matchCount, matchThreshold);
+      const data = await searchMovies(query, matchCount, matchThreshold, kindFilter);
 
       setResults(data.results || []);
       setSearchMetadata({

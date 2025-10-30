@@ -74,9 +74,7 @@
       radial-gradient(circle at 20% 20%, hsl(var(--accent) / 0.12) 0, transparent 45%),
       linear-gradient(160deg, hsl(var(--background)) 0%, hsl(223 47% 6%) 55%, hsl(227 45% 12%) 100%);
     background-color: hsl(var(--background));
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    touch-action: manipulation;
+    /* -webkit-tap-highlight-color: transparent; */
     -webkit-overflow-scrolling: touch;
   }
 
@@ -86,13 +84,23 @@
   }
 
   button,
-  a,
+  a {
+    /* -webkit-tap-highlight-color: transparent; */
+    touch-action: manipulation;
+    font: inherit;
+  }
+
   input,
   select,
   textarea {
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    /* -webkit-tap-highlight-color: transparent; */
     font: inherit;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    touch-action: auto !important;
+    -webkit-touch-callout: default !important;
   }
 }
 

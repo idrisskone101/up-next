@@ -17,16 +17,30 @@ export function MovieModal({ movie, onClose }) {
   }, [onClose]);
 
   useEffect(() => {
+    // Save the current scroll position
+    const scrollY = window.scrollY;
+    
+    // Save original styles
     const originalOverflow = document.body.style.overflow;
     const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalWidth = document.body.style.width;
+    
+    // Lock body scroll and preserve scroll position
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
     document.body.style.width = "100%";
 
     return () => {
+      // Restore original styles
       document.body.style.overflow = originalOverflow;
       document.body.style.position = originalPosition;
-      document.body.style.width = "";
+      document.body.style.top = originalTop;
+      document.body.style.width = originalWidth;
+      
+      // Restore scroll position
+      window.scrollTo(0, scrollY);
     };
   }, []);
 

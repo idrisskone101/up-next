@@ -11,7 +11,7 @@ import {
 } from "./components/ui/card";
 import { Navbar } from "./components/Navbar";
 import { SearchBar } from "./components/SearchBar";
-import { LoadingSpinner } from "./components/LoadingSpinner";
+import { Spinner } from "./components/ui/spinner";
 import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
@@ -27,16 +27,7 @@ function App() {
   const hasResults = results.length > 0;
   const showIntro = !loading && !hasResults && !error && !searchMetadata;
 
-  console.log("results", results);
-  console.log("recommendations", recommendations);
-  console.log("loading", loading);
-  console.log("loadingRecs", loadingRecs);
-  console.log("error", error);
-  console.log("recsError", recsError);
-  console.log("searchMetadata", searchMetadata);
-  console.log("search", search);
-  console.log("reset", reset);
-  console.log("selectedMovie", selectedMovie);
+   
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
@@ -48,16 +39,16 @@ function App() {
         <header className="container w-full space-y-6 pb-10 pt-safe pt-8 md:space-y-8 md:pb-12 md:pt-12">
           <div className="flex flex-col items-center gap-4 text-center sm:gap-5">
             <div className="space-y-3">
-              <h1 className="text-balance text-3xl font-medium tracking-tight text-foreground sm:text-4xl md:text-5xl">
-                Discover your next favorite movie.
+              <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                Find films that fit your mood, not just your menu.
               </h1>
               <p className="mx-auto max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground/80">
-                Search by vibe, genre, theme, or mood — powered by semantic AI.
+                Describe a vibe, a feeling, or just type <span className="italic">anything</span>—and let smart search match you with movies & shows you'll love.
               </p>
             </div>
           </div>
 
-          <SearchBar onSearch={search} loading={loading} />
+          <SearchBar onSearch={(query, kindFilter) => search(query, 50, 0.4, kindFilter)} loading={loading} />
         </header>
 
         {/* Main Content */}
@@ -177,7 +168,7 @@ function App() {
 
           {showIntro && loadingRecs && (
             <div className="flex items-center justify-center py-12">
-              <LoadingSpinner message="Loading recommendations…" />
+              <Spinner size={70} className="text-primary" ariaLabel="Loading…" message="Loading recommendations…" />
             </div>
           )}
 

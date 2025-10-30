@@ -9,9 +9,10 @@ const API_BASE_URL = '/api';
  * @param {string} query - Search query
  * @param {number} matchCount - Number of results to return
  * @param {number} matchThreshold - Minimum similarity threshold
+ * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
  * @returns {Promise<Object>} Search results
  */
-export async function searchMovies(query, matchCount = 20, matchThreshold = 0.3) {
+export async function searchMovies(query, matchCount = 50, matchThreshold = 0.4, kindFilter = null) {
   try {
     const response = await fetch(`${API_BASE_URL}/search`, {
       method: 'POST',
@@ -22,6 +23,7 @@ export async function searchMovies(query, matchCount = 20, matchThreshold = 0.3)
         query,
         matchCount,
         matchThreshold,
+        kindFilter,
       }),
     });
 

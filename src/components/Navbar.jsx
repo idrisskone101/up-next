@@ -23,7 +23,7 @@ export function Navbar() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <button
-          onClick={(e) => e.preventDefault()}
+          onClick={() => window.location.reload()}
           className="flex items-center gap-2 text-foreground hover:text-primary transition-colors group"
           aria-label="upNext home"
         >

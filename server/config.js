@@ -19,6 +19,13 @@ const rerankMaxSameCollection = parseInt(process.env.RERANK_MAX_SAME_COLLECTION 
 const rerankMaxSameDirector = parseInt(process.env.RERANK_MAX_SAME_DIRECTOR || "3", 10);
 const rerankCompletenessThreshold = parseFloat(process.env.RERANK_COMPLETENESS_THRESHOLD || "0.85");
 
+// Parse query structuring configuration
+const useQueryStructuring = process.env.USE_QUERY_STRUCTURING === "true"; // Default OFF
+
+// Parse search configuration
+const defaultMatchCount = parseInt(process.env.DEFAULT_MATCH_COUNT || "50", 10);
+const defaultMatchThreshold = parseFloat(process.env.DEFAULT_MATCH_THRESHOLD || "0.4");
+
 // Validate that fixed weights sum to 1.0 (within tolerance)
 const weightSum = fixedContentWeight + fixedVibeWeight + fixedMetadataWeight;
 if (Math.abs(weightSum - 1.0) > 0.01) {
@@ -70,6 +77,15 @@ export const config = {
     penaltyFactor: 0.85, // Hardcoded for now
   },
   completenessThreshold: rerankCompletenessThreshold,
+
+  // Query structuring configuration
+  useQueryStructuring,
+
+  // Search configuration
+  search: {
+    defaultMatchCount,
+    defaultMatchThreshold,
+  },
 };
 
 // Validate required environment variables
@@ -99,3 +115,9 @@ if (enableReranking) {
   console.log(`   Recency:     ${rerankWeightRecency.toFixed(2)}`);
   console.log(`   Diversity:   Max ${rerankMaxSameCollection} same collection, ${rerankMaxSameDirector} same director`);
 }
+
+// Log query structuring configuration on startup
+console.log(`\n🔧 Query Structuring: ${useQueryStructuring ? "ENABLED" : "DISABLED"}`);
+
+// Log search configuration on startup
+console.log(`\n🔍 Search Defaults: matchCount=${defaultMatchCount}, matchThreshold=${defaultMatchThreshold.toFixed(2)}`);

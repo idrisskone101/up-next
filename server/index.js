@@ -90,14 +90,31 @@ app.get("/api/recommendations", async (req, res) => {
     console.log("[Recommendations] Fetching curated titles...");
 
     // Query for high-quality titles with posters
+    // Only select fields needed for rendering movie cards and trailers
     const { data, error } = await supabase
       .from("titles")
-      .select("*")
-      .gte("vote_average", 7.0)
+      .select(`
+        id,
+        title,
+        kind,
+        release_date,
+        overview,
+        genres,
+        vibes,
+        themes,
+        director,
+        cast,
+        vote_average,
+        certification,
+        runtime_minutes,
+        poster_path,
+        backdrop_path
+      `)
+      .gte("vote_average", 6.0)
       .not("poster_path", "is", null)
       .not("overview", "is", null)
-      .order("vote_average", { ascending: false })
-      .limit(30);
+      .contains("languages", ["en"])
+      .limit(20);
 
     if (error) {
       console.error("[Recommendations] Database error:", error);
@@ -129,7 +146,7 @@ app.get("/api/recommendations", async (req, res) => {
 });
 app.post("/api/search", async (req, res) => {
   try {
-    const { query, matchCount = 20, matchThreshold = 0.3 } = req.body;
+    const { query, matchCount = config.search.defaultMatchCount, matchThreshold = config.search.defaultMatchThreshold, kindFilter = null } = req.body;
 
     // Validate request
     if (!query || typeof query !== "string" || query.trim().length === 0) {
@@ -154,12 +171,32 @@ app.post("/api/search", async (req, res) => {
       });
     }
 
+    // Validate kindFilter if provided
+    if (kindFilter !== null && !Array.isArray(kindFilter)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "kindFilter must be an array or null",
+      });
+    }
+
+    if (kindFilter && kindFilter.length > 0) {
+      const validKinds = ['movie', 'tv'];
+      const invalidKinds = kindFilter.filter(k => !validKinds.includes(k));
+      if (invalidKinds.length > 0) {
+        return res.status(400).json({
+          error: "Invalid request",
+          message: `kindFilter contains invalid values: ${invalidKinds.join(', ')}. Valid values are: ${validKinds.join(', ')}`,
+        });
+      }
+    }
+
     // Perform search
     const startTime = Date.now();
     const results = await searchTitles(
       query.trim(),
       matchCount,
       matchThreshold,
+      kindFilter,
     );
     const duration = Date.now() - startTime;
 

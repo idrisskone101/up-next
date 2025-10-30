@@ -16,14 +16,16 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
  * Now includes re-ranking to enhance results with quality signals
  *
  * @param {string} query - The user's search query
- * @param {number} matchCount - Number of results to return (default: 10)
- * @param {number} matchThreshold - Minimum similarity score (default: 0.3)
+ * @param {number} matchCount - Number of results to return (default: from config)
+ * @param {number} matchThreshold - Minimum similarity score (default: from config)
+ * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
  * @returns {Promise<Object>} Search results with weights and reasoning
  */
 export async function searchTitles(
   query,
-  matchCount = 20,
-  matchThreshold = 0.3,
+  matchCount = config.search.defaultMatchCount,
+  matchThreshold = config.search.defaultMatchThreshold,
+  kindFilter = null,
 ) {
   try {
     console.log(`[Search] Query: "${query}"`);
@@ -54,6 +56,9 @@ export async function searchTitles(
 
     // Step 3: Call Supabase RPC function for multi-embedding search
     console.log("[Search] Calling Supabase match_titles_multi...");
+    if (kindFilter) {
+      console.log(`[Search] Filtering by kind: ${kindFilter.join(', ')}`);
+    }
     const dbStartTime = Date.now();
     const { data, error } = await supabase.rpc("match_titles_multi", {
       query_content_embedding: embeddings.content,
@@ -64,6 +69,7 @@ export async function searchTitles(
       weight_metadata: weights.metadata,
       match_threshold: matchThreshold,
       match_count: matchCount,
+      filter_kind: kindFilter,
     });
     const dbEndTime = Date.now();
 
