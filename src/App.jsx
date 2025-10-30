@@ -20,12 +20,14 @@ import { useSearch } from "./hooks/useSearch";
 import { useRecommendations } from "./hooks/useRecommendations";
 
 function App() {
-  const { results, loading, error, searchMetadata, search, reset } = useSearch();
+  const { results, loading, loadingMore, error, searchMetadata, hasMore, search, loadMore, reset } = useSearch();
   const { recommendations, loading: loadingRecs, error: recsError } = useRecommendations();
   const [selectedMovie, setSelectedMovie] = useState(null);
 
   const hasResults = results.length > 0;
   const showIntro = !loading && !hasResults && !error && !searchMetadata;
+
+  console.log("results", results);
 
    
 
@@ -48,7 +50,7 @@ function App() {
             </div>
           </div>
 
-          <SearchBar onSearch={(query, kindFilter) => search(query, 50, 0.4, kindFilter)} loading={loading} />
+          <SearchBar onSearch={(query, kindFilter) => search(query, 20, 0.4, kindFilter)} loading={loading} />
         </header>
 
         {/* Main Content */}
@@ -72,12 +74,22 @@ function App() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/30">
                   <AlertCircle className="h-6 w-6 text-destructive-foreground" />
                 </div>
-                <CardTitle className="text-xl">We lost the signal</CardTitle>
+                <CardTitle className="text-xl">
+                  {typeof error === 'object' && error.timeout 
+                    ? 'Search timed out' 
+                    : 'We lost the signal'}
+                </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  {error}
+                  {typeof error === 'object' ? error.message : error}
                 </CardDescription>
+                {typeof error === 'object' && error.timeout && (
+                  <CardDescription className="text-xs text-muted-foreground/70 mt-2">
+                    The search is taking longer than expected. This might be due to high server load. 
+                    Try searching again in a moment, or use a simpler query.
+                  </CardDescription>
+                )}
               </CardHeader>
-              <CardContent className="flex w-full items-center justify-center">
+              <CardContent className="flex w-full items-center justify-center gap-3">
                 <Button onClick={reset} size="lg" variant="accent">
                   Try again
                 </Button>
@@ -90,7 +102,13 @@ function App() {
           )}
 
           {hasResults && !loading && (
-            <ResultsGrid results={results} searchMetadata={searchMetadata} />
+            <ResultsGrid 
+              results={results} 
+              searchMetadata={searchMetadata}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={loadMore}
+            />
           )}
 
           {/* Recommended For You Section */}

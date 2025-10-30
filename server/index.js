@@ -17,9 +17,25 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 const app = express();
 const PORT = config.port;
 
+// Server timeout configuration (60 seconds for vector searches)
+const SERVER_TIMEOUT = 60000; // 60 seconds
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Timeout middleware for long-running requests
+app.use((req, res, next) => {
+  req.setTimeout(SERVER_TIMEOUT, () => {
+    if (!res.headersSent) {
+      res.status(504).json({
+        error: "Request timeout",
+        message: "The request took too long to process. Please try again with a simpler query or fewer results.",
+      });
+    }
+  });
+  next();
+});
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -146,7 +162,14 @@ app.get("/api/recommendations", async (req, res) => {
 });
 app.post("/api/search", async (req, res) => {
   try {
-    const { query, matchCount = config.search.defaultMatchCount, matchThreshold = config.search.defaultMatchThreshold, kindFilter = null } = req.body;
+    const { 
+      query, 
+      matchCount = config.search.defaultMatchCount, 
+      matchThreshold = config.search.defaultMatchThreshold, 
+      kindFilter = null,
+      page = 1,
+      pageSize = 20,
+    } = req.body;
 
     // Validate request
     if (!query || typeof query !== "string" || query.trim().length === 0) {
@@ -168,6 +191,24 @@ app.post("/api/search", async (req, res) => {
       return res.status(400).json({
         error: "Invalid request",
         message: "matchThreshold must be between 0 and 1",
+      });
+    }
+
+    // Validate pagination parameters
+    const pageNum = parseInt(page, 10);
+    const pageSizeNum = parseInt(pageSize, 10);
+    
+    if (isNaN(pageNum) || pageNum < 1) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "page must be a positive integer",
+      });
+    }
+
+    if (isNaN(pageSizeNum) || pageSizeNum < 1 || pageSizeNum > 50) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "pageSize must be between 1 and 50",
       });
     }
 
@@ -197,6 +238,8 @@ app.post("/api/search", async (req, res) => {
       matchCount,
       matchThreshold,
       kindFilter,
+      pageNum,
+      pageSizeNum,
     );
     const duration = Date.now() - startTime;
 
@@ -211,6 +254,15 @@ app.post("/api/search", async (req, res) => {
     res.json(results);
   } catch (error) {
     console.error("[API] Search error:", error);
+
+    // Handle timeout errors specifically
+    if (error.message && (error.message.includes("timeout") || error.message.includes("canceling statement"))) {
+      return res.status(504).json({
+        error: "Search timeout",
+        message: "The search took too long to complete. Try reducing the number of results or simplifying your query.",
+        timeout: true,
+      });
+    }
 
     // Return error response with fallback weights
     res.status(500).json({
@@ -291,15 +343,21 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API endpoint: http://localhost:${PORT}/api/search`);
   console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
   if (process.env.NODE_ENV === "production") {
     console.log(`🎨 Serving static frontend from dist/`);
   }
+  console.log(`⏱️  Server timeout: ${SERVER_TIMEOUT}ms`);
   console.log();
 });
+
+// Set server-level timeout
+server.setTimeout(SERVER_TIMEOUT);
+server.keepAliveTimeout = SERVER_TIMEOUT;
+server.headersTimeout = SERVER_TIMEOUT + 1000; // Slightly higher than keepAliveTimeout
 
 // Graceful shutdown
 process.on("SIGTERM", () => {

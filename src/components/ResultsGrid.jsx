@@ -2,11 +2,13 @@ import { useState } from "react";
 import { MovieCard } from "./MovieCard";
 import { MovieModal } from "./MovieModal";
 import { SearchMetadata } from "./SearchMetadata";
+import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 
 /**
- * Responsive grid container for movie cards
+ * Responsive grid container for movie cards with pagination support
  */
-export function ResultsGrid({ results, searchMetadata }) {
+export function ResultsGrid({ results, searchMetadata, hasMore, loadingMore, onLoadMore }) {
   const [selectedMovie, setSelectedMovie] = useState(null);
 
   if (results.length === 0) {
@@ -35,6 +37,28 @@ export function ResultsGrid({ results, searchMetadata }) {
               </div>
             ))}
           </div>
+
+          {/* Load More button */}
+          {hasMore && (
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                size="lg"
+                variant="accent"
+                className="min-w-[200px]"
+              >
+                {loadingMore ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner size={20} className="text-current" />
+                    Loading...
+                  </span>
+                ) : (
+                  "Load More"
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 

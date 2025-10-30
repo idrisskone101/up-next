@@ -3,38 +3,100 @@
  */
 
 const API_BASE_URL = '/api';
+const FETCH_TIMEOUT = 65000; // 65 seconds (slightly longer than server timeout)
+const MAX_RETRIES = 2; // Maximum number of retry attempts
 
 /**
- * Search for movies and TV shows
+ * Helper function to create a timeout promise
+ */
+function createTimeoutPromise(timeoutMs) {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), timeoutMs);
+  });
+}
+
+/**
+ * Helper function to sleep for a given duration
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Search for movies and TV shows with timeout and retry logic
  * @param {string} query - Search query
  * @param {number} matchCount - Number of results to return
  * @param {number} matchThreshold - Minimum similarity threshold
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
+ * @param {number} page - Page number (1-indexed, default: 1)
+ * @param {number} pageSize - Number of results per page (default: 20)
+ * @param {number} retryCount - Current retry attempt (internal use)
  * @returns {Promise<Object>} Search results
  */
-export async function searchMovies(query, matchCount = 50, matchThreshold = 0.4, kindFilter = null) {
+export async function searchMovies(query, matchCount = 20, matchThreshold = 0.4, kindFilter = null, page = 1, pageSize = 20, retryCount = 0) {
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
+
   try {
-    const response = await fetch(`${API_BASE_URL}/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query,
-        matchCount,
-        matchThreshold,
-        kindFilter,
+    const response = await Promise.race([
+      fetch(`${API_BASE_URL}/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          matchCount,
+          matchThreshold,
+          kindFilter,
+          page,
+          pageSize,
+        }),
+        signal: abortController.signal,
       }),
-    });
+      createTimeoutPromise(FETCH_TIMEOUT),
+    ]);
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      error.status = response.status;
+      error.timeout = errorData.timeout || response.status === 504;
+      
+      // Retry on timeout or 504 errors if we haven't exceeded max retries
+      if ((error.timeout || response.status === 504) && retryCount < MAX_RETRIES) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff, max 5s
+        console.log(`[API] Retrying search (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+        await sleep(delay);
+        return searchMovies(query, matchCount, matchThreshold, kindFilter, page, pageSize, retryCount + 1);
+      }
+      
+      throw error;
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
+    clearTimeout(timeoutId);
+    
+    // Handle abort/timeout errors
+    if (error.name === 'AbortError' || error.message === 'Request timeout') {
+      const timeoutError = new Error('Search request timed out. The server may be busy. Please try again.');
+      timeoutError.timeout = true;
+      
+      // Retry on timeout if we haven't exceeded max retries
+      if (retryCount < MAX_RETRIES) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+        console.log(`[API] Retrying search after timeout (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+        await sleep(delay);
+        return searchMovies(query, matchCount, matchThreshold, kindFilter, page, pageSize, retryCount + 1);
+      }
+      
+      throw timeoutError;
+    }
+    
     console.error('API Error:', error);
     throw error;
   }

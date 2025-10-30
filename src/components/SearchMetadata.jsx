@@ -10,12 +10,19 @@ export function SearchMetadata({ metadata }) {
 
   if (!metadata) return null;
 
-  const { count, weights, weightReasoning, query, metadata: apiMetadata } = metadata;
+  const { count, totalCount, page, totalPages, weights, weightReasoning, query, metadata: apiMetadata } = metadata;
 
   // Calculate strongest signal
   const strongestSignal = weights
     ? Object.entries(weights).sort((a, b) => b[1] - a[1])[0]
     : null;
+  
+  // Format pagination info
+  const paginationInfo = totalCount !== undefined 
+    ? totalCount > count 
+      ? `Showing ${count} of ${totalCount}${page && totalPages ? ` (page ${page} of ${totalPages})` : ''}`
+      : `${count}`
+    : `${count}`;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 animate-slide-up">
@@ -30,13 +37,20 @@ export function SearchMetadata({ metadata }) {
         >
           <div className="flex flex-wrap items-center gap-6">
             {/* Match count */}
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-semibold text-foreground">
-                {count}
-              </span>
-              <span className="text-sm uppercase tracking-widest text-muted-foreground/70">
-                {count === 1 ? "match" : "matches"}
-              </span>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-semibold text-foreground">
+                  {count}
+                </span>
+                <span className="text-sm uppercase tracking-widest text-muted-foreground/70">
+                  {count === 1 ? "match" : "matches"}
+                </span>
+              </div>
+              {totalCount !== undefined && totalCount > count && (
+                <span className="text-xs text-muted-foreground/60">
+                  {paginationInfo}
+                </span>
+              )}
             </div>
 
             {/* Weight indicators */}
