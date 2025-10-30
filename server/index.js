@@ -342,8 +342,37 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+/**
+ * Pre-warm vector indexes on startup
+ * Loads all vector indexes into RAM to eliminate cold-start latency
+ */
+async function prewarmVectorIndexes() {
+  try {
+    console.log('🔥 Pre-warming vector indexes...');
+    const startTime = Date.now();
+    
+    const { data, error } = await supabase.rpc('prewarm_vector_indexes');
+    
+    if (error) {
+      console.warn('⚠️  Pre-warming failed (non-critical):', error.message);
+      return;
+    }
+    
+    const duration = Date.now() - startTime;
+    const totalMB = data.reduce((sum, idx) => sum + parseFloat(idx.size_mb), 0);
+    
+    console.log(`✅ Vector indexes pre-warmed in ${duration}ms`);
+    console.log(`   Loaded ${totalMB.toFixed(1)} MB into RAM:`);
+    data.forEach(idx => {
+      console.log(`   - ${idx.index_name}: ${idx.blocks_loaded} blocks (${idx.size_mb} MB)`);
+    });
+  } catch (error) {
+    console.warn('⚠️  Pre-warming failed (non-critical):', error.message);
+  }
+}
+
 // Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API endpoint: http://localhost:${PORT}/api/search`);
   console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
@@ -352,6 +381,10 @@ const server = app.listen(PORT, () => {
   }
   console.log(`⏱️  Server timeout: ${SERVER_TIMEOUT}ms`);
   console.log();
+  
+  // Pre-warm vector indexes (non-blocking)
+  await prewarmVectorIndexes();
+  console.log(`🎯 Server ready to accept requests\n`);
 });
 
 // Set server-level timeout
