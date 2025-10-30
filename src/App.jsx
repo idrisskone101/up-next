@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CloudCog } from "lucide-react";
 import { ShimmeringText } from "./components/ui/ShimmeringText";
 import { Button } from "./components/ui/button";
 import {
@@ -26,6 +26,17 @@ function App() {
 
   const hasResults = results.length > 0;
   const showIntro = !loading && !hasResults && !error && !searchMetadata;
+
+  console.log("results", results);
+  console.log("recommendations", recommendations);
+  console.log("loading", loading);
+  console.log("loadingRecs", loadingRecs);
+  console.log("error", error);
+  console.log("recsError", recsError);
+  console.log("searchMetadata", searchMetadata);
+  console.log("search", search);
+  console.log("reset", reset);
+  console.log("selectedMovie", selectedMovie);
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">

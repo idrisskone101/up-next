@@ -38,7 +38,7 @@ export function SearchBar({ onSearch, loading }) {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search for movies or genres..."
               disabled={loading}
-              className="h-14 w-full rounded-[28px] border-none bg-muted/40 px-12 pr-12 text-base text-foreground placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="h-14 w-full rounded-[28px] border-none bg-muted/40 pl-14 pr-12 text-base text-foreground placeholder:text-muted-foreground/60 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             {loading ? (
               <Loader2 className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary animate-spin" />
