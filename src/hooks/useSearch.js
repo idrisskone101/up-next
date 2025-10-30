@@ -13,12 +13,12 @@ export function useSearch() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [currentQuery, setCurrentQuery] = useState(null);
-  const [currentMatchCount, setCurrentMatchCount] = useState(20);
+  const [currentMatchCount, setCurrentMatchCount] = useState(100);
   const [currentMatchThreshold, setCurrentMatchThreshold] = useState(0.4);
   const [currentKindFilter, setCurrentKindFilter] = useState(null);
   const pageSize = 20;
 
-  const search = useCallback(async (query, matchCount = 20, matchThreshold = 0.4, kindFilter = null) => {
+  const search = useCallback(async (query, matchCount = 100, matchThreshold = 0.4, kindFilter = null) => {
     if (!query || query.trim().length === 0) {
       setResults([]);
       setSearchMetadata(null);

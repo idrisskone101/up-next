@@ -87,14 +87,14 @@ export function MovieCard({ movie, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 p-[1px] text-left shadow-soft transition ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:hover:-translate-y-1 sm:hover:shadow-2xl active:translate-y-0.5"
+      className="group relative mx-auto flex h-full w-full max-w-[300px] flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 p-[1px] text-left shadow-soft transition ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:max-w-none sm:hover:-translate-y-1 sm:hover:shadow-2xl active:translate-y-0.5"
     >
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-px rounded-[inherit] bg-gradient-to-br from-primary/15 via-transparent to-accent/25 opacity-0 transition-opacity duration-500 sm:group-hover:opacity-100"
       />
       <div className="relative flex h-full flex-col overflow-hidden rounded-[inherit] bg-card/95">
-        <div className="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-primary/10 via-background/40 to-accent/10">
+        <div className="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-primary/10 via-background/40 to-accent/10 sm:aspect-[2/3]">
           {posterUrl ? (
             <img
               src={posterUrl}

@@ -23,7 +23,7 @@ const rerankCompletenessThreshold = parseFloat(process.env.RERANK_COMPLETENESS_T
 const useQueryStructuring = process.env.USE_QUERY_STRUCTURING === "true"; // Default OFF
 
 // Parse search configuration
-const defaultMatchCount = parseInt(process.env.DEFAULT_MATCH_COUNT || "20", 10);
+const defaultMatchCount = parseInt(process.env.DEFAULT_MATCH_COUNT || "100", 10);
 const defaultMatchThreshold = parseFloat(process.env.DEFAULT_MATCH_THRESHOLD || "0.4");
 
 // Validate that fixed weights sum to 1.0 (within tolerance)

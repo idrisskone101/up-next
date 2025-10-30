@@ -50,7 +50,7 @@ function App() {
             </div>
           </div>
 
-          <SearchBar onSearch={(query, kindFilter) => search(query, 20, 0.4, kindFilter)} loading={loading} />
+          <SearchBar onSearch={(query, kindFilter) => search(query, 100, 0.4, kindFilter)} loading={loading} />
         </header>
 
         {/* Main Content */}
@@ -121,7 +121,7 @@ function App() {
                     key={movie.id}
                     type="button"
                     onClick={() => setSelectedMovie(movie)}
-                    className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 text-left shadow-soft transition sm:hover:-translate-y-1 sm:hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="group relative mx-auto flex w-full max-w-[300px] flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 text-left shadow-soft transition sm:max-w-none sm:hover:-translate-y-1 sm:hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     {/* Movie poster */}
                     <div className="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-primary/10 via-background/40 to-accent/10">
