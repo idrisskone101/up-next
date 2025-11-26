@@ -68,15 +68,8 @@ export default {
         sm: "calc(var(--radius) - 6px)",
       },
       fontFamily: {
-        sans: [
-          "Inter",
-          "ui-sans-serif",
-          "system-ui",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "\"Segoe UI\"",
-          "sans-serif",
-        ],
+        sans: ["Inter", "sans-serif"],
+        heading: ["DM Sans", "sans-serif"],
       },
       boxShadow: {
         soft: "0 20px 60px -35px hsl(var(--shadow) / 0.4)",

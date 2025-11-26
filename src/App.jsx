@@ -38,14 +38,18 @@ function App() {
         <Navbar />
 
         {/* Hero Section */}
-        <header className="container w-full space-y-6 pb-10 pt-safe pt-8 md:space-y-8 md:pb-12 md:pt-12">
-          <div className="flex flex-col items-center gap-4 text-center sm:gap-5">
-            <div className="space-y-3">
-              <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+        <header className="relative container w-full space-y-8 pb-12 pt-safe pt-16 md:space-y-12 md:pb-20 md:pt-24">
+          <div className="absolute inset-0 -z-10 mx-auto h-full w-full max-w-5xl opacity-30 blur-3xl">
+            <div className="aspect-[1100/400] w-full bg-gradient-to-r from-primary via-accent to-primary animate-pulse" style={{ clipPath: 'ellipse(50% 50% at 50% 50%)' }} />
+          </div>
+          
+          <div className="flex flex-col items-center gap-6 text-center sm:gap-8">
+            <div className="space-y-4 max-w-4xl">
+              <h1 className="text-glow text-balance text-4xl font-bold tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
                 Find films that fit your mood, not just your menu.
               </h1>
-              <p className="mx-auto max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground/80">
-                Describe a vibe, a feeling, or just type <span className="italic">anything</span>—and let smart search match you with movies & shows you'll love.
+              <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
+                Describe a vibe, a feeling, or just type <span className="text-primary font-medium italic">anything</span>—and let smart search match you with movies & shows you'll love.
               </p>
             </div>
           </div>
@@ -115,66 +119,43 @@ function App() {
           {showIntro && !loadingRecs && recommendations.length > 0 && (
             <section className="space-y-6 animate-fade-in">
               <h2 className="text-2xl font-semibold tracking-tight">Recommended For You</h2>
-              <div className="grid grid-cols-1 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {recommendations.map((movie) => (
                   <button
                     key={movie.id}
                     type="button"
                     onClick={() => setSelectedMovie(movie)}
-                    className="group relative mx-auto flex w-full max-w-[300px] flex-col overflow-hidden rounded-3xl border border-border/40 bg-card/85 text-left shadow-soft transition sm:max-w-none sm:hover:-translate-y-1 sm:hover:shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="group relative flex w-full flex-col gap-2 text-left transition-transform duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     {/* Movie poster */}
-                    <div className="relative aspect-[2/3] overflow-hidden bg-gradient-to-br from-primary/10 via-background/40 to-accent/10">
+                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted/20 shadow-md transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-primary/10">
                       {movie.poster_path ? (
                         <img
                           src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                           alt={movie.title}
-                          className="h-full w-full object-cover transition-transform duration-500 sm:group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
-                          <svg
-                            className="h-16 w-16"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"
-                            />
-                          </svg>
+                        <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 bg-muted/20">
+                           {/* Simple fallback icon */}
+                           <div className="h-8 w-8 rounded-full border-2 border-muted-foreground/30" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 transition-opacity duration-500 sm:group-hover:opacity-100" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     </div>
 
                     {/* Movie info */}
-                    <div className="flex flex-1 flex-col gap-2 px-5 pb-5 pt-4">
-                      <h3 className="text-base font-semibold text-foreground line-clamp-2">
+                    <div className="space-y-1 px-0.5">
+                      <h3 className="text-sm font-medium leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-1">
                         {movie.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>
-                          {movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A"}
-                        </span>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
+                        <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A"}</span>
                         {movie.vote_average && (
-                          <>
-                            <span>•</span>
-                            <span className="inline-flex items-center gap-1">
-                              <svg
-                                className="h-3 w-3 text-amber-400"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path d="M9.049 2.927a1 1 0 011.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                              {movie.vote_average.toFixed(1)}
-                            </span>
-                          </>
+                          <span className="flex items-center gap-1 text-amber-400/90">
+                            ★ {movie.vote_average.toFixed(1)}
+                          </span>
                         )}
                       </div>
                     </div>

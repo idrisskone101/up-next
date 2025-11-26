@@ -19,16 +19,16 @@ const UpnextLogo = (props) => (
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 mb-16">
-      <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/30">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <button
           onClick={() => window.location.reload()}
-          className="flex items-center gap-2 text-foreground hover:text-primary transition-colors group"
+          className="flex items-center gap-3 text-foreground hover:text-primary transition-colors group"
           aria-label="upNext home"
         >
-          <UpnextLogo className="h-6 w-6 transition-transform group-hover:scale-110" />
-          <span className="text-lg font-bold tracking-tight">upNext</span>
+          <UpnextLogo className="h-8 w-8 text-primary transition-transform group-hover:scale-110" />
+          <span className="text-xl font-bold tracking-tighter">upNext</span>
         </button>
       </div>
     </header>

@@ -126,7 +126,6 @@ app.get("/api/recommendations", async (req, res) => {
         poster_path,
         backdrop_path
       `)
-      .gte("vote_average", 6.0)
       .not("poster_path", "is", null)
       .not("overview", "is", null)
       .contains("languages", ["en"])

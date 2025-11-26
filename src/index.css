@@ -4,49 +4,57 @@
 
 @layer base {
   :root {
-    /* Background & Surface */
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
-    --card: 222 40% 6%;
-    --card-foreground: 214 100% 98%;
-    --popover: 222 47% 5%;
-    --popover-foreground: 214 31% 92%;
+    /* Background & Surface - Cinema Black */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
     
-    /* Primary Brand Colors */
-    --primary: 195 85% 65%;
-    --primary-foreground: 222 66% 10%;
-    --accent: 196 75% 50%;
-    --accent-foreground: 214 100% 98%;
+    /* Card: Deep Matte Black */
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Primary Brand Colors - Cinema Red */
+    --primary: 356 85% 55%; /* #E50914-ish */
+    --primary-foreground: 0 0% 98%;
+    
+    /* Accent - Gold/Warm White for premium feel */
+    --accent: 45 90% 50%;
+    --accent-foreground: 0 0% 5%;
     
     /* Secondary & Muted */
-    --secondary: 217 32% 18%;
-    --secondary-foreground: 214 100% 96%;
-    --muted: 215 20% 20%;
-    --muted-foreground: 214 12% 72%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
     
     /* Semantic Colors */
-    --destructive: 0 85% 62%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 142 76% 36%;
-    --success-foreground: 142 76% 96%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 48 96% 89%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --success: 145 65% 45%;
+    --success-foreground: 0 0% 98%;
+    
+    --warning: 45 90% 55%;
+    --warning-foreground: 0 0% 5%;
     
     /* Borders & Inputs */
-    --border: 218 32% 22%;
-    --input: 218 32% 22%;
-    --ring: 196 85% 68%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 356 85% 55%;
     
     /* Shadows */
-    --shadow: 222 84% 2%;
+    --shadow: 0 0% 0%;
     
     /* Border Radius */
-    --radius: 1rem;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
   }
 
   * {
@@ -69,56 +77,45 @@
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
-    background-image:
-      radial-gradient(circle at top, hsl(var(--primary) / 0.08) 0, transparent 55%),
-      radial-gradient(circle at 20% 20%, hsl(var(--accent) / 0.12) 0, transparent 45%),
-      linear-gradient(160deg, hsl(var(--background)) 0%, hsl(223 47% 6%) 55%, hsl(227 45% 12%) 100%);
+    
+    /* Subtle vignette background */
+    background-image: 
+      radial-gradient(circle at 50% 0%, hsla(var(--primary), 0.15) 0%, transparent 50%),
+      linear-gradient(to bottom, transparent, hsl(var(--background)));
+    background-attachment: fixed;
     background-color: hsl(var(--background));
-    /* -webkit-tap-highlight-color: transparent; */
+    
     -webkit-overflow-scrolling: touch;
   }
 
   ::selection {
-    background: hsla(var(--accent), 0.35);
-    color: hsl(var(--accent-foreground));
+    background: hsla(var(--primary), 0.5);
+    color: white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
   }
 
   button,
   a {
-    /* -webkit-tap-highlight-color: transparent; */
     touch-action: manipulation;
-    font: inherit;
-  }
-
-  input,
-  select,
-  textarea {
-    /* -webkit-tap-highlight-color: transparent; */
-    font: inherit;
-    user-select: text !important;
-    -webkit-user-select: text !important;
-    -moz-user-select: text !important;
-    -ms-user-select: text !important;
-    touch-action: auto !important;
-    -webkit-touch-callout: default !important;
   }
 }
 
 @layer utilities {
-  .surface {
-    @apply bg-card/80 border border-border/60 shadow-soft;
-    backdrop-filter: blur(18px);
+  .glass {
+    @apply bg-black/40 backdrop-blur-xl border border-white/5 shadow-2xl;
+  }
+  
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-md border border-white/5 shadow-xl;
   }
 
-  .surface-muted {
-    @apply bg-secondary/70 border border-border/40 shadow-inner-glow;
-    backdrop-filter: blur(14px);
+  .text-glow {
+    text-shadow: 0 0 20px hsla(var(--primary), 0.6);
   }
-
-  .outline-ring {
-    box-shadow: 0 0 0 1px hsl(var(--ring) / 0.4);
-  }
-
+  
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -126,39 +123,22 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top);
   }
-
-  .pl-safe {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .pr-safe {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  .no-scrollbar {
-    scrollbar-width: none;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 9999px;
-  border: 3px solid rgba(255, 255, 255, 0.02);
+  background: hsla(0, 0%, 30%, 0.5);
+  border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: hsla(0, 0%, 50%, 0.7);
 }
