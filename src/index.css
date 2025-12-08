@@ -4,30 +4,30 @@
 
 @layer base {
   :root {
-    /* Background & Surface - Cinema Black */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
+    /* Background & Surface - Deep Space Black */
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
     
-    /* Card: Deep Matte Black */
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 98%;
+    /* Card: Dark translucent */
+    --card: 224 71% 4%;
+    --card-foreground: 210 40% 98%;
     
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
     
-    /* Primary Brand Colors - Cinema Red */
-    --primary: 356 85% 55%; /* #E50914-ish */
+    /* Primary Brand Colors - Vibrant Orange/Red */
+    --primary: 24 95% 55%; /* Orange/Red - energetic */
     --primary-foreground: 0 0% 98%;
     
-    /* Accent - Gold/Warm White for premium feel */
-    --accent: 45 90% 50%;
+    /* Accent - Bright Cyan/Teal */
+    --accent: 180 100% 45%;
     --accent-foreground: 0 0% 5%;
     
     /* Secondary & Muted */
-    --secondary: 0 0% 15%;
+    --secondary: 240 6% 15%;
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 0 0% 15%;
+    --muted: 240 6% 20%;
     --muted-foreground: 0 0% 65%;
     
     /* Semantic Colors */
@@ -41,19 +41,19 @@
     --warning-foreground: 0 0% 5%;
     
     /* Borders & Inputs */
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 356 85% 55%;
+    --border: 240 6% 25%;
+    --input: 240 6% 20%;
+    --ring: 262 83% 58%;
     
     /* Shadows */
     --shadow: 0 0% 0%;
     
     /* Border Radius */
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 0 0% 4%;
+    --background: 222 47% 11%;
     --foreground: 0 0% 98%;
   }
 
@@ -68,7 +68,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply text-foreground font-sans antialiased;
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
@@ -78,12 +78,13 @@
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     
-    /* Subtle vignette background */
+    /* Lovable-style: Deep space dark with vibrant orange/cyan glows */
+    background-color: #030712; /* Pure dark base */
     background-image: 
-      radial-gradient(circle at 50% 0%, hsla(var(--primary), 0.15) 0%, transparent 50%),
-      linear-gradient(to bottom, transparent, hsl(var(--background)));
+      radial-gradient(circle at 15% 25%, rgba(249, 115, 22, 0.08) 0%, transparent 45%), /* Orange glow */
+      radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.08) 0%, transparent 45%); /* Cyan glow */
     background-attachment: fixed;
-    background-color: hsl(var(--background));
+    min-height: 100vh;
     
     -webkit-overflow-scrolling: touch;
   }
@@ -113,7 +114,11 @@
   }
 
   .text-glow {
-    text-shadow: 0 0 20px hsla(var(--primary), 0.6);
+    text-shadow: 0 0 30px hsla(262, 83%, 58%, 0.5), 0 0 60px hsla(280, 100%, 70%, 0.3);
+  }
+  
+  .lovable-card {
+    @apply bg-black/40 backdrop-blur-2xl rounded-[2rem] border border-white/[0.08] shadow-2xl shadow-black/50;
   }
   
   .pb-safe {

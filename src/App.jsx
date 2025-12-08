@@ -38,27 +38,25 @@ function App() {
         <Navbar />
 
         {/* Hero Section */}
-        <header className="relative container w-full space-y-8 pb-12 pt-safe pt-16 md:space-y-12 md:pb-20 md:pt-24">
-          <div className="absolute inset-0 -z-10 mx-auto h-full w-full max-w-5xl opacity-30 blur-3xl">
-            <div className="aspect-[1100/400] w-full bg-gradient-to-r from-primary via-accent to-primary animate-pulse" style={{ clipPath: 'ellipse(50% 50% at 50% 50%)' }} />
-          </div>
-          
-          <div className="flex flex-col items-center gap-6 text-center sm:gap-8">
-            <div className="space-y-4 max-w-4xl">
-              <h1 className="text-glow text-balance text-4xl font-bold tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
-                Find films that fit your mood, not just your menu.
+        <header className="relative container w-full space-y-6 pb-8 pt-safe pt-20 sm:pt-24 md:space-y-14 md:pb-20 md:pt-28">
+          <div className="flex flex-col items-center gap-4 text-center sm:gap-8">
+            <div className="space-y-4 max-w-4xl px-4 sm:px-0">
+              <h1 className="text-balance text-3xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+                Find films that fit your mood
               </h1>
-              <p className="mx-auto max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
-                Describe a vibe, a feeling, or just type <span className="text-primary font-medium italic">anything</span>—and let smart search match you with movies & shows you'll love.
+              <p className="mx-auto max-w-2xl text-pretty text-base leading-relaxed text-white/60 sm:text-xl">
+                Describe a vibe, a feeling, or just type <span className="text-primary font-medium">anything</span>—and let smart search match you with movies & shows you'll love.
               </p>
             </div>
           </div>
 
-          <SearchBar onSearch={(query, kindFilter) => search(query, 100, 0.4, kindFilter)} loading={loading} />
+          <div className="px-2 sm:px-0">
+             <SearchBar onSearch={(query, kindFilter) => search(query, 100, 0.4, kindFilter)} loading={loading} />
+          </div>
         </header>
 
         {/* Main Content */}
-        <main className="container flex w-full flex-1 flex-col gap-10 pb-16 pt-4 md:gap-12 md:pb-20">
+        <main className="container flex w-full flex-1 flex-col gap-8 pb-16 pt-4 md:gap-12 md:pb-20 px-4 sm:px-6">
           {loading && (
             <div className="space-y-8">
               {/* Skeleton loaders while searching */}
@@ -118,7 +116,7 @@ function App() {
           {/* Recommended For You Section */}
           {showIntro && !loadingRecs && recommendations.length > 0 && (
             <section className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-semibold tracking-tight">Recommended For You</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-white">Recommended For You</h2>
               <div className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {recommendations.map((movie) => (
                   <button
@@ -183,7 +181,7 @@ function App() {
 
         {/* Footer */}
         <footer className="pb-safe pb-12 pt-8">
-          <div className="container flex flex-col items-center gap-3 text-center text-xs text-muted-foreground/80 sm:text-sm">
+          <div className="container flex flex-col items-center gap-3 text-center text-xs text-white/40 sm:text-sm">
             <p>
               Powered by multi-embedding semantic search with adaptive signal weighting.
             </p>

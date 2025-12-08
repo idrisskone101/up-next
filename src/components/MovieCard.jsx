@@ -42,7 +42,7 @@ export function MovieCard({ movie, onClick }) {
       className="group relative flex w-full flex-col gap-2 text-left transition-transform duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       {/* Poster Container */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted/30 shadow-lg transition-shadow duration-300 group-hover:shadow-2xl group-hover:shadow-primary/10">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted/30 shadow-lg transition-shadow duration-300 group-hover:shadow-2xl group-hover:shadow-orange-500/10 border border-white/5 group-hover:border-orange-500/30">
         {posterUrl ? (
           <img
             src={posterUrl}
@@ -56,12 +56,12 @@ export function MovieCard({ movie, onClick }) {
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         {/* Match Badge - Responsive */}
         {matchPercentage > 0 && (
           <div className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2">
-             <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-white/10 text-green-400 font-bold shadow-xl text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2.5 sm:py-1">
+             <Badge variant="secondary" className="bg-black/60 backdrop-blur-md border-white/10 text-orange-400 font-bold shadow-xl text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2.5 sm:py-1">
                {matchPercentage}%
              </Badge>
           </div>
@@ -77,12 +77,12 @@ export function MovieCard({ movie, onClick }) {
 
       {/* Content */}
       <div className="space-y-1 px-0.5">
-        <h3 className="text-sm font-bold leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-1 sm:text-base">
+        <h3 className="text-sm font-bold leading-tight text-foreground group-hover:text-orange-400 transition-colors line-clamp-1 sm:text-base">
           {title}
         </h3>
         
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground sm:text-xs">
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1 group-hover:text-white/80 transition-colors">
             {year}
           </span>
           

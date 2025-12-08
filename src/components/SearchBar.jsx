@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Mic, X } from "lucide-react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Plus, Paperclip, AudioLines, ArrowUp, X } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 
 const EXAMPLE_QUERIES = [
@@ -13,70 +11,68 @@ const EXAMPLE_QUERIES = [
   "Existential crisis at 2am",
   "Heist movies but make it funny",
   "Visually stunning cinematography",
-  "Enemies to lovers slow burn",
-  "Found family trope",
-  "Comfort movies for a bad day",
-  "Chaotic unhinged energy",
-  "Movies where the villain wins",
-  "Atmospheric and creepy",
-  "Badass female leads",
-  "Summer road trip vibes",
+  "Cyberpunk anime classics",
+  "Slow-burn psychological horror",
+  "Enemies to lovers romcoms",
+  "Time loop paradoxes",
+  "Space operas with epic battles",
+  "Whodunnit mysteries",
+  "Studio Ghibli magic",
+  "Gritty noir detective stories"
 ];
 
 /**
- * Responsive search bar inspired by shadcn/ui surface treatments.
- * Optimized for thumb reach and minimal taps on mobile.
+ * Lovable-inspired search bar with card-style design
  */
 export function SearchBar({ onSearch, loading }) {
   const [query, setQuery] = useState("");
   const [moviesEnabled, setMoviesEnabled] = useState(false);
   const [tvEnabled, setTvEnabled] = useState(false);
-  const inputRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (!isMobile) {
-      inputRef.current?.focus();
+      textareaRef.current?.focus();
     }
   }, []);
 
-  // Calculate kindFilter based on toggle states
-  const getKindFilter = () => {
-    if (moviesEnabled && !tvEnabled) {
-      return ['movie'];
-    } else if (tvEnabled && !moviesEnabled) {
-      return ['tv'];
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
-    // Both on or both off means search both
+  }, [query]);
+
+  const getKindFilter = () => {
+    if (moviesEnabled && !tvEnabled) return ["movie"];
+    if (tvEnabled && !moviesEnabled) return ["tv"];
     return null;
   };
 
   const handleSubmit = (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     if (query.trim()) {
-      inputRef.current?.blur();
+      textareaRef.current?.blur();
       onSearch(query.trim(), getKindFilter());
     }
   };
 
-  const handleClear = () => {
-    setQuery("");
-    inputRef.current?.focus();
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit();
+    }
   };
 
   const handleToggleMovies = () => {
     const newMoviesEnabled = !moviesEnabled;
     setMoviesEnabled(newMoviesEnabled);
-    // Trigger search if query exists
     if (query.trim()) {
-      // Calculate filter with new state
       let newFilter = null;
-      if (newMoviesEnabled && !tvEnabled) {
-        newFilter = ['movie'];
-      } else if (!newMoviesEnabled && tvEnabled) {
-        newFilter = ['tv'];
-      }
-      // Otherwise newFilter stays null (search both)
+      if (newMoviesEnabled && !tvEnabled) newFilter = ["movie"];
+      else if (!newMoviesEnabled && tvEnabled) newFilter = ["tv"];
       onSearch(query.trim(), newFilter);
     }
   };
@@ -84,16 +80,10 @@ export function SearchBar({ onSearch, loading }) {
   const handleToggleTV = () => {
     const newTvEnabled = !tvEnabled;
     setTvEnabled(newTvEnabled);
-    // Trigger search if query exists
     if (query.trim()) {
-      // Calculate filter with new state
       let newFilter = null;
-      if (!moviesEnabled && newTvEnabled) {
-        newFilter = ['tv'];
-      } else if (moviesEnabled && !newTvEnabled) {
-        newFilter = ['movie'];
-      }
-      // Otherwise newFilter stays null (search both)
+      if (!moviesEnabled && newTvEnabled) newFilter = ["tv"];
+      else if (moviesEnabled && !newTvEnabled) newFilter = ["movie"];
       onSearch(query.trim(), newFilter);
     }
   };
@@ -104,81 +94,107 @@ export function SearchBar({ onSearch, loading }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-2 sm:px-0">
-      <div className="space-y-3">
-        <form onSubmit={handleSubmit}>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
-            <Input
-              ref={inputRef}
+    <div className="mx-auto w-full max-w-3xl sm:px-6">
+      <div className="space-y-4">
+        {/* Main Search Card */}
+        <div className="lovable-card transition-all duration-300 border border-white/10 focus-within:border-orange-500/50 focus-within:shadow-2xl focus-within:shadow-orange-500/10">
+          {/* Textarea Area */}
+          <div className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 sm:pb-3">
+            <textarea
+              ref={textareaRef}
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search for movies or genres..."
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask upNext to find a movie about..."
               disabled={loading}
-              className="h-16 w-full rounded-full border border-white/10 bg-white/5 pl-14 pr-14 text-lg text-foreground placeholder:text-muted-foreground/50 shadow-2xl backdrop-blur-xl transition-all hover:bg-white/10 hover:border-white/20 focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary/50 focus-visible:bg-white/10"
+              rows={1}
+              className="w-full resize-none bg-transparent text-lg sm:text-2xl text-white placeholder:text-white/20 focus:outline-none disabled:opacity-50 font-medium tracking-wide"
+              style={{ minHeight: "40px", maxHeight: "200px" }}
             />
-            {loading ? (
-              <Spinner size={24} className="pointer-events-none absolute right-5 top-1/2 h-6 w-6 -translate-y-1/2 text-primary" ariaLabel="Loading…" />
-            ) : (
-              <div className="absolute right-5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center">
-                {query ? (
-                  <button
-                    key="clear-button"
-                    type="button"
-                    onClick={handleClear}
-                    className="flex items-center justify-center rounded-full p-1 text-muted-foreground/60 hover:bg-white/10 hover:text-foreground transition-all duration-200 animate-scale-in w-full h-full"
-                    aria-label="Clear search"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <Mic
-                    key="mic-icon"
-                    className="flex items-center justify-center pointer-events-none text-muted-foreground/40 animate-scale-in w-6 h-6"
-                  />
-                )}
-              </div>
-            )}
           </div>
-        </form>
 
+          {/* Bottom Action Bar */}
+          <div className="flex items-center justify-between px-4 pb-4 sm:px-6 sm:pb-6">
+            {/* Left Actions */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/5 text-white/60 transition-all hover:bg-white/10 hover:text-white"
+                aria-label="Add context"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/5 text-white/60 transition-all hover:bg-white/10 hover:text-white"
+                aria-label="Attach file"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/5 text-white/60 transition-all hover:bg-white/10 hover:text-white"
+                aria-label="Voice input"
+              >
+                <AudioLines className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || !query.trim()}
+                className="group flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/20 transition-all duration-300 hover:shadow-orange-500/40 hover:scale-110 hover:-rotate-3 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none disabled:hover:rotate-0"
+                aria-label="Search"
+              >
+                {loading ? (
+                  <Spinner size={20} className="text-white" ariaLabel="Searching..." />
+                ) : (
+                  <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Toggles */}
         <div className="flex items-center justify-center gap-3">
-          <Button
+          <button
             type="button"
-            variant="ghost"
             onClick={handleToggleMovies}
             className={`h-9 rounded-full border px-4 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
               moviesEnabled
-                ? 'border-primary bg-primary/20 text-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]'
-                : 'border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground hover:border-white/20'
+                ? "border-orange-500/50 bg-orange-500/10 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]"
+                : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/20"
             }`}
           >
             Movies
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="ghost"
             onClick={handleToggleTV}
             className={`h-9 rounded-full border px-4 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
               tvEnabled
-                ? 'border-primary bg-primary/20 text-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]'
-                : 'border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground hover:border-white/20'
+                ? "border-orange-500/50 bg-orange-500/10 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]"
+                : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/20"
             }`}
           >
             TV Shows
-          </Button>
+          </button>
         </div>
 
         {/* Example Queries */}
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-          <span className="text-xs text-muted-foreground/60 mr-1">Try:</span>
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-1 px-2 sm:px-0 max-h-[84px] overflow-y-auto mask-image-gradient scrollbar-none">
+          <span className="text-xs text-white/40 mr-1 sticky left-0">Try:</span>
           {EXAMPLE_QUERIES.map((example) => (
             <button
               key={example}
               type="button"
               onClick={() => handleExampleClick(example)}
               disabled={loading}
-              className="text-xs px-3 py-1.5 rounded-full border border-white/5 bg-white/[0.02] text-muted-foreground/80 hover:bg-white/10 hover:text-foreground hover:border-white/20 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs px-3 py-1.5 rounded-full border border-white/5 bg-white/[0.03] text-white/50 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {example}
             </button>
