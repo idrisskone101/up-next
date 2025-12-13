@@ -23,7 +23,7 @@ const pageTransition = {
 };
 
 function App() {
-  const { results, loading, loadingMore, error, searchMetadata, hasMore, search, loadMore, reset } = useSearch();
+  const { results, loading, loadingMore, refreshing, error, searchMetadata, hasMore, search, loadMore, refresh, reset } = useSearch();
   const [compactQuery, setCompactQuery] = useState("");
   const compactInputRef = useRef(null);
 
@@ -268,6 +268,8 @@ function App() {
                         hasMore={hasMore}
                         loadingMore={loadingMore}
                         onLoadMore={loadMore}
+                        onRefresh={refresh}
+                        isRefreshing={refreshing}
                       />
                     </motion.div>
                   )}

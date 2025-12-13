@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Paperclip, AudioLines, ArrowUp, X } from "lucide-react";
 import { Spinner } from "./ui/spinner";
+import { haptics } from "../lib/haptics";
 
 const EXAMPLE_QUERIES = [
   "Movies that make you ugly cry",
@@ -54,6 +55,7 @@ export function SearchBar({ onSearch, loading }) {
   const handleSubmit = (event) => {
     event?.preventDefault();
     if (query.trim()) {
+      haptics.medium();
       textareaRef.current?.blur();
       onSearch(query.trim(), getKindFilter());
     }
@@ -67,6 +69,7 @@ export function SearchBar({ onSearch, loading }) {
   };
 
   const handleToggleMovies = () => {
+    haptics.light();
     const newMoviesEnabled = !moviesEnabled;
     setMoviesEnabled(newMoviesEnabled);
     if (query.trim()) {
@@ -78,6 +81,7 @@ export function SearchBar({ onSearch, loading }) {
   };
 
   const handleToggleTV = () => {
+    haptics.light();
     const newTvEnabled = !tvEnabled;
     setTvEnabled(newTvEnabled);
     if (query.trim()) {
@@ -89,6 +93,7 @@ export function SearchBar({ onSearch, loading }) {
   };
 
   const handleExampleClick = (exampleQuery) => {
+    haptics.light();
     setQuery(exampleQuery);
     onSearch(exampleQuery, getKindFilter());
   };

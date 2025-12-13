@@ -8,6 +8,7 @@ import {
   badgeVariants,
   use3DTilt,
 } from "../lib/animations";
+import { haptics } from "../lib/haptics";
 
 /**
  * Individual movie/TV show card component with bouncy animations and 3D tilt effect
@@ -35,6 +36,7 @@ export function MovieCard({ movie, onClick, index = 0 }) {
   const matchPercentage = Math.round((combined_score || 0) * 100);
 
   const handleClick = (e) => {
+    haptics.light();
     onClick?.(e);
   };
 

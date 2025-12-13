@@ -1,73 +1,137 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   motion,
   useMotionValue,
   useTransform,
+  useAnimation,
   AnimatePresence,
 } from "framer-motion";
-import { X, Star, Calendar, Clock, User, PlayCircle } from "lucide-react";
+import { X, Star, Calendar, Clock, User, PlayCircle, ChevronUp } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { TrailerPlayer } from "./TrailerPlayer";
-import {
-  springConfigs,
-  modalVariants,
-  backdropVariants,
-  contentContainerVariants,
-  contentItemVariants,
-} from "../lib/animations";
+import { springConfigs } from "../lib/animations";
+import { haptics } from "../lib/haptics";
+
+// Snap points as percentage of viewport height (from bottom)
+const SNAP_POINTS = {
+  CLOSED: 0,
+  PEEK: 45,    // 45% of viewport - shows poster, title, score
+  EXPANDED: 92 // 92% of viewport - shows all content
+};
+
+// iOS-style spring config for snapping
+const snapSpring = {
+  type: "spring",
+  stiffness: 400,
+  damping: 35,
+  mass: 0.8
+};
 
 /**
- * Modal component for expanded movie/TV show details with swipe-to-dismiss and bouncy animations
+ * iOS-style bottom sheet modal for movie/TV show details
+ * Features Apple Maps-style snap points and gesture handling
  */
 export function MovieModal({ movie, onClose }) {
-  const modalRef = useRef(null);
-  const y = useMotionValue(0);
+  const sheetRef = useRef(null);
+  const contentRef = useRef(null);
+  const controls = useAnimation();
 
-  // Transform drag distance to opacity and scale
-  const backdropOpacity = useTransform(y, [0, 300], [1, 0]);
-  const modalScale = useTransform(y, [0, 300], [1, 0.92]);
-  const borderRadius = useTransform(y, [0, 100], [24, 40]);
+  // Current snap point state
+  const [snapPoint, setSnapPoint] = useState(SNAP_POINTS.PEEK);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Motion value for sheet position (0 = closed, 100 = full height)
+  const sheetY = useMotionValue(100); // Start off-screen
+
+  // Transform sheet position to visual properties
+  const backdropOpacity = useTransform(sheetY, [100, 50, 0], [0, 0.7, 0.9]);
+  const sheetHeight = useTransform(sheetY, (y) => `${y}%`);
+
+  // Calculate the snap point to animate to based on velocity and current position
+  const getSnapPoint = useCallback((currentY, velocityY) => {
+    // Fast swipe down from peek or anywhere -> close
+    if (velocityY > 800) return SNAP_POINTS.CLOSED;
+
+    // Fast swipe up -> expand
+    if (velocityY < -800) return SNAP_POINTS.EXPANDED;
+
+    // Position-based snapping
+    const peekThreshold = (SNAP_POINTS.PEEK + SNAP_POINTS.CLOSED) / 2;
+    const expandThreshold = (SNAP_POINTS.EXPANDED + SNAP_POINTS.PEEK) / 2;
+
+    if (currentY < peekThreshold) return SNAP_POINTS.CLOSED;
+    if (currentY < expandThreshold) return SNAP_POINTS.PEEK;
+    return SNAP_POINTS.EXPANDED;
+  }, []);
+
+  // Animate to a snap point
+  const snapTo = useCallback(async (point) => {
+    if (point === SNAP_POINTS.CLOSED) {
+      haptics.medium();
+      await controls.start({ height: "0%" }, snapSpring);
+      onClose();
+    } else {
+      if (point !== snapPoint) {
+        haptics.snap();
+      }
+      setSnapPoint(point);
+      await controls.start({ height: `${point}%` }, snapSpring);
+    }
+  }, [controls, onClose, snapPoint]);
+
+  // Initial animation - slide up to peek position
+  useEffect(() => {
+    controls.start({ height: `${SNAP_POINTS.PEEK}%` }, snapSpring);
+    setSnapPoint(SNAP_POINTS.PEEK);
+  }, [controls]);
 
   // Handle escape key
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") snapTo(SNAP_POINTS.CLOSED);
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [onClose]);
+  }, [snapTo]);
 
   // Lock body scroll
   useEffect(() => {
     const scrollY = window.scrollY;
-    const originalOverflow = document.body.style.overflow;
-    const originalPosition = document.body.style.position;
-    const originalTop = document.body.style.top;
-    const originalWidth = document.body.style.width;
-
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = "100%";
 
     return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.position = originalPosition;
-      document.body.style.top = originalTop;
-      document.body.style.width = originalWidth;
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       window.scrollTo(0, scrollY);
     };
   }, []);
 
-  // Handle drag end
-  const handleDragEnd = (event, info) => {
-    // Close if dragged down with velocity or past threshold
-    if (info.velocity.y > 500 || info.offset.y > 150) {
-      onClose();
-    }
+  // Handle drag
+  const handleDrag = (event, info) => {
+    setIsDragging(true);
   };
 
+  // Handle drag end - snap to nearest point
+  const handleDragEnd = (event, info) => {
+    setIsDragging(false);
+
+    // Get current height as percentage
+    const sheetElement = sheetRef.current;
+    if (!sheetElement) return;
+
+    const currentHeight = (sheetElement.offsetHeight / window.innerHeight) * 100;
+    const newSnapPoint = getSnapPoint(currentHeight, info.velocity.y);
+
+    snapTo(newSnapPoint);
+  };
+
+  // Extract movie data
   const {
     id,
     title,
@@ -76,7 +140,6 @@ export function MovieModal({ movie, onClose }) {
     overview,
     genres,
     vibes,
-    themes,
     director,
     cast,
     vote_average,
@@ -84,23 +147,17 @@ export function MovieModal({ movie, onClose }) {
     runtime_minutes,
     poster_path,
     backdrop_path,
-    content_score,
-    vibe_score,
-    metadata_score,
     combined_score,
     strongest_signal,
   } = movie;
 
   const safeGenres = genres || [];
   const safeVibes = vibes || [];
-  const safeThemes = themes || [];
-
-  const posterUrl = poster_path
-    ? `https://image.tmdb.org/t/p/w500${poster_path}`
-    : null;
 
   const backdropUrl = backdrop_path
     ? `https://image.tmdb.org/t/p/original${backdrop_path}`
+    : poster_path
+    ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : null;
 
   const year = release_date ? new Date(release_date).getFullYear() : "N/A";
@@ -115,404 +172,273 @@ export function MovieModal({ movie, onClose }) {
   const parsedCast = typeof cast === "string" ? JSON.parse(cast) : cast;
   const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 5) : [];
 
+  const isPeek = snapPoint === SNAP_POINTS.PEEK;
+  const isExpanded = snapPoint === SNAP_POINTS.EXPANDED;
+
   return createPortal(
-    <>
+    <AnimatePresence>
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-black/80"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={onClose}
+        transition={{ duration: 0.2 }}
+        onClick={() => snapTo(SNAP_POINTS.CLOSED)}
       />
 
-      {/* Modal Container */}
+      {/* Bottom Sheet */}
       <motion.div
-        className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        ref={sheetRef}
+        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col overflow-hidden rounded-t-[28px] bg-slate-900/95 backdrop-blur-xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+        initial={{ height: "0%" }}
+        animate={controls}
+        exit={{ height: "0%" }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0.1, bottom: 0.3 }}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        style={{
+          maxHeight: "92dvh",
+          touchAction: "none"
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Draggable Modal */}
-        <motion.div
-          ref={modalRef}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.6 }}
-          onDragEnd={handleDragEnd}
-          style={{ y }}
-          initial={{ y: "100%", scale: 0.95, opacity: 0 }}
-          animate={{ y: 0, scale: 1, opacity: 1 }}
-          exit={{ y: "100%", scale: 0.95, opacity: 0 }}
-          transition={springConfigs.gentle}
-          className="relative flex h-[92dvh] w-full flex-col overflow-hidden bg-card shadow-2xl sm:h-[85dvh] sm:max-w-5xl sm:rounded-3xl"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {/* Drag Handle - Mobile indicator */}
-          <motion.div
-            className="absolute top-3 left-1/2 -translate-x-1/2 z-30 sm:hidden"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ ...springConfigs.bouncy, delay: 0.3 }}
-          >
-            <div className="w-10 h-1 rounded-full bg-white/40" />
-          </motion.div>
+        {/* Hero Image Section - Always visible, with rounded top corners */}
+        <div className="relative flex-shrink-0 h-[35%] min-h-[180px] overflow-hidden rounded-t-[28px]">
+          {backdropUrl && (
+            <motion.img
+              src={backdropUrl}
+              alt={title}
+              className="h-full w-full object-cover"
+              initial={{ scale: 1.1, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            />
+          )}
+          {/* Gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-transparent" />
 
-          {/* Close Button */}
+          {/* Drag Handle - Floating on top of image */}
+          <div className="absolute top-0 left-0 right-0 flex justify-center pt-3 pb-2 z-20">
+            <motion.div
+              className="w-9 h-1 rounded-full bg-white/40 shadow-sm"
+              whileHover={{ backgroundColor: "rgba(255,255,255,0.6)" }}
+            />
+          </div>
+
+          {/* Close button */}
           <motion.button
-            onClick={onClose}
-            className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/70 hover:text-primary transition-colors md:right-6 md:top-6"
+            onClick={() => snapTo(SNAP_POINTS.CLOSED)}
+            className="absolute right-4 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-md hover:bg-black/60 transition-colors"
             aria-label="Close modal"
-            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ ...springConfigs.bouncy, delay: 0.2 }}
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </motion.button>
 
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-            {/* Hero Section */}
-            <motion.div
-              className="relative h-[40vh] w-full md:h-[50vh]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
+          {/* Title overlay on image */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+            <motion.h1
+              className="text-2xl font-bold text-white mb-2 drop-shadow-lg"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
             >
-              {backdropUrl ? (
+              {title}
+            </motion.h1>
+
+            {/* Metadata row */}
+            <motion.div
+              className="flex items-center gap-2 text-sm text-white/80"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" /> {year}
+              </span>
+              {runtime_minutes && (
                 <>
-                  <motion.img
-                    src={backdropUrl}
-                    alt={title}
-                    className="h-full w-full object-cover"
-                    initial={{ scale: 1.1 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-card/80 via-transparent to-transparent sm:from-card/40" />
+                  <span className="text-white/40">•</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" /> {formatRuntime(runtime_minutes)}
+                  </span>
                 </>
-              ) : (
-                <div className="h-full w-full bg-muted/20" />
               )}
-            </motion.div>
-
-            {/* Content Body */}
-            <motion.div
-              className="relative px-4 pb-12 md:px-10"
-              variants={contentContainerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <div className="flex flex-col md:flex-row md:gap-10">
-                {/* Floating Poster - Shared Element */}
-                <motion.div
-                  className="-mt-20 md:-mt-32 lg:-mt-40 relative z-20 flex-shrink-0"
-                  variants={contentItemVariants}
-                >
-                  {posterUrl && (
-                    <div className="hidden md:block w-48 overflow-hidden rounded-xl border-4 border-card shadow-2xl lg:w-60">
-                      <img
-                        src={posterUrl}
-                        alt={title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  )}
-                </motion.div>
-
-                {/* Main Info */}
-                <div className="flex-1 space-y-6 pt-4 md:pt-0">
-                  {/* Header */}
-                  <motion.div className="space-y-4" variants={contentItemVariants}>
-                    {/* Title & Badges */}
-                    <div className="space-y-2">
-                      <motion.h1
-                        className="text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ ...springConfigs.bouncy, delay: 0.1 }}
-                      >
-                        {title}
-                      </motion.h1>
-                      <motion.div
-                        className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ ...springConfigs.bouncy, delay: 0.15 }}
-                      >
-                        <span className="flex items-center gap-1 text-white font-medium">
-                          <Calendar className="h-4 w-4 text-primary" /> {year}
-                        </span>
-                        {runtime_minutes && (
-                          <>
-                            <span className="text-muted-foreground/40">•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />{" "}
-                              {formatRuntime(runtime_minutes)}
-                            </span>
-                          </>
-                        )}
-                        {certification && (
-                          <>
-                            <span className="text-muted-foreground/40">•</span>
-                            <Badge
-                              variant="outline"
-                              className="border-white/20 text-xs"
-                            >
-                              {certification}
-                            </Badge>
-                          </>
-                        )}
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Badge
-                            variant="secondary"
-                            className="bg-primary text-white hover:bg-primary/90 border-none"
-                          >
-                            {kind === "tv" ? "TV Series" : "Movie"}
-                          </Badge>
-                        </motion.div>
-                      </motion.div>
-                    </div>
-
-                    {/* Match Score */}
-                    <motion.div
-                      className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ ...springConfigs.bouncy, delay: 0.2 }}
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                          Match Score
-                        </span>
-                        <motion.span
-                          className="text-2xl font-bold text-green-400"
-                          initial={{ scale: 0.8 }}
-                          animate={{ scale: 1 }}
-                          transition={{ ...springConfigs.wobbly, delay: 0.3 }}
-                        >
-                          {Math.round(combined_score * 100)}%
-                        </motion.span>
-                      </div>
-                      <div className="h-8 w-px bg-white/10" />
-                      <div className="flex-1">
-                        <div className="text-xs text-muted-foreground mb-1">
-                          Strongest Signal
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {strongest_signal === "content" && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={springConfigs.bouncy}
-                            >
-                              <Badge
-                                variant="outline"
-                                className="border-blue-500/50 text-blue-400"
-                              >
-                                Story
-                              </Badge>
-                            </motion.div>
-                          )}
-                          {strongest_signal === "vibe" && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={springConfigs.bouncy}
-                            >
-                              <Badge
-                                variant="outline"
-                                className="border-purple-500/50 text-purple-400"
-                              >
-                                Vibe
-                              </Badge>
-                            </motion.div>
-                          )}
-                          {strongest_signal === "metadata" && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={springConfigs.bouncy}
-                            >
-                              <Badge
-                                variant="outline"
-                                className="border-orange-500/50 text-orange-400"
-                              >
-                                Details
-                              </Badge>
-                            </motion.div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  </motion.div>
-
-                  {/* Tab-like Layout for details */}
-                  <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-                    <div className="space-y-8">
-                      {/* Overview */}
-                      <motion.section
-                        className="space-y-3"
-                        variants={contentItemVariants}
-                      >
-                        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                          Overview
-                        </h3>
-                        <p className="text-base leading-relaxed text-muted-foreground">
-                          {overview || "No overview available."}
-                        </p>
-                      </motion.section>
-
-                      {/* Trailer */}
-                      {id && (
-                        <motion.section
-                          className="space-y-3"
-                          variants={contentItemVariants}
-                        >
-                          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                            <PlayCircle className="h-5 w-5 text-primary" />{" "}
-                            Trailer
-                          </h3>
-                          <motion.div
-                            className="overflow-hidden rounded-xl border border-white/10 bg-black/50"
-                            whileHover={{ scale: 1.01 }}
-                            transition={springConfigs.snappy}
-                          >
-                            <TrailerPlayer
-                              tmdbId={id}
-                              mediaType={kind === "tv" ? "tv" : "movie"}
-                              title={title}
-                            />
-                          </motion.div>
-                        </motion.section>
-                      )}
-                    </div>
-
-                    {/* Sidebar Info */}
-                    <motion.div
-                      className="space-y-6"
-                      variants={contentContainerVariants}
-                    >
-                      {/* Genres */}
-                      {safeGenres.length > 0 && (
-                        <motion.div
-                          className="space-y-3"
-                          variants={contentItemVariants}
-                        >
-                          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                            Genres
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {safeGenres.map((g, i) => (
-                              <motion.div
-                                key={g}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{
-                                  ...springConfigs.bouncy,
-                                  delay: i * 0.05,
-                                }}
-                                whileHover={{ scale: 1.05 }}
-                              >
-                                <Badge
-                                  variant="outline"
-                                  className="border-white/10 hover:bg-white/5 transition-colors"
-                                >
-                                  {g}
-                                </Badge>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* Vibes */}
-                      {safeVibes.length > 0 && (
-                        <motion.div
-                          className="space-y-3"
-                          variants={contentItemVariants}
-                        >
-                          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                            Vibes
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {safeVibes.map((v, i) => (
-                              <motion.span
-                                key={v}
-                                className="text-sm text-primary/90"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{
-                                  ...springConfigs.bouncy,
-                                  delay: i * 0.05,
-                                }}
-                                whileHover={{ scale: 1.05 }}
-                              >
-                                #{v}
-                              </motion.span>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* Cast */}
-                      {topCast.length > 0 && (
-                        <motion.div
-                          className="space-y-3"
-                          variants={contentItemVariants}
-                        >
-                          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                            Cast
-                          </h4>
-                          <ul className="space-y-2">
-                            {topCast.map((actor, i) => (
-                              <motion.li
-                                key={i}
-                                className="flex items-center gap-2 text-sm text-muted-foreground"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{
-                                  ...springConfigs.bouncy,
-                                  delay: i * 0.05,
-                                }}
-                              >
-                                <User className="h-3 w-3" />
-                                {actor.name || actor}
-                              </motion.li>
-                            ))}
-                          </ul>
-                        </motion.div>
-                      )}
-
-                      {/* Director */}
-                      {director && (
-                        <motion.div
-                          className="space-y-1"
-                          variants={contentItemVariants}
-                        >
-                          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                            Director
-                          </h4>
-                          <p className="text-sm text-foreground">{director}</p>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
+              {certification && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <Badge variant="outline" className="border-white/30 text-white/80 text-xs py-0 h-5">
+                    {certification}
+                  </Badge>
+                </>
+              )}
+              <Badge className="bg-cyan-500/90 text-white text-xs py-0 h-5 ml-1">
+                {kind === "tv" ? "TV" : "Movie"}
+              </Badge>
             </motion.div>
           </div>
+        </div>
+
+        {/* Match Score Bar - Always visible */}
+        <motion.div
+          className="flex-shrink-0 flex items-center gap-4 px-5 py-4 border-b border-white/10 bg-slate-900/80"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/50 uppercase tracking-wider">Match</span>
+            <span className="text-xl font-bold text-cyan-400">
+              {Math.round(combined_score * 100)}%
+            </span>
+          </div>
+          <div className="h-6 w-px bg-white/10" />
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/50">Signal:</span>
+            <Badge
+              variant="outline"
+              className={`text-xs py-0 h-5 ${
+                strongest_signal === 'content' ? 'border-blue-500/50 text-blue-400' :
+                strongest_signal === 'vibe' ? 'border-purple-500/50 text-purple-400' :
+                'border-orange-500/50 text-orange-400'
+              }`}
+            >
+              {strongest_signal === 'content' ? 'Story' :
+               strongest_signal === 'vibe' ? 'Vibe' : 'Details'}
+            </Badge>
+          </div>
+
+          {/* Expand hint - only in peek mode */}
+          <AnimatePresence>
+            {isPeek && (
+              <motion.button
+                className="ml-auto flex items-center gap-1 text-xs text-white/40 hover:text-white/60 transition-colors"
+                onClick={() => snapTo(SNAP_POINTS.EXPANDED)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <span>Details</span>
+                <ChevronUp className="h-3.5 w-3.5" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </motion.div>
+
+        {/* Scrollable Content - Expands when sheet expands */}
+        <div
+          ref={contentRef}
+          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-safe"
+          style={{
+            opacity: isPeek ? 0.3 : 1,
+            pointerEvents: isPeek ? 'none' : 'auto',
+            transition: 'opacity 0.2s ease'
+          }}
+        >
+          <div className="px-5 py-5 space-y-6">
+            {/* Overview */}
+            <section>
+              <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                Overview
+              </h3>
+              <p className="text-sm leading-relaxed text-white/80">
+                {overview || "No overview available."}
+              </p>
+            </section>
+
+            {/* Genres */}
+            {safeGenres.length > 0 && (
+              <section>
+                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                  Genres
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {safeGenres.map((g) => (
+                    <Badge
+                      key={g}
+                      variant="outline"
+                      className="border-white/20 text-white/70 text-xs"
+                    >
+                      {g}
+                    </Badge>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Vibes */}
+            {safeVibes.length > 0 && (
+              <section>
+                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                  Vibes
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {safeVibes.map((v) => (
+                    <span key={v} className="text-sm text-cyan-400/80">
+                      #{v}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Trailer */}
+            {id && isExpanded && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <PlayCircle className="h-4 w-4 text-cyan-400" /> Trailer
+                </h3>
+                <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50">
+                  <TrailerPlayer
+                    tmdbId={id}
+                    mediaType={kind === "tv" ? "tv" : "movie"}
+                    title={title}
+                  />
+                </div>
+              </motion.section>
+            )}
+
+            {/* Cast */}
+            {topCast.length > 0 && (
+              <section>
+                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                  Cast
+                </h3>
+                <ul className="space-y-1.5">
+                  {topCast.map((actor, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-white/70">
+                      <User className="h-3 w-3 text-white/40" />
+                      {actor.name || actor}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Director */}
+            {director && (
+              <section>
+                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-1">
+                  Director
+                </h3>
+                <p className="text-sm text-white/80">{director}</p>
+              </section>
+            )}
+
+            {/* Bottom padding for safe area */}
+            <div className="h-4" />
+          </div>
+        </div>
       </motion.div>
-    </>,
+    </AnimatePresence>,
     document.body
   );
 }

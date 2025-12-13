@@ -8,6 +8,7 @@ export function useSearch() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [searchMetadata, setSearchMetadata] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,20 +117,61 @@ export function useSearch() {
     setSearchMetadata(null);
     setLoading(false);
     setLoadingMore(false);
+    setRefreshing(false);
     setCurrentPage(1);
     setHasMore(false);
     setCurrentQuery(null);
   }, []);
 
+  // Refresh current search results (for pull-to-refresh)
+  const refresh = useCallback(async () => {
+    if (!currentQuery || refreshing) return;
+
+    setRefreshing(true);
+    setError(null);
+    setCurrentPage(1);
+
+    try {
+      const data = await searchMovies(currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, 1, pageSize);
+
+      setResults(data.results || []);
+      setHasMore(data.hasMore || false);
+      setSearchMetadata({
+        query: data.query,
+        weights: data.weights,
+        weightReasoning: data.weightReasoning,
+        count: data.count,
+        totalCount: data.totalCount,
+        page: data.page,
+        totalPages: data.totalPages,
+        hasMore: data.hasMore,
+        metadata: data.metadata
+      });
+    } catch (err) {
+      const errorMessage = err.message || 'An error occurred while refreshing';
+      const isTimeout = err.timeout || errorMessage.toLowerCase().includes('timeout');
+
+      setError({
+        message: errorMessage,
+        timeout: isTimeout,
+        originalError: err,
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, refreshing]);
+
   return {
     results,
     loading,
     loadingMore,
+    refreshing,
     error,
     searchMetadata,
     hasMore,
     search,
     loadMore,
+    refresh,
     reset,
   };
 }
