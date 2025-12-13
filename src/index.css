@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -108,7 +111,7 @@
   .glass {
     @apply bg-black/40 backdrop-blur-xl border border-white/5 shadow-2xl;
   }
-  
+
   .glass-card {
     @apply bg-card/80 backdrop-blur-md border border-white/5 shadow-xl;
   }
@@ -116,17 +119,78 @@
   .text-glow {
     text-shadow: 0 0 30px hsla(262, 83%, 58%, 0.5), 0 0 60px hsla(280, 100%, 70%, 0.3);
   }
-  
+
   .lovable-card {
     @apply bg-black/40 backdrop-blur-2xl rounded-[2rem] border border-white/[0.08] shadow-2xl shadow-black/50;
   }
-  
+
+  .hero-glow {
+    box-shadow: 0 0 30px rgba(249,115,22,0.2), 0 0 60px rgba(249,115,22,0.1);
+  }
+
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
   .pt-safe {
     padding-top: env(safe-area-inset-top);
+  }
+
+  /* 3D Perspective Container */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  /* 3D Card Tilt Base */
+  .tilt-card {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+  }
+
+  /* Glow Effects */
+  .glow-orange {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3),
+                0 0 40px rgba(249, 115, 22, 0.1);
+  }
+
+  .glow-orange-intense {
+    box-shadow: 0 0 30px rgba(249, 115, 22, 0.5),
+                0 0 60px rgba(249, 115, 22, 0.2),
+                0 0 80px rgba(249, 115, 22, 0.1);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3),
+                0 0 40px rgba(14, 165, 233, 0.1);
+  }
+
+  /* Drag Handle */
+  .drag-handle {
+    @apply w-10 h-1 rounded-full bg-white/30 mx-auto;
+  }
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .animate-bounce-in,
+  .animate-bounce-out,
+  .animate-wiggle,
+  .animate-pulse-glow,
+  .animate-pop,
+  .animate-slide-up,
+  .animate-scale-in {
+    animation: none !important;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 

@@ -33,7 +33,7 @@ function sleep(ms) {
  * @param {number} retryCount - Current retry attempt (internal use)
  * @returns {Promise<Object>} Search results
  */
-export async function searchMovies(query, matchCount = 100, matchThreshold = 0.4, kindFilter = null, page = 1, pageSize = 20, retryCount = 0) {
+export async function searchMovies(query, matchCount = 80, matchThreshold = 0, kindFilter = null, page = 1, pageSize = 20, retryCount = 0) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
 

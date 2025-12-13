@@ -179,10 +179,10 @@ app.post("/api/search", async (req, res) => {
     }
 
     // Validate parameters
-    if (matchCount < 1 || matchCount > 100) {
+    if (matchCount < 1 || matchCount > 200) {
       return res.status(400).json({
         error: "Invalid request",
-        message: "matchCount must be between 1 and 100",
+        message: "matchCount must be between 1 and 200",
       });
     }
 

@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { AlertCircle, CloudCog } from "lucide-react";
-import { ShimmeringText } from "./components/ui/ShimmeringText";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { AlertCircle, ArrowUp, X, ArrowLeft } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -9,194 +9,282 @@ import {
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
-import { Navbar } from "./components/Navbar";
-import { SearchBar } from "./components/SearchBar";
 import { Spinner } from "./components/ui/spinner";
 import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
-import { MovieModal } from "./components/MovieModal";
+import { HeroSearchCard } from "./components/HeroSearchCard";
 import { useSearch } from "./hooks/useSearch";
-import { useRecommendations } from "./hooks/useRecommendations";
+import { springConfigs } from "./lib/animations";
+
+const pageTransition = {
+  duration: 0.4,
+  ease: [0.16, 1, 0.3, 1]
+};
 
 function App() {
   const { results, loading, loadingMore, error, searchMetadata, hasMore, search, loadMore, reset } = useSearch();
-  const { recommendations, loading: loadingRecs, error: recsError } = useRecommendations();
-  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [compactQuery, setCompactQuery] = useState("");
+  const compactInputRef = useRef(null);
 
   const hasResults = results.length > 0;
-  const showIntro = !loading && !hasResults && !error && !searchMetadata;
+  const hasSearched = !!searchMetadata;
+  const viewState = hasResults || loading || error || (hasSearched && results.length === 0) ? "results" : "hero";
 
-  console.log("results", results);
+  // Sync compact input with search query
+  useEffect(() => {
+    if (searchMetadata?.query) {
+      setCompactQuery(searchMetadata.query);
+    }
+  }, [searchMetadata?.query]);
 
-   
+  const handleSearch = (query, kindFilter) => {
+    setCompactQuery(query);
+    search(query, 80, 0, kindFilter);
+  };
+
+  const handleCompactSubmit = (e) => {
+    e?.preventDefault();
+    if (compactQuery.trim()) {
+      search(compactQuery.trim(), 80, 0, null);
+    }
+  };
+
+  const handleBackToHero = () => {
+    reset();
+    setCompactQuery("");
+  };
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-
       <div className="relative flex min-h-dvh flex-col">
-        <Navbar />
+        <AnimatePresence mode="wait">
+          {viewState === "hero" ? (
+            <motion.div
+              key="hero"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={pageTransition}
+              className="flex flex-1 flex-col items-center justify-center px-4 py-12"
+            >
+              {/* Hero Content */}
+              <div className="w-full max-w-2xl space-y-10">
+                {/* Logo/Wordmark */}
+                <motion.div
+                  className="text-center"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
+                >
+                  <h1 className="font-serif text-4xl sm:text-5xl text-white tracking-tight">
+                    upNext
+                  </h1>
+                  <p className="mt-3 text-base sm:text-lg text-white/50 font-medium">
+                    Describe a vibe. Find your next watch.
+                  </p>
+                </motion.div>
 
-        {/* Hero Section */}
-        <header className="relative container w-full space-y-6 pb-8 pt-safe pt-20 sm:pt-24 md:space-y-14 md:pb-20 md:pt-28">
-          <div className="flex flex-col items-center gap-4 text-center sm:gap-8">
-            <div className="space-y-4 max-w-4xl px-4 sm:px-0">
-              <h1 className="text-balance text-3xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-                Find films that fit your mood
-              </h1>
-              <p className="mx-auto max-w-2xl text-pretty text-base leading-relaxed text-white/60 sm:text-xl">
-                Describe a vibe, a feeling, or just type <span className="text-primary font-medium">anything</span>—and let smart search match you with movies & shows you'll love.
-              </p>
-            </div>
-          </div>
-
-          <div className="px-2 sm:px-0">
-             <SearchBar onSearch={(query, kindFilter) => search(query, 100, 0.4, kindFilter)} loading={loading} />
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="container flex w-full flex-1 flex-col gap-8 pb-16 pt-4 md:gap-12 md:pb-20 px-4 sm:px-6">
-          {loading && (
-            <div className="space-y-8">
-              {/* Skeleton loaders while searching */}
-              <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 gap-3 sm:gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-                  {[...Array(8)].map((_, index) => (
-                    <SkeletonCard key={index} />
-                  ))}
-                </div>
+                {/* Search Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <HeroSearchCard onSearch={handleSearch} loading={loading} />
+                </motion.div>
               </div>
-            </div>
-          )}
-
-          {error && !loading && (
-            <Card className="mx-auto flex w-full max-w-2xl animate-scale-in flex-col items-center text-center border-destructive/40 bg-destructive/15">
-              <CardHeader className="items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/30">
-                  <AlertCircle className="h-6 w-6 text-destructive-foreground" />
-                </div>
-                <CardTitle className="text-xl">
-                  {typeof error === 'object' && error.timeout 
-                    ? 'Search timed out' 
-                    : 'We lost the signal'}
-                </CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
-                  {typeof error === 'object' ? error.message : error}
-                </CardDescription>
-                {typeof error === 'object' && error.timeout && (
-                  <CardDescription className="text-xs text-muted-foreground/70 mt-2">
-                    The search is taking longer than expected. This might be due to high server load. 
-                    Try searching again in a moment, or use a simpler query.
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="flex w-full items-center justify-center gap-3">
-                <Button onClick={reset} size="lg" variant="accent">
-                  Try again
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {!loading && searchMetadata && results.length === 0 && !error && (
-            <EmptyState type="no-results" query={searchMetadata.query} />
-          )}
-
-          {hasResults && !loading && (
-            <ResultsGrid 
-              results={results} 
-              searchMetadata={searchMetadata}
-              hasMore={hasMore}
-              loadingMore={loadingMore}
-              onLoadMore={loadMore}
-            />
-          )}
-
-          {/* Recommended For You Section */}
-          {showIntro && !loadingRecs && recommendations.length > 0 && (
-            <section className="space-y-6 animate-fade-in">
-              <h2 className="text-2xl font-semibold tracking-tight text-white">Recommended For You</h2>
-              <div className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {recommendations.map((movie) => (
-                  <button
-                    key={movie.id}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={pageTransition}
+              className="flex flex-1 flex-col"
+            >
+              {/* Compact Top Bar */}
+              <motion.header
+                className="sticky top-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+              >
+                <div className="container flex h-16 items-center gap-4 px-4 sm:px-6">
+                  {/* Back Button */}
+                  <motion.button
                     type="button"
-                    onClick={() => setSelectedMovie(movie)}
-                    className="group relative flex w-full flex-col gap-2 text-left transition-transform duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    onClick={handleBackToHero}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                    aria-label="Back to search"
                   >
-                    {/* Movie poster */}
-                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted/20 shadow-md transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-primary/10">
-                      {movie.poster_path ? (
-                        <img
-                          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                          alt={movie.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 bg-muted/20">
-                           {/* Simple fallback icon */}
-                           <div className="h-8 w-8 rounded-full border-2 border-muted-foreground/30" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    </div>
+                    <ArrowLeft className="h-4 w-4" />
+                  </motion.button>
 
-                    {/* Movie info */}
-                    <div className="space-y-1 px-0.5">
-                      <h3 className="text-sm font-medium leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                        {movie.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-                        <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : "N/A"}</span>
-                        {movie.vote_average && (
-                          <span className="flex items-center gap-1 text-amber-400/90">
-                            ★ {movie.vote_average.toFixed(1)}
-                          </span>
-                        )}
+                  {/* Logo */}
+                  <button
+                    type="button"
+                    onClick={handleBackToHero}
+                    className="font-serif text-xl text-white tracking-tight hover:text-white/80 transition-colors"
+                  >
+                    upNext
+                  </button>
+
+                  {/* Compact Search */}
+                  <form onSubmit={handleCompactSubmit} className="flex-1 max-w-xl">
+                    <div className="relative flex items-center">
+                      <input
+                        ref={compactInputRef}
+                        type="text"
+                        value={compactQuery}
+                        onChange={(e) => setCompactQuery(e.target.value)}
+                        placeholder="Search for a vibe..."
+                        disabled={loading}
+                        className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
+                      />
+                      <div className="absolute right-1 flex items-center gap-1">
+                        <AnimatePresence>
+                          {compactQuery && !loading && (
+                            <motion.button
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ duration: 0.15 }}
+                              type="button"
+                              onClick={() => setCompactQuery("")}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </motion.button>
+                          )}
+                        </AnimatePresence>
+                        <motion.button
+                          type="submit"
+                          disabled={loading || !compactQuery.trim()}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {loading ? (
+                            <Spinner size={14} className="text-white" ariaLabel="Searching..." />
+                          ) : (
+                            <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+                          )}
+                        </motion.button>
                       </div>
                     </div>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
+                  </form>
+                </div>
+              </motion.header>
 
-          {showIntro && loadingRecs && (
-            <div className="flex items-center justify-center py-12">
-              <Spinner size={70} className="text-primary" ariaLabel="Loading…" message="Loading recommendations…" />
-            </div>
-          )}
+              {/* Main Content */}
+              <main className="container flex w-full flex-1 flex-col gap-8 pb-16 pt-8 px-4 sm:px-6">
+                {/* Loading State */}
+                <AnimatePresence mode="wait">
+                  {loading && (
+                    <motion.div
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="mx-auto w-full max-w-7xl"
+                    >
+                      <div className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {[...Array(10)].map((_, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ ...springConfigs.gentle, delay: index * 0.03 }}
+                          >
+                            <SkeletonCard />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
 
-          {showIntro && recsError && !loadingRecs && (
-            <Card className="mx-auto w-full max-w-2xl text-center">
-              <CardHeader>
-                <CardTitle className="text-xl">Failed to load recommendations</CardTitle>
-                <CardDescription>{recsError}</CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-        </main>
+                  {/* Error State */}
+                  {error && !loading && (
+                    <motion.div
+                      key="error"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card className="mx-auto flex w-full max-w-2xl flex-col items-center text-center border-destructive/40 bg-destructive/15">
+                        <CardHeader className="items-center gap-4">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/30">
+                            <AlertCircle className="h-6 w-6 text-destructive-foreground" />
+                          </div>
+                          <CardTitle className="text-xl">
+                            {typeof error === 'object' && error.timeout
+                              ? 'Search timed out'
+                              : 'We lost the signal'}
+                          </CardTitle>
+                          <CardDescription className="text-sm text-muted-foreground">
+                            {typeof error === 'object' ? error.message : error}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex w-full items-center justify-center gap-3">
+                          <Button onClick={handleBackToHero} size="lg" variant="accent">
+                            Try again
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
 
-        {/* Footer */}
-        <footer className="pb-safe pb-12 pt-8">
-          <div className="container flex flex-col items-center gap-3 text-center text-xs text-white/40 sm:text-sm">
-            <p>
-              Powered by multi-embedding semantic search with adaptive signal weighting.
-            </p>
-            <p>© {new Date().getFullYear()} upNext. Curated with curiosity.</p>
-          </div>
-        </footer>
+                  {/* Empty Results */}
+                  {!loading && hasSearched && results.length === 0 && !error && (
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <EmptyState type="no-results" query={searchMetadata?.query} />
+                    </motion.div>
+                  )}
+
+                  {/* Results Grid */}
+                  {hasResults && !loading && (
+                    <motion.div
+                      key="results-grid"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ResultsGrid
+                        results={results}
+                        searchMetadata={searchMetadata}
+                        hasMore={hasMore}
+                        loadingMore={loadingMore}
+                        onLoadMore={loadMore}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </main>
+
+              {/* Footer */}
+              <footer className="pb-safe pb-8 pt-4">
+                <div className="container flex flex-col items-center gap-2 text-center text-xs text-white/30">
+                  <p>Powered by multi-embedding semantic search</p>
+                </div>
+              </footer>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
-
-      {/* Movie Modal */}
-      {selectedMovie && (
-        <MovieModal
-          movie={selectedMovie}
-          onClose={() => setSelectedMovie(null)}
-        />
-      )}
     </div>
   );
 }

@@ -68,8 +68,9 @@ export default {
         sm: "calc(var(--radius) - 6px)",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        heading: ["DM Sans", "sans-serif"],
+        sans: ["Satoshi", "sans-serif"],
+        heading: ["Satoshi", "sans-serif"],
+        serif: ["Instrument Serif", "serif"],
       },
       boxShadow: {
         soft: "0 20px 60px -35px hsl(var(--shadow) / 0.4)",
@@ -84,6 +85,11 @@ export default {
         "slide-up": "slideUp 0.4s ease-out",
         "scale-in": "scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
         "slide-in": "slideIn 0.3s ease-out",
+        "bounce-in": "bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "bounce-out": "bounceOut 0.3s ease-in forwards",
+        "wiggle": "wiggle 0.3s ease-in-out",
+        "pulse-glow": "pulseGlow 2s ease-in-out infinite",
+        "pop": "pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       },
       keyframes: {
         fadeIn: {
@@ -101,6 +107,29 @@ export default {
         slideIn: {
           "0%": { transform: "translateX(-100%)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        bounceIn: {
+          "0%": { transform: "scale(0.8)", opacity: "0" },
+          "50%": { transform: "scale(1.08)" },
+          "75%": { transform: "scale(0.98)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        bounceOut: {
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "100%": { transform: "scale(0.8)", opacity: "0" },
+        },
+        wiggle: {
+          "0%, 100%": { transform: "rotate(-3deg)" },
+          "50%": { transform: "rotate(3deg)" },
+        },
+        pulseGlow: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)" },
+          "50%": { boxShadow: "0 0 35px rgba(249, 115, 22, 0.45)" },
+        },
+        pop: {
+          "0%": { transform: "scale(0.95)", opacity: "0.8" },
+          "50%": { transform: "scale(1.05)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
       },
       spacing: {

@@ -166,7 +166,32 @@ Return ONLY valid JSON:
 }
 
 /**
+ * Generates a single embedding for a query (raw query text)
+ * This is used with match_titles_multi RPC which compares the same embedding
+ * against all three database embedding types
+ *
+ * @param {string} query - The user's search query
+ * @returns {Promise<number[]>} - Single 1536-dimensional embedding
+ */
+export async function generateQueryEmbedding(query) {
+  try {
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      dimensions: 1536,
+      input: query,
+      encoding_format: "float",
+    });
+
+    return response.data[0].embedding;
+  } catch (error) {
+    console.error("Embedding generation failed:", error);
+    throw new Error("Failed to generate query embedding");
+  }
+}
+
+/**
  * Generates three separate embeddings for a query, formatted for each embedding type
+ * @deprecated Use generateQueryEmbedding() instead with match_titles_multi RPC
  *
  * @param {string} query - The user's search query
  * @returns {Promise<{content: number[], vibe: number[], metadata: number[]}>}

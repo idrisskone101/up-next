@@ -165,9 +165,140 @@ FIXED_WEIGHT_VIBE=0.20
 FIXED_WEIGHT_METADATA=0.60
 ```
 
+### Query Structuring (server/embeddings.js:structureQuery)
+
+**NEW:** upNext includes an intelligent query structuring system that expands lazy queries into rich, structured text matching how database embeddings were originally created.
+
+#### Overview
+
+When `USE_QUERY_STRUCTURING=true` in `.env`, the system uses GPT-4o-mini to transform simple queries like "Cosy Night In" into detailed structured text across all three embedding dimensions before generating embeddings.
+
+#### How It Works
+
+**Input:** Simple user query (e.g., "Cosy Night In")
+
+**Output:** Three structured text blocks matching database embedding creation:
+
+1. **Content Structure** (matches: profile_string, themes, overview, slots, keywords)
+```javascript
+"Profile: A heartwarming story perfect for a relaxing evening. 
+Overview: A feel-good narrative focusing on comfort, warmth, and simple pleasures. 
+Themes: comfort, relaxation, warmth, home, togetherness. 
+Story structure: Characters seeking peace and connection in familiar settings. 
+Keywords: cozy, relaxing, heartwarming, comfort, home"
+```
+
+2. **Vibe Structure** (matches: vibes, tone, pacing, tagline)
+```javascript
+"Vibes: cozy, warm, comforting, relaxing, intimate. 
+Tone: gentle, soothing, heartwarming. 
+Pacing: slow-burn, contemplative, leisurely. 
+Tagline: The perfect companion for a quiet evening at home"
+```
+
+3. **Metadata Structure** (matches: genres, director, writers, certification, countries, collection)
+```javascript
+"Genres: romance, comedy, drama, family. 
+Director: Feel-good filmmakers known for intimate character studies. 
+Writers: Writers who excel at cozy, character-driven narratives. 
+Certification: PG, PG-13, TV-PG. 
+Countries: UK, US, France. 
+Collection: Comfort cinema, feel-good films"
+```
+
+#### Database Field Mapping
+
+The structuring system mirrors how database embeddings were created from these fields:
+
+**Content Embedding Sources:**
+- `profile_string`: One-sentence spoiler-safe logline
+- `themes`: Array of narrative themes (e.g., ["revenge", "coming-of-age"])
+- `overview`: 2-3 sentence plot description
+- `slots`: Story structure (protagonist, setting, goal, obstacle, stakes)
+- `keywords`: Relevant story keywords
+
+**Vibe Embedding Sources:**
+- `vibes`: Array of mood descriptors (e.g., ["cozy", "dark", "whimsical"])
+- `tone`: Single tone descriptor (e.g., "earnest", "melancholic", "noir")
+- `pacing`: Single pacing descriptor (e.g., "slow-burn", "kinetic", "contemplative")
+- `tagline`: Marketing tagline or atmospheric one-liner
+
+**Metadata Embedding Sources:**
+- `genres`: Array of genre names (e.g., ["drama", "romance", "comedy"])
+- `director`: Director name or style description
+- `writers`: Writer names or style descriptions
+- `certification`: Age rating (e.g., "PG-13", "R", "TV-MA")
+- `production_countries`: Country codes or names
+- `collection`: Franchise or series name
+
+#### Configuration
+
+```bash
+# Enable/disable query structuring (default: false)
+USE_QUERY_STRUCTURING=true
+```
+
+#### Performance Impact
+
+- **Overhead:** +500-800ms per search (additional LLM call)
+- **Benefits:** Much better semantic matches for vague/lazy queries
+- **Fallback:** On LLM failure, falls back to simple template method
+- **Total time with structuring:** ~2-2.5s (structuring + embeddings + search)
+
+#### When Query Structuring Helps Most
+
+**Best for vague/atmospheric queries:**
+- "Cosy Night In" → Expands to detailed comfort cinema descriptors
+- "Dark and moody" → Expands to noir aesthetics and atmospheric elements
+- "Feel-good Sunday morning" → Expands to light, uplifting narratives
+- "Gritty urban drama" → Expands to crime, city settings, dark realism
+
+**Less helpful for specific queries:**
+- "Christopher Nolan sci-fi" → Already specific, structuring adds minimal value
+- "Romantic comedy with Sandra Bullock" → Clear intent, template method works fine
+- "Best movies of 2024" → Metadata-focused, structuring unnecessary
+
+#### Example: "Cosy Night In"
+
+**Without Structuring (Template Method):**
+```javascript
+{
+  content: "Story: Cosy Night In. Overview: Cosy Night In. Themes: Cosy Night In",
+  vibe: "Vibes: Cosy Night In. Tone: Cosy Night In. Tagline: Cosy Night In",
+  metadata: "Genres: Cosy Night In. Type: Cosy Night In. Keywords: Cosy Night In"
+}
+```
+
+**With Structuring (LLM Expansion):**
+```javascript
+{
+  content: "Profile: Heartwarming story perfect for relaxing evening. Overview: Feel-good narrative about comfort and connection. Themes: comfort, warmth, togetherness, home. Story structure: Characters seeking peace in familiar settings. Keywords: cozy, relaxing, heartwarming",
+  
+  vibe: "Vibes: cozy, warm, comforting, relaxing, intimate. Tone: gentle, soothing. Pacing: slow-burn, contemplative. Tagline: Perfect for a quiet evening at home",
+  
+  metadata: "Genres: romance, comedy, drama, family. Director: Feel-good filmmakers. Certification: PG, PG-13. Countries: UK, US, France. Collection: Comfort cinema"
+}
+```
+
+The structured version provides much richer semantic information that better matches database embeddings created from actual movie metadata.
+
+#### Disabling Query Structuring
+
+If you prefer faster searches without LLM query expansion:
+
+1. Set `USE_QUERY_STRUCTURING=false` in `.env` (or omit the variable)
+2. Restart server
+3. Queries will use simple template repetition method
+
 ### Embedding Generation (server/embeddings.js:generateQueryEmbeddings)
 
-Query is formatted three different ways to match database embedding creation:
+Query is formatted based on `USE_QUERY_STRUCTURING` configuration:
+
+**With Structuring Enabled:**
+Uses LLM-expanded structured text (see Query Structuring section above)
+
+**With Structuring Disabled (Default):**
+Simple template repetition method:
 ```javascript
 {
   content: `Story: ${query}. Overview: ${query}. Themes: ${query}`,
@@ -177,6 +308,7 @@ Query is formatted three different ways to match database embedding creation:
 ```
 
 All three embeddings generated in single OpenAI API call for efficiency.
+
 
 ### Search Result Structure
 
@@ -396,4 +528,3 @@ RERANK_WEIGHT_QUALITY=0.05
 RERANK_WEIGHT_POPULARITY=0.03
 RERANK_WEIGHT_RECENCY=0.02
 ```
-
