@@ -9,22 +9,20 @@ const fixedContentWeight = parseFloat(process.env.FIXED_WEIGHT_CONTENT || "0.40"
 const fixedVibeWeight = parseFloat(process.env.FIXED_WEIGHT_VIBE || "0.35");
 const fixedMetadataWeight = parseFloat(process.env.FIXED_WEIGHT_METADATA || "0.25");
 
-// Parse re-ranking configuration
+// Parse re-ranking configuration (simplified: just recency + mainstream boost)
 const enableReranking = process.env.ENABLE_RERANKING !== "false"; // Default ON
-const rerankWeightSemantic = parseFloat(process.env.RERANK_WEIGHT_SEMANTIC || "0.75");
-const rerankWeightQuality = parseFloat(process.env.RERANK_WEIGHT_QUALITY || "0.15");
-const rerankWeightPopularity = parseFloat(process.env.RERANK_WEIGHT_POPULARITY || "0.05");
-const rerankWeightRecency = parseFloat(process.env.RERANK_WEIGHT_RECENCY || "0.05");
-const rerankMaxSameCollection = parseInt(process.env.RERANK_MAX_SAME_COLLECTION || "2", 10);
-const rerankMaxSameDirector = parseInt(process.env.RERANK_MAX_SAME_DIRECTOR || "3", 10);
-const rerankCompletenessThreshold = parseFloat(process.env.RERANK_COMPLETENESS_THRESHOLD || "0.85");
 
 // Parse query structuring configuration
 const useQueryStructuring = process.env.USE_QUERY_STRUCTURING === "true"; // Default OFF
 
 // Parse search configuration
-const defaultMatchCount = parseInt(process.env.DEFAULT_MATCH_COUNT || "80", 10);
+const defaultMatchCount = parseInt(process.env.DEFAULT_MATCH_COUNT || "60", 10);
 const defaultMatchThreshold = parseFloat(process.env.DEFAULT_MATCH_THRESHOLD || "0");
+
+// Parse cache configuration
+const enableSearchCache = process.env.ENABLE_SEARCH_CACHE !== "false"; // Default ON
+const searchCacheTtlMinutes = parseInt(process.env.SEARCH_CACHE_TTL_MINUTES || "5", 10);
+const embeddingCacheTtlMinutes = parseInt(process.env.EMBEDDING_CACHE_TTL_MINUTES || "30", 10);
 
 // Validate that fixed weights sum to 1.0 (within tolerance)
 const weightSum = fixedContentWeight + fixedVibeWeight + fixedMetadataWeight;
@@ -36,16 +34,6 @@ if (Math.abs(weightSum - 1.0) > 0.01) {
   process.exit(1);
 }
 
-// Validate that re-ranking weights sum to 1.0 (within tolerance)
-const rerankWeightSum = rerankWeightSemantic + rerankWeightQuality + rerankWeightPopularity + rerankWeightRecency;
-if (Math.abs(rerankWeightSum - 1.0) > 0.01) {
-  console.error(`Error: Re-ranking weights must sum to 1.0 (currently: ${rerankWeightSum.toFixed(2)})`);
-  console.error(`  RERANK_WEIGHT_SEMANTIC: ${rerankWeightSemantic.toFixed(2)}`);
-  console.error(`  RERANK_WEIGHT_QUALITY: ${rerankWeightQuality.toFixed(2)}`);
-  console.error(`  RERANK_WEIGHT_POPULARITY: ${rerankWeightPopularity.toFixed(2)}`);
-  console.error(`  RERANK_WEIGHT_RECENCY: ${rerankWeightRecency.toFixed(2)}`);
-  process.exit(1);
-}
 
 // Export configuration
 export const config = {
@@ -63,20 +51,8 @@ export const config = {
     metadata: fixedMetadataWeight,
   },
 
-  // Re-ranking configuration
+  // Re-ranking configuration (simplified: recency + mainstream boost)
   enableReranking,
-  rerankingWeights: {
-    semantic: rerankWeightSemantic,
-    quality: rerankWeightQuality,
-    popularity: rerankWeightPopularity,
-    recency: rerankWeightRecency,
-  },
-  diversity: {
-    maxSameCollection: rerankMaxSameCollection,
-    maxSameDirector: rerankMaxSameDirector,
-    penaltyFactor: 0.85, // Hardcoded for now
-  },
-  completenessThreshold: rerankCompletenessThreshold,
 
   // Query structuring configuration
   useQueryStructuring,
@@ -86,6 +62,11 @@ export const config = {
     defaultMatchCount,
     defaultMatchThreshold,
   },
+
+  // Cache configuration
+  enableSearchCache,
+  searchCacheTtlMinutes,
+  embeddingCacheTtlMinutes,
 };
 
 // Validate required environment variables
@@ -107,17 +88,13 @@ if (!useDynamicWeights) {
 }
 
 // Log re-ranking configuration on startup
-console.log(`\n🎯 Re-ranking: ${enableReranking ? "ENABLED" : "DISABLED"}`);
-if (enableReranking) {
-  console.log(`   Semantic:    ${rerankWeightSemantic.toFixed(2)}`);
-  console.log(`   Quality:     ${rerankWeightQuality.toFixed(2)}`);
-  console.log(`   Popularity:  ${rerankWeightPopularity.toFixed(2)}`);
-  console.log(`   Recency:     ${rerankWeightRecency.toFixed(2)}`);
-  console.log(`   Diversity:   Max ${rerankMaxSameCollection} same collection, ${rerankMaxSameDirector} same director`);
-}
+console.log(`\n🎯 Re-ranking: ${enableReranking ? "ENABLED (recency + mainstream boost)" : "DISABLED"}`);
 
 // Log query structuring configuration on startup
 console.log(`\n🔧 Query Structuring: ${useQueryStructuring ? "ENABLED" : "DISABLED"}`);
 
 // Log search configuration on startup
 console.log(`\n🔍 Search Defaults: matchCount=${defaultMatchCount}, matchThreshold=${defaultMatchThreshold.toFixed(2)}`);
+
+// Log cache configuration on startup
+console.log(`\n💾 Cache: ${enableSearchCache ? `ENABLED (results: ${searchCacheTtlMinutes}min, embeddings: ${embeddingCacheTtlMinutes}min)` : "DISABLED"}`);
