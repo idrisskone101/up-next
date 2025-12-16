@@ -58,6 +58,13 @@ export const haptics = {
     if (canVibrate()) {
       navigator.vibrate(15);
     }
+  },
+
+  // Sheet dismiss - for swipe-to-dismiss on bottom sheet
+  sheetDismiss: () => {
+    if (canVibrate()) {
+      navigator.vibrate(8);
+    }
   }
 };
 

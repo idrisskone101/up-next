@@ -14,7 +14,9 @@ import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
 import { HeroSearchCard } from "./components/HeroSearchCard";
+import { BottomNav } from "./components/BottomNav";
 import { useSearch } from "./hooks/useSearch";
+import { useIsMobile } from "./hooks/useMediaQuery";
 import { springConfigs } from "./lib/animations";
 import { haptics } from "./lib/haptics";
 
@@ -27,8 +29,10 @@ function App() {
   const { results, loading, loadingMore, refreshing, error, searchMetadata, hasMore, search, loadMore, refresh, reset } = useSearch();
   const [compactQuery, setCompactQuery] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [activeTab, setActiveTab] = useState("search");
   const compactInputRef = useRef(null);
   const { scrollY } = useScroll();
+  const isMobile = useIsMobile();
 
   const hasResults = results.length > 0;
   const hasSearched = !!searchMetadata;
@@ -193,8 +197,8 @@ function App() {
                 </div>
               </motion.header>
 
-              {/* Main Content */}
-              <main className="container flex w-full flex-1 flex-col gap-8 pb-16 pt-8 px-4 sm:px-6">
+              {/* Main Content - extra padding for bottom nav on mobile */}
+              <main className={`container flex w-full flex-1 flex-col gap-8 pt-8 px-4 sm:px-6 ${isMobile ? 'pb-28' : 'pb-16'}`}>
                 {/* Loading State */}
                 <AnimatePresence mode="wait">
                   {loading && (
@@ -287,7 +291,7 @@ function App() {
                 </AnimatePresence>
               </main>
 
-              {/* Floating Back to Top Button (Mobile) */}
+              {/* Floating Back to Top Button - positioned above bottom nav on mobile */}
               <AnimatePresence>
                 {showBackToTop && (
                   <motion.button
@@ -296,8 +300,7 @@ function App() {
                     exit={{ opacity: 0, scale: 0.8, y: 20 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     onClick={handleBackToTop}
-                    className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/90 text-white shadow-lg shadow-amber-500/30 backdrop-blur-sm hover:bg-amber-500 active:scale-95 transition-colors"
-                    style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+                    className={`fixed right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/90 text-white shadow-lg shadow-amber-500/30 backdrop-blur-sm hover:bg-amber-500 active:scale-95 transition-colors ${isMobile ? 'bottom-24' : 'bottom-6'}`}
                     aria-label="Back to top"
                   >
                     <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
@@ -315,6 +318,13 @@ function App() {
           )}
         </AnimatePresence>
 
+        {/* Bottom Navigation - Mobile only */}
+        {isMobile && (
+          <BottomNav
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        )}
       </div>
     </div>
   );

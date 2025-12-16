@@ -533,3 +533,4 @@ RERANK_WEIGHT_RECENCY=0.02
 
 ## Plan
 At the end of each plan, give me a list of unresolved questions to answer. If any, make the questions extremely concise. Sacrifice grammar for the sake of concision.
+If anything is unclear, make sure to ask clarifying questions.
