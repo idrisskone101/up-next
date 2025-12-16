@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { AlertCircle, ArrowUp, X, ArrowLeft } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
@@ -16,6 +16,7 @@ import { ResultsGrid } from "./components/ResultsGrid";
 import { HeroSearchCard } from "./components/HeroSearchCard";
 import { useSearch } from "./hooks/useSearch";
 import { springConfigs } from "./lib/animations";
+import { haptics } from "./lib/haptics";
 
 const pageTransition = {
   duration: 0.4,
@@ -25,11 +26,18 @@ const pageTransition = {
 function App() {
   const { results, loading, loadingMore, refreshing, error, searchMetadata, hasMore, search, loadMore, refresh, reset } = useSearch();
   const [compactQuery, setCompactQuery] = useState("");
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const compactInputRef = useRef(null);
+  const { scrollY } = useScroll();
 
   const hasResults = results.length > 0;
   const hasSearched = !!searchMetadata;
   const viewState = hasResults || loading || error || (hasSearched && results.length === 0) ? "results" : "hero";
+
+  // Track scroll position for back-to-top button
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setShowBackToTop(latest > 400);
+  });
 
   // Sync compact input with search query
   useEffect(() => {
@@ -53,6 +61,11 @@ function App() {
   const handleBackToHero = () => {
     reset();
     setCompactQuery("");
+  };
+
+  const handleBackToTop = () => {
+    haptics.light();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -128,7 +141,7 @@ function App() {
                   <button
                     type="button"
                     onClick={handleBackToHero}
-                    className="font-serif text-xl text-white tracking-tight hover:text-white/80 transition-colors"
+                    className="font-serif text-xl text-white tracking-tight hover:text-white/80 transition-colors hidden sm:block"
                   >
                     upNext
                   </button>
@@ -143,7 +156,7 @@ function App() {
                         onChange={(e) => setCompactQuery(e.target.value)}
                         placeholder="Search for a vibe..."
                         disabled={loading}
-                        className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
+                        className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
                       />
                       <div className="absolute right-1 flex items-center gap-1">
                         <AnimatePresence>
@@ -166,7 +179,7 @@ function App() {
                           disabled={loading || !compactQuery.trim()}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           {loading ? (
                             <Spinner size={14} className="text-white" ariaLabel="Searching..." />
@@ -195,14 +208,7 @@ function App() {
                     >
                       <div className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                         {[...Array(10)].map((_, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ ...springConfigs.gentle, delay: index * 0.03 }}
-                          >
-                            <SkeletonCard />
-                          </motion.div>
+                          <SkeletonCard key={index} index={index} />
                         ))}
                       </div>
                     </motion.div>
@@ -249,7 +255,11 @@ function App() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <EmptyState type="no-results" query={searchMetadata?.query} />
+                      <EmptyState
+                        type="no-results"
+                        query={searchMetadata?.query}
+                        onSuggestionClick={(suggestion) => handleSearch(suggestion, null)}
+                      />
                     </motion.div>
                   )}
 
@@ -270,11 +280,30 @@ function App() {
                         onLoadMore={loadMore}
                         onRefresh={refresh}
                         isRefreshing={refreshing}
+                        totalCount={searchMetadata?.totalCount}
                       />
                     </motion.div>
                   )}
                 </AnimatePresence>
               </main>
+
+              {/* Floating Back to Top Button (Mobile) */}
+              <AnimatePresence>
+                {showBackToTop && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    onClick={handleBackToTop}
+                    className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/90 text-white shadow-lg shadow-amber-500/30 backdrop-blur-sm hover:bg-amber-500 active:scale-95 transition-colors"
+                    style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+                    aria-label="Back to top"
+                  >
+                    <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+                  </motion.button>
+                )}
+              </AnimatePresence>
 
               {/* Footer */}
               <footer className="pb-safe pb-8 pt-4">

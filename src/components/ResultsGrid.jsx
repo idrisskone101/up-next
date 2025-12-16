@@ -1,20 +1,43 @@
-import { useState, useRef, useCallback } from "react";
-import { motion, AnimatePresence, LayoutGroup, useMotionValue, useTransform } from "framer-motion";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { MovieCard } from "./MovieCard";
 import { MovieModal } from "./MovieModal";
 import { SearchMetadata } from "./SearchMetadata";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
-import { gridContainerVariants, springConfigs } from "../lib/animations";
+import { getDiagonalDelay, gridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ChevronDown } from "lucide-react";
 
 // Pull-to-refresh constants
-const PULL_THRESHOLD = 80; // px needed to trigger refresh
-const MAX_PULL = 120;      // max pull distance
+const PULL_THRESHOLD = 80;
+const MAX_PULL = 120;
 
 /**
- * Responsive grid container for movie cards with staggered animations,
+ * Hook to detect current grid column count based on viewport
+ */
+function useGridColumns() {
+  const [columns, setColumns] = useState(2);
+
+  useEffect(() => {
+    const updateColumns = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) setColumns(5);      // xl
+      else if (width >= 1024) setColumns(4); // lg
+      else if (width >= 768) setColumns(3);  // md
+      else setColumns(2);                    // default
+    };
+
+    updateColumns();
+    window.addEventListener("resize", updateColumns);
+    return () => window.removeEventListener("resize", updateColumns);
+  }, []);
+
+  return columns;
+}
+
+/**
+ * Responsive grid container for movie cards with diagonal wave animations,
  * pull-to-refresh, and shared element support
  */
 export function ResultsGrid({
@@ -25,6 +48,7 @@ export function ResultsGrid({
   onLoadMore,
   onRefresh,
   isRefreshing = false,
+  totalCount,
 }) {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [pullDistance, setPullDistance] = useState(0);
@@ -32,10 +56,10 @@ export function ResultsGrid({
   const [hasTriggered, setHasTriggered] = useState(false);
   const containerRef = useRef(null);
   const startY = useRef(0);
+  const columns = useGridColumns();
 
   // Handle touch start
   const handleTouchStart = useCallback((e) => {
-    // Only enable pull-to-refresh when at top of scroll
     if (containerRef.current && window.scrollY <= 0) {
       startY.current = e.touches[0].clientY;
       setIsPulling(true);
@@ -50,14 +74,11 @@ export function ResultsGrid({
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY.current;
 
-    // Only pull down, not up
     if (diff > 0 && window.scrollY <= 0) {
-      // Apply resistance as pull increases
       const resistance = 1 - Math.min(diff / (MAX_PULL * 2), 0.5);
       const adjustedPull = Math.min(diff * resistance, MAX_PULL);
       setPullDistance(adjustedPull);
 
-      // Trigger haptic when crossing threshold
       if (adjustedPull >= PULL_THRESHOLD && !hasTriggered) {
         setHasTriggered(true);
         haptics.success();
@@ -71,19 +92,19 @@ export function ResultsGrid({
 
     setIsPulling(false);
 
-    // If pulled past threshold and not already refreshing, trigger refresh
     if (pullDistance >= PULL_THRESHOLD && !isRefreshing && onRefresh) {
       onRefresh();
     }
 
-    // Reset pull distance
     setPullDistance(0);
     setHasTriggered(false);
   }, [isPulling, pullDistance, isRefreshing, onRefresh]);
 
-  // Calculate pull progress (0-1)
   const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
   const indicatorRotation = pullProgress * 180 + (isRefreshing ? 360 : 0);
+
+  // Calculate remaining count for Load More button
+  const remainingCount = totalCount ? totalCount - results.length : null;
 
   if (results.length === 0) {
     return null;
@@ -98,7 +119,7 @@ export function ResultsGrid({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Pull-to-refresh indicator */}
+        {/* Pull-to-refresh indicator - Amber themed */}
         <AnimatePresence>
           {(pullDistance > 0 || isRefreshing) && (
             <motion.div
@@ -112,9 +133,9 @@ export function ResultsGrid({
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <motion.div
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                className={`flex items-center justify-center w-10 h-10 rounded-full backdrop-blur-md ${
                   hasTriggered || isRefreshing
-                    ? "bg-cyan-500/20 border border-cyan-500/40"
+                    ? "bg-amber-500/20 border border-amber-500/40"
                     : "bg-white/10 border border-white/20"
                 }`}
                 animate={{
@@ -130,7 +151,7 @@ export function ResultsGrid({
               >
                 <RefreshCw
                   className={`w-5 h-5 ${
-                    hasTriggered || isRefreshing ? "text-cyan-400" : "text-white/60"
+                    hasTriggered || isRefreshing ? "text-amber-400" : "text-white/60"
                   }`}
                 />
               </motion.div>
@@ -148,69 +169,71 @@ export function ResultsGrid({
           {/* Search metadata */}
           <SearchMetadata metadata={searchMetadata} />
 
-        {/* Movie results grid */}
-        <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-            variants={gridContainerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <AnimatePresence mode="popLayout">
-              {results.map((movie, index) => (
-                <motion.div
-                  key={movie.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.97, y: 12 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{
-                    opacity: 0,
-                    scale: 0.97,
-                    transition: { duration: 0.15 },
-                  }}
-                  transition={{
-                    ...springConfigs.bouncy,
-                    delay: index * 0.02,
-                  }}
-                >
-                  <MovieCard
-                    movie={movie}
-                    index={index}
-                    onClick={() => setSelectedMovie(movie)}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Load More button */}
-          {hasMore && (
+          {/* Movie results grid */}
+          <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
             <motion.div
-              className="mt-8 flex justify-center"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...springConfigs.gentle, delay: 0.2 }}
+              className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              <Button
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                size="lg"
-                variant="accent"
-                className="min-w-[200px]"
-              >
-                {loadingMore ? (
-                  <span className="flex items-center gap-2">
-                    <Spinner size={20} className="text-current" />
-                    Loading...
-                  </span>
-                ) : (
-                  "Load More"
-                )}
-              </Button>
+              <AnimatePresence mode="popLayout">
+                {results.map((movie, index) => (
+                  <motion.div
+                    key={movie.id}
+                    layout
+                    variants={gridItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    transition={{
+                      ...springConfigs.bouncy,
+                      delay: getDiagonalDelay(index, columns, 0.04),
+                    }}
+                  >
+                    <MovieCard
+                      movie={movie}
+                      index={index}
+                      onClick={() => setSelectedMovie(movie)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </motion.div>
-          )}
-        </div>
+
+            {/* Load More button with remaining count */}
+            {hasMore && (
+              <motion.div
+                className="mt-10 flex justify-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springConfigs.gentle, delay: 0.3 }}
+              >
+                <Button
+                  onClick={onLoadMore}
+                  disabled={loadingMore}
+                  size="lg"
+                  className="group relative min-w-[220px] h-12 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-amber-500/30 text-white/80 hover:text-white transition-all duration-300"
+                >
+                  {loadingMore ? (
+                    <span className="flex items-center gap-2">
+                      <Spinner size={18} className="text-amber-400" />
+                      <span className="text-sm">Loading...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <ChevronDown className="h-4 w-4 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
+                      <span className="text-sm font-medium">
+                        {remainingCount !== null && remainingCount > 0
+                          ? `Load ${Math.min(remainingCount, 20)} more${remainingCount > 20 ? ` of ${remainingCount}` : ""}`
+                          : "Load More"}
+                      </span>
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
+            )}
+          </div>
         </motion.div>
       </div>
 

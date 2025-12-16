@@ -1,99 +1,95 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import {
-  motion,
-  useMotionValue,
-  useTransform,
-  useAnimation,
-  AnimatePresence,
-} from "framer-motion";
-import { X, Star, Calendar, Clock, User, PlayCircle, ChevronUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { X, Star, Calendar, Clock, User, PlayCircle, Sparkles, Film, Palette, Tag } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { TrailerPlayer } from "./TrailerPlayer";
-import { springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
 
-// Snap points as percentage of viewport height (from bottom)
-const SNAP_POINTS = {
-  CLOSED: 0,
-  PEEK: 45,    // 45% of viewport - shows poster, title, score
-  EXPANDED: 92 // 92% of viewport - shows all content
+/**
+ * Get match tier for styling
+ */
+const getMatchTier = (score) => {
+  const percentage = Math.round(score * 100);
+  if (percentage >= 70) return "excellent";
+  if (percentage >= 50) return "good";
+  return "fair";
 };
 
-// iOS-style spring config for snapping
-const snapSpring = {
-  type: "spring",
-  stiffness: 400,
-  damping: 35,
-  mass: 0.8
+const tierConfig = {
+  excellent: {
+    color: "text-amber-400",
+    bg: "bg-amber-500/20",
+    border: "border-amber-500/30",
+    icon: Sparkles,
+  },
+  good: {
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/20",
+    border: "border-cyan-500/30",
+    icon: null,
+  },
+  fair: {
+    color: "text-white/60",
+    bg: "bg-white/10",
+    border: "border-white/10",
+    icon: null,
+  },
+};
+
+// Animation variants
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.95,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    y: 20,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
 };
 
 /**
- * iOS-style bottom sheet modal for movie/TV show details
- * Features Apple Maps-style snap points and gesture handling
+ * Centered modal for movie/TV show details
+ * Responsive design with smooth scale/fade animations
  */
 export function MovieModal({ movie, onClose }) {
-  const sheetRef = useRef(null);
+  const modalRef = useRef(null);
   const contentRef = useRef(null);
-  const controls = useAnimation();
-
-  // Current snap point state
-  const [snapPoint, setSnapPoint] = useState(SNAP_POINTS.PEEK);
-  const [isDragging, setIsDragging] = useState(false);
-
-  // Motion value for sheet position (0 = closed, 100 = full height)
-  const sheetY = useMotionValue(100); // Start off-screen
-
-  // Transform sheet position to visual properties
-  const backdropOpacity = useTransform(sheetY, [100, 50, 0], [0, 0.7, 0.9]);
-  const sheetHeight = useTransform(sheetY, (y) => `${y}%`);
-
-  // Calculate the snap point to animate to based on velocity and current position
-  const getSnapPoint = useCallback((currentY, velocityY) => {
-    // Fast swipe down from peek or anywhere -> close
-    if (velocityY > 800) return SNAP_POINTS.CLOSED;
-
-    // Fast swipe up -> expand
-    if (velocityY < -800) return SNAP_POINTS.EXPANDED;
-
-    // Position-based snapping
-    const peekThreshold = (SNAP_POINTS.PEEK + SNAP_POINTS.CLOSED) / 2;
-    const expandThreshold = (SNAP_POINTS.EXPANDED + SNAP_POINTS.PEEK) / 2;
-
-    if (currentY < peekThreshold) return SNAP_POINTS.CLOSED;
-    if (currentY < expandThreshold) return SNAP_POINTS.PEEK;
-    return SNAP_POINTS.EXPANDED;
-  }, []);
-
-  // Animate to a snap point
-  const snapTo = useCallback(async (point) => {
-    if (point === SNAP_POINTS.CLOSED) {
-      haptics.medium();
-      await controls.start({ height: "0%" }, snapSpring);
-      onClose();
-    } else {
-      if (point !== snapPoint) {
-        haptics.snap();
-      }
-      setSnapPoint(point);
-      await controls.start({ height: `${point}%` }, snapSpring);
-    }
-  }, [controls, onClose, snapPoint]);
-
-  // Initial animation - slide up to peek position
-  useEffect(() => {
-    controls.start({ height: `${SNAP_POINTS.PEEK}%` }, snapSpring);
-    setSnapPoint(SNAP_POINTS.PEEK);
-  }, [controls]);
 
   // Handle escape key
   useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key === "Escape") snapTo(SNAP_POINTS.CLOSED);
+    const handleEscape = (e) => {
+      if (e.key === "Escape") {
+        haptics.light();
+        onClose();
+      }
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [snapTo]);
+  }, [onClose]);
 
   // Lock body scroll
   useEffect(() => {
@@ -112,23 +108,12 @@ export function MovieModal({ movie, onClose }) {
     };
   }, []);
 
-  // Handle drag
-  const handleDrag = (event, info) => {
-    setIsDragging(true);
-  };
-
-  // Handle drag end - snap to nearest point
-  const handleDragEnd = (event, info) => {
-    setIsDragging(false);
-
-    // Get current height as percentage
-    const sheetElement = sheetRef.current;
-    if (!sheetElement) return;
-
-    const currentHeight = (sheetElement.offsetHeight / window.innerHeight) * 100;
-    const newSnapPoint = getSnapPoint(currentHeight, info.velocity.y);
-
-    snapTo(newSnapPoint);
+  // Handle backdrop click
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      haptics.light();
+      onClose();
+    }
   };
 
   // Extract movie data
@@ -172,273 +157,292 @@ export function MovieModal({ movie, onClose }) {
   const parsedCast = typeof cast === "string" ? JSON.parse(cast) : cast;
   const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 5) : [];
 
-  const isPeek = snapPoint === SNAP_POINTS.PEEK;
-  const isExpanded = snapPoint === SNAP_POINTS.EXPANDED;
+  const matchTier = getMatchTier(combined_score);
+  const tier = tierConfig[matchTier];
+  const TierIcon = tier.icon;
+  const matchPercentage = Math.round(combined_score * 100);
 
   return createPortal(
-    <AnimatePresence>
+    <>
       {/* Backdrop */}
       <motion.div
-        className="fixed inset-0 z-50 bg-black/80"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+        variants={backdropVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         transition={{ duration: 0.2 }}
-        onClick={() => snapTo(SNAP_POINTS.CLOSED)}
+        onClick={handleBackdropClick}
       />
 
-      {/* Bottom Sheet */}
+      {/* Modal Container - Centered */}
       <motion.div
-        ref={sheetRef}
-        className="fixed bottom-0 left-0 right-0 z-50 flex flex-col overflow-hidden rounded-t-[28px] bg-slate-900/95 backdrop-blur-xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
-        initial={{ height: "0%" }}
-        animate={controls}
-        exit={{ height: "0%" }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={{ top: 0.1, bottom: 0.3 }}
-        onDrag={handleDrag}
-        onDragEnd={handleDragEnd}
-        style={{
-          maxHeight: "92dvh",
-          touchAction: "none"
-        }}
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+        onClick={handleBackdropClick}
       >
-        {/* Hero Image Section - Always visible, with rounded top corners */}
-        <div className="relative flex-shrink-0 h-[35%] min-h-[180px] overflow-hidden rounded-t-[28px]">
-          {backdropUrl && (
-            <motion.img
-              src={backdropUrl}
-              alt={title}
-              className="h-full w-full object-cover"
-              initial={{ scale: 1.1, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.4 }}
-            />
-          )}
-          {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-transparent" />
-
-          {/* Drag Handle - Floating on top of image */}
-          <div className="absolute top-0 left-0 right-0 flex justify-center pt-3 pb-2 z-20">
-            <motion.div
-              className="w-9 h-1 rounded-full bg-white/40 shadow-sm"
-              whileHover={{ backgroundColor: "rgba(255,255,255,0.6)" }}
-            />
-          </div>
-
+        {/* Modal Content */}
+        <motion.div
+          ref={modalRef}
+          className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl bg-slate-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 border border-white/10"
+          variants={modalVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Close button */}
           <motion.button
-            onClick={() => snapTo(SNAP_POINTS.CLOSED)}
-            className="absolute right-4 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-md hover:bg-black/60 transition-colors"
+            onClick={() => {
+              haptics.light();
+              onClose();
+            }}
+            className="absolute right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white/80 backdrop-blur-md hover:bg-black/70 hover:text-white transition-colors"
             aria-label="Close modal"
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <X className="h-4 w-4" />
           </motion.button>
 
-          {/* Title overlay on image */}
-          <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
-            <motion.h1
-              className="text-2xl font-bold text-white mb-2 drop-shadow-lg"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              {title}
-            </motion.h1>
+          {/* Scrollable Content */}
+          <div
+            ref={contentRef}
+            className="overflow-y-auto overflow-x-hidden max-h-[90vh]"
+          >
+            {/* Hero Image Section */}
+            <div className="relative h-48 sm:h-64 md:h-72 overflow-hidden">
+              {backdropUrl && (
+                <motion.img
+                  src={backdropUrl}
+                  alt={title}
+                  className="h-full w-full object-cover"
+                  initial={{ scale: 1.1, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                />
+              )}
+              {/* Gradient overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-transparent" />
 
-            {/* Metadata row */}
-            <motion.div
-              className="flex items-center gap-2 text-sm text-white/80"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" /> {year}
-              </span>
-              {runtime_minutes && (
-                <>
-                  <span className="text-white/40">•</span>
+              {/* Title overlay */}
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-4">
+                <motion.h1
+                  className="text-2xl sm:text-3xl font-display font-semibold text-white mb-2 drop-shadow-lg tracking-tight"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  {title}
+                </motion.h1>
+
+                {/* Metadata row */}
+                <motion.div
+                  className="flex flex-wrap items-center gap-2 text-sm text-white/80"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                >
                   <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> {formatRuntime(runtime_minutes)}
+                    <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
                   </span>
-                </>
-              )}
-              {certification && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <Badge variant="outline" className="border-white/30 text-white/80 text-xs py-0 h-5">
-                    {certification}
+                  {runtime_minutes && (
+                    <>
+                      <span className="text-white/30">•</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-white/60" /> {formatRuntime(runtime_minutes)}
+                      </span>
+                    </>
+                  )}
+                  {vote_average && (
+                    <>
+                      <span className="text-white/30">•</span>
+                      <span className="flex items-center gap-1 text-amber-400">
+                        <Star className="h-3.5 w-3.5 fill-current" /> {vote_average.toFixed(1)}
+                      </span>
+                    </>
+                  )}
+                  {certification && (
+                    <>
+                      <span className="text-white/30">•</span>
+                      <Badge variant="outline" className="border-white/20 text-white/70 text-xs py-0 h-5 bg-black/20">
+                        {certification}
+                      </Badge>
+                    </>
+                  )}
+                  <Badge className="bg-amber-500/90 text-amber-950 text-xs py-0 h-5 ml-1 font-medium">
+                    {kind === "tv" ? "TV" : "Movie"}
                   </Badge>
-                </>
-              )}
-              <Badge className="bg-cyan-500/90 text-white text-xs py-0 h-5 ml-1">
-                {kind === "tv" ? "TV" : "Movie"}
-              </Badge>
-            </motion.div>
-          </div>
-        </div>
+                </motion.div>
+              </div>
+            </div>
 
-        {/* Match Score Bar - Always visible */}
-        <motion.div
-          className="flex-shrink-0 flex items-center gap-4 px-5 py-4 border-b border-white/10 bg-slate-900/80"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/50 uppercase tracking-wider">Match</span>
-            <span className="text-xl font-bold text-cyan-400">
-              {Math.round(combined_score * 100)}%
-            </span>
-          </div>
-          <div className="h-6 w-px bg-white/10" />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-white/50">Signal:</span>
-            <Badge
-              variant="outline"
-              className={`text-xs py-0 h-5 ${
-                strongest_signal === 'content' ? 'border-blue-500/50 text-blue-400' :
-                strongest_signal === 'vibe' ? 'border-purple-500/50 text-purple-400' :
-                'border-orange-500/50 text-orange-400'
-              }`}
+            {/* Match Score Bar */}
+            <motion.div
+              className="flex flex-wrap items-center gap-4 px-6 py-4 border-b border-white/10 bg-slate-900/50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
             >
-              {strongest_signal === 'content' ? 'Story' :
-               strongest_signal === 'vibe' ? 'Vibe' : 'Details'}
-            </Badge>
-          </div>
+              {/* Match Score with Tier Styling */}
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${tier.bg} ${tier.border} border`}>
+                {TierIcon && <TierIcon className={`h-4 w-4 ${tier.color}`} />}
+                <span className="text-xs text-white/50 uppercase tracking-wider">Match</span>
+                <span className={`text-xl font-bold ${tier.color}`}>
+                  {matchPercentage}%
+                </span>
+              </div>
 
-          {/* Expand hint - only in peek mode */}
-          <AnimatePresence>
-            {isPeek && (
-              <motion.button
-                className="ml-auto flex items-center gap-1 text-xs text-white/40 hover:text-white/60 transition-colors"
-                onClick={() => snapTo(SNAP_POINTS.EXPANDED)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <span>Details</span>
-                <ChevronUp className="h-3.5 w-3.5" />
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </motion.div>
+              <div className="h-6 w-px bg-white/10 hidden sm:block" />
 
-        {/* Scrollable Content - Expands when sheet expands */}
-        <div
-          ref={contentRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pb-safe"
-          style={{
-            opacity: isPeek ? 0.3 : 1,
-            pointerEvents: isPeek ? 'none' : 'auto',
-            transition: 'opacity 0.2s ease'
-          }}
-        >
-          <div className="px-5 py-5 space-y-6">
-            {/* Overview */}
-            <section>
-              <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
-                Overview
-              </h3>
-              <p className="text-sm leading-relaxed text-white/80">
-                {overview || "No overview available."}
-              </p>
-            </section>
+              {/* Signal indicator with icons */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/40 hidden sm:inline">Why matched:</span>
+                <Badge
+                  variant="outline"
+                  className={`text-xs py-0.5 h-6 flex items-center gap-1.5 ${
+                    strongest_signal === 'content' ? 'border-blue-500/40 text-blue-400 bg-blue-500/10' :
+                    strongest_signal === 'vibe' ? 'border-purple-500/40 text-purple-400 bg-purple-500/10' :
+                    'border-amber-500/40 text-amber-400 bg-amber-500/10'
+                  }`}
+                >
+                  {strongest_signal === 'content' && <Film className="h-3 w-3" />}
+                  {strongest_signal === 'vibe' && <Palette className="h-3 w-3" />}
+                  {strongest_signal === 'metadata' && <Tag className="h-3 w-3" />}
+                  {strongest_signal === 'content' ? 'Story' :
+                   strongest_signal === 'vibe' ? 'Vibe' : 'Details'}
+                </Badge>
+              </div>
+            </motion.div>
 
-            {/* Genres */}
-            {safeGenres.length > 0 && (
-              <section>
-                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
-                  Genres
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {safeGenres.map((g) => (
-                    <Badge
-                      key={g}
-                      variant="outline"
-                      className="border-white/20 text-white/70 text-xs"
-                    >
-                      {g}
-                    </Badge>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Vibes */}
-            {safeVibes.length > 0 && (
-              <section>
-                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
-                  Vibes
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {safeVibes.map((v) => (
-                    <span key={v} className="text-sm text-cyan-400/80">
-                      #{v}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Trailer */}
-            {id && isExpanded && (
+            {/* Content Sections */}
+            <div className="px-6 py-6 space-y-6">
+              {/* Overview */}
               <motion.section
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={{ delay: 0.25 }}
               >
-                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <PlayCircle className="h-4 w-4 text-cyan-400" /> Trailer
-                </h3>
-                <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50">
-                  <TrailerPlayer
-                    tmdbId={id}
-                    mediaType={kind === "tv" ? "tv" : "movie"}
-                    title={title}
-                  />
-                </div>
-              </motion.section>
-            )}
-
-            {/* Cast */}
-            {topCast.length > 0 && (
-              <section>
                 <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
-                  Cast
+                  Overview
                 </h3>
-                <ul className="space-y-1.5">
-                  {topCast.map((actor, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-white/70">
-                      <User className="h-3 w-3 text-white/40" />
-                      {actor.name || actor}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+                <p className="text-sm leading-relaxed text-white/80">
+                  {overview || "No overview available."}
+                </p>
+              </motion.section>
 
-            {/* Director */}
-            {director && (
-              <section>
-                <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-1">
-                  Director
-                </h3>
-                <p className="text-sm text-white/80">{director}</p>
-              </section>
-            )}
+              {/* Two Column Layout for Genres & Vibes */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Genres */}
+                {safeGenres.length > 0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-amber-400" /> Genres
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {safeGenres.map((g) => (
+                        <Badge
+                          key={g}
+                          variant="outline"
+                          className="border-amber-500/20 text-amber-400/90 text-xs bg-amber-500/10"
+                        >
+                          {g}
+                        </Badge>
+                      ))}
+                    </div>
+                  </motion.section>
+                )}
 
-            {/* Bottom padding for safe area */}
-            <div className="h-4" />
+                {/* Vibes */}
+                {safeVibes.length > 0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                  >
+                    <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Palette className="h-4 w-4 text-purple-400" /> Vibes
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {safeVibes.map((v) => (
+                        <span key={v} className="text-sm text-purple-400/90 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                          #{v}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.section>
+                )}
+              </div>
+
+              {/* Trailer */}
+              {id && (
+                <motion.section
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4 text-amber-400" /> Trailer
+                  </h3>
+                  <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50">
+                    <TrailerPlayer
+                      tmdbId={id}
+                      mediaType={kind === "tv" ? "tv" : "movie"}
+                      title={title}
+                    />
+                  </div>
+                </motion.section>
+              )}
+
+              {/* Two Column Layout for Cast & Director */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Cast */}
+                {topCast.length > 0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                  >
+                    <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                      Cast
+                    </h3>
+                    <ul className="space-y-1.5">
+                      {topCast.map((actor, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-white/70">
+                          <User className="h-3 w-3 text-white/40" />
+                          {actor.name || actor}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.section>
+                )}
+
+                {/* Director */}
+                {director && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <h3 className="text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                      Director
+                    </h3>
+                    <p className="text-sm text-white/80">{director}</p>
+                  </motion.section>
+                )}
+              </div>
+
+              {/* Bottom padding */}
+              <div className="h-2" />
+            </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
-    </AnimatePresence>,
+    </>,
     document.body
   );
 }

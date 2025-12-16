@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Badge } from "./ui/badge";
-import { Film, Star } from "lucide-react";
+import { Film, Star, Sparkles } from "lucide-react";
 import {
   springConfigs,
   cardVariants,
@@ -11,7 +11,50 @@ import {
 import { haptics } from "../lib/haptics";
 
 /**
- * Individual movie/TV show card component with bouncy animations and 3D tilt effect
+ * Get match tier based on percentage
+ * Excellent: 70%+ (gold glow, prominent)
+ * Good: 50-69% (cyan accent)
+ * Fair: <50% (muted)
+ */
+const getMatchTier = (percentage) => {
+  if (percentage >= 70) return "excellent";
+  if (percentage >= 50) return "good";
+  return "fair";
+};
+
+/**
+ * Tier-specific styling configurations
+ */
+const tierStyles = {
+  excellent: {
+    badgeBg: "bg-gradient-to-r from-amber-500/90 to-yellow-400/90",
+    badgeText: "text-amber-950",
+    badgeBorder: "border-amber-300/50",
+    glowColor: "rgba(251, 191, 36, 0.35)",
+    borderColor: "rgba(251, 191, 36, 0.6)",
+    hoverBorderColor: "rgba(251, 191, 36, 0.8)",
+  },
+  good: {
+    badgeBg: "bg-cyan-500/80",
+    badgeText: "text-white",
+    badgeBorder: "border-cyan-400/30",
+    glowColor: "rgba(14, 165, 233, 0.25)",
+    borderColor: "rgba(14, 165, 233, 0.4)",
+    hoverBorderColor: "rgba(14, 165, 233, 0.6)",
+  },
+  fair: {
+    badgeBg: "bg-white/10",
+    badgeText: "text-white/70",
+    badgeBorder: "border-white/10",
+    glowColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    hoverBorderColor: "rgba(255, 255, 255, 0.15)",
+  },
+};
+
+/**
+ * Individual movie/TV show card component with bouncy animations, 3D tilt effect,
+ * and match tier visual hierarchy
  */
 export function MovieCard({ movie, onClick, index = 0 }) {
   const {
@@ -25,6 +68,7 @@ export function MovieCard({ movie, onClick, index = 0 }) {
   } = movie;
 
   const [isHovered, setIsHovered] = useState(false);
+  const [displayedPercentage, setDisplayedPercentage] = useState(0);
   const cardRef = useRef(null);
   const { handleMouseMove, handleMouseLeave } = use3DTilt(cardRef, 5);
 
@@ -34,6 +78,33 @@ export function MovieCard({ movie, onClick, index = 0 }) {
 
   const year = release_date ? new Date(release_date).getFullYear() : "N/A";
   const matchPercentage = Math.round((combined_score || 0) * 100);
+  const matchTier = getMatchTier(matchPercentage);
+  const tierStyle = tierStyles[matchTier];
+
+  // Animate percentage count-up on mount
+  useEffect(() => {
+    const delay = index * 50 + 200; // Stagger based on card index
+    const timer = setTimeout(() => {
+      const duration = matchTier === "excellent" ? 600 : 400;
+      let start = 0;
+      const end = matchPercentage;
+      const increment = end / (duration / 16);
+
+      const counter = setInterval(() => {
+        start += increment;
+        if (start >= end) {
+          setDisplayedPercentage(end);
+          clearInterval(counter);
+        } else {
+          setDisplayedPercentage(Math.floor(start));
+        }
+      }, 16);
+
+      return () => clearInterval(counter);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [matchPercentage, index, matchTier]);
 
   const handleClick = (e) => {
     haptics.light();
@@ -65,15 +136,17 @@ export function MovieCard({ movie, onClick, index = 0 }) {
         onMouseLeave={handleMouseLeave}
         className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-muted/30 tilt-card"
       >
-        {/* Glow effect on hover */}
+        {/* Tier-based glow effect */}
         <motion.div
           className="absolute inset-0 rounded-xl pointer-events-none z-10"
           initial={{ opacity: 0 }}
           animate={{
-            opacity: isHovered ? 1 : 0,
+            opacity: isHovered ? 1 : matchTier === "excellent" ? 0.6 : 0,
             boxShadow: isHovered
-              ? "0 0 20px rgba(249, 115, 22, 0.25), 0 0 40px rgba(249, 115, 22, 0.1)"
-              : "0 0 0px rgba(249, 115, 22, 0)",
+              ? `0 0 25px ${tierStyle.glowColor}, 0 0 50px ${tierStyle.glowColor}`
+              : matchTier === "excellent"
+              ? `0 0 20px ${tierStyle.glowColor}`
+              : "none",
           }}
           transition={springConfigs.snappy}
         />
@@ -105,19 +178,21 @@ export function MovieCard({ movie, onClick, index = 0 }) {
           transition={{ duration: 0.2 }}
         />
 
-        {/* Border glow */}
+        {/* Tier-based border glow */}
         <motion.div
-          className="absolute inset-0 rounded-xl border-2 pointer-events-none"
-          initial={{ borderColor: "rgba(255,255,255,0.05)" }}
+          className={`absolute inset-0 rounded-xl pointer-events-none ${
+            matchTier === "excellent" ? "border-2" : "border"
+          }`}
+          initial={{ borderColor: tierStyle.borderColor }}
           animate={{
             borderColor: isHovered
-              ? "rgba(249, 115, 22, 0.5)"
-              : "rgba(255,255,255,0.05)",
+              ? tierStyle.hoverBorderColor
+              : tierStyle.borderColor,
           }}
           transition={springConfigs.snappy}
         />
 
-        {/* Match Badge - Bouncy */}
+        {/* Match Badge - Tier-based styling */}
         {matchPercentage > 0 && (
           <motion.div
             className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 z-20"
@@ -128,10 +203,17 @@ export function MovieCard({ movie, onClick, index = 0 }) {
           >
             <Badge
               variant="secondary"
-              className="bg-black/70 backdrop-blur-md border-white/10 text-orange-400 font-bold shadow-xl text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2.5 sm:py-1"
+              className={`backdrop-blur-md shadow-xl font-bold ${tierStyle.badgeBg} ${tierStyle.badgeText} ${tierStyle.badgeBorder} ${
+                matchTier === "excellent"
+                  ? "text-xs px-2 py-0.5 sm:text-sm sm:px-3 sm:py-1"
+                  : "text-[10px] px-1.5 py-0.5 sm:text-xs sm:px-2.5 sm:py-1"
+              }`}
             >
-              <span>
-                {matchPercentage}%
+              <span className="flex items-center gap-1">
+                {matchTier === "excellent" && (
+                  <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                )}
+                {displayedPercentage}%
               </span>
             </Badge>
           </motion.div>
@@ -163,7 +245,7 @@ export function MovieCard({ movie, onClick, index = 0 }) {
         <motion.h3
           className="text-sm font-bold leading-tight text-foreground line-clamp-1 sm:text-base"
           animate={{
-            color: isHovered ? "rgb(251, 146, 60)" : "rgb(250, 250, 250)",
+            color: isHovered ? "rgb(251, 191, 36)" : "rgb(250, 250, 250)",
           }}
           transition={{ duration: 0.2 }}
         >

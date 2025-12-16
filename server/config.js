@@ -12,6 +12,9 @@ const fixedMetadataWeight = parseFloat(process.env.FIXED_WEIGHT_METADATA || "0.2
 // Parse re-ranking configuration (simplified: just recency + mainstream boost)
 const enableReranking = process.env.ENABLE_RERANKING !== "false"; // Default ON
 
+// Parse vibe conflict filter configuration
+const enableVibeConflictFilter = process.env.ENABLE_VIBE_CONFLICT_FILTER !== "false"; // Default ON
+
 // Parse query structuring configuration
 const useQueryStructuring = process.env.USE_QUERY_STRUCTURING === "true"; // Default OFF
 
@@ -54,6 +57,9 @@ export const config = {
   // Re-ranking configuration (simplified: recency + mainstream boost)
   enableReranking,
 
+  // Vibe conflict filter configuration
+  enableVibeConflictFilter,
+
   // Query structuring configuration
   useQueryStructuring,
 
@@ -89,6 +95,9 @@ if (!useDynamicWeights) {
 
 // Log re-ranking configuration on startup
 console.log(`\n🎯 Re-ranking: ${enableReranking ? "ENABLED (recency + mainstream boost)" : "DISABLED"}`);
+
+// Log vibe conflict filter configuration on startup
+console.log(`\n🎭 Vibe Conflict Filter: ${enableVibeConflictFilter ? "ENABLED (auto-excludes tonal conflicts)" : "DISABLED"}`);
 
 // Log query structuring configuration on startup
 console.log(`\n🔧 Query Structuring: ${useQueryStructuring ? "ENABLED" : "DISABLED"}`);

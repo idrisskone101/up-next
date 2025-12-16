@@ -113,10 +113,10 @@ export function HeroSearchCard({ onSearch, loading }) {
           className="relative overflow-hidden rounded-[1.75rem] bg-black/50 backdrop-blur-2xl border"
           animate={{
             boxShadow: isFocused
-              ? "0 0 40px rgba(249,115,22,0.15), 0 25px 50px -12px rgba(0,0,0,0.5)"
+              ? "0 0 40px rgba(245,158,11,0.15), 0 25px 50px -12px rgba(0,0,0,0.5)"
               : "0 25px 50px -12px rgba(0,0,0,0.25)",
             borderColor: isFocused
-              ? "rgba(249,115,22,0.4)"
+              ? "rgba(245,158,11,0.4)"
               : "rgba(255,255,255,0.08)"
           }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -168,7 +168,7 @@ export function HeroSearchCard({ onSearch, loading }) {
                 whileTap={{ scale: 0.95 }}
                 className={`h-8 rounded-full border px-3.5 text-sm font-medium transition-colors duration-200 ${
                   moviesEnabled
-                    ? "border-orange-500/50 bg-orange-500/15 text-orange-400"
+                    ? "border-amber-500/50 bg-amber-500/15 text-amber-400"
                     : "border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 hover:border-white/15"
                 }`}
               >
@@ -180,7 +180,7 @@ export function HeroSearchCard({ onSearch, loading }) {
                 whileTap={{ scale: 0.95 }}
                 className={`h-8 rounded-full border px-3.5 text-sm font-medium transition-colors duration-200 ${
                   tvEnabled
-                    ? "border-orange-500/50 bg-orange-500/15 text-orange-400"
+                    ? "border-amber-500/50 bg-amber-500/15 text-amber-400"
                     : "border-white/10 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 hover:border-white/15"
                 }`}
               >
@@ -195,7 +195,7 @@ export function HeroSearchCard({ onSearch, loading }) {
               disabled={loading || !query.trim()}
               whileHover={{ scale: 1.08, rotate: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/25 transition-shadow duration-300 hover:shadow-orange-500/40 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-orange-500/25"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/25 transition-shadow duration-300 hover:shadow-amber-500/40 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-amber-500/25"
               aria-label="Search"
             >
               {loading ? (

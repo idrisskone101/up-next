@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
 
 @tailwind base;
@@ -7,50 +8,56 @@
 
 @layer base {
   :root {
-    /* Background & Surface - Deep Space Black */
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    
-    /* Card: Dark translucent */
-    --card: 224 71% 4%;
-    --card-foreground: 210 40% 98%;
-    
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
-    
-    /* Primary Brand Colors - Vibrant Orange/Red */
-    --primary: 24 95% 55%; /* Orange/Red - energetic */
+    /* Background & Surface - Deep Space Black with warm undertone */
+    --background: 220 30% 5%;
+    --foreground: 45 20% 96%;
+
+    /* Card: Dark translucent with warmth */
+    --card: 220 25% 6%;
+    --card-foreground: 45 20% 96%;
+
+    --popover: 220 25% 6%;
+    --popover-foreground: 45 20% 96%;
+
+    /* Primary Brand Colors - Warm Amber/Gold */
+    --primary: 38 92% 50%; /* Amber gold - sophisticated */
     --primary-foreground: 0 0% 98%;
-    
-    /* Accent - Bright Cyan/Teal */
+    --primary-warm: 28 85% 52%; /* Warm orange-amber for gradients */
+
+    /* Accent - Bright Cyan/Teal (kept for good matches) */
     --accent: 180 100% 45%;
     --accent-foreground: 0 0% 5%;
-    
+
+    /* Match Tier Colors */
+    --match-excellent: 43 96% 56%; /* Gold */
+    --match-good: 180 100% 45%; /* Cyan */
+    --match-fair: 220 10% 50%; /* Muted gray */
+
     /* Secondary & Muted */
-    --secondary: 240 6% 15%;
+    --secondary: 220 15% 15%;
     --secondary-foreground: 0 0% 98%;
-    
-    --muted: 240 6% 20%;
-    --muted-foreground: 0 0% 65%;
-    
+
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 10% 60%;
+
     /* Semantic Colors */
     --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 98%;
-    
+
     --success: 145 65% 45%;
     --success-foreground: 0 0% 98%;
-    
+
     --warning: 45 90% 55%;
     --warning-foreground: 0 0% 5%;
-    
+
     /* Borders & Inputs */
-    --border: 240 6% 25%;
-    --input: 240 6% 20%;
-    --ring: 262 83% 58%;
-    
+    --border: 220 15% 22%;
+    --input: 220 15% 18%;
+    --ring: 38 92% 50%;
+
     /* Shadows */
     --shadow: 0 0% 0%;
-    
+
     /* Border Radius */
     --radius: 0.75rem;
   }
@@ -80,15 +87,16 @@
     padding-right: env(safe-area-inset-right);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
-    
-    /* Lovable-style: Deep space dark with vibrant orange/cyan glows */
-    background-color: #030712; /* Pure dark base */
-    background-image: 
-      radial-gradient(circle at 15% 25%, rgba(249, 115, 22, 0.08) 0%, transparent 45%), /* Orange glow */
-      radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.08) 0%, transparent 45%); /* Cyan glow */
+
+    /* Elevated cinema: Deep dark with warm amber/gold glows */
+    background-color: #0a0a0f; /* Rich dark base with warmth */
+    background-image:
+      radial-gradient(ellipse at 15% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 50%), /* Amber glow top-left */
+      radial-gradient(ellipse at 80% 25%, rgba(217, 119, 6, 0.04) 0%, transparent 45%), /* Warm amber top-right */
+      radial-gradient(ellipse at 50% 100%, rgba(14, 165, 233, 0.03) 0%, transparent 40%); /* Subtle cyan bottom */
     background-attachment: fixed;
     min-height: 100vh;
-    
+
     -webkit-overflow-scrolling: touch;
   }
 
@@ -116,8 +124,16 @@
     @apply bg-card/80 backdrop-blur-md border border-white/5 shadow-xl;
   }
 
+  .glass-frosted {
+    @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.06];
+  }
+
   .text-glow {
-    text-shadow: 0 0 30px hsla(262, 83%, 58%, 0.5), 0 0 60px hsla(280, 100%, 70%, 0.3);
+    text-shadow: 0 0 30px hsla(38, 92%, 50%, 0.5), 0 0 60px hsla(38, 92%, 50%, 0.3);
+  }
+
+  .text-glow-gold {
+    text-shadow: 0 0 20px hsla(43, 96%, 56%, 0.6), 0 0 40px hsla(43, 96%, 56%, 0.3);
   }
 
   .lovable-card {
@@ -125,7 +141,7 @@
   }
 
   .hero-glow {
-    box-shadow: 0 0 30px rgba(249,115,22,0.2), 0 0 60px rgba(249,115,22,0.1);
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.2), 0 0 60px rgba(245, 158, 11, 0.1);
   }
 
   .pb-safe {
@@ -147,16 +163,21 @@
     transition: transform 0.15s ease-out;
   }
 
-  /* Glow Effects */
-  .glow-orange {
-    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3),
-                0 0 40px rgba(249, 115, 22, 0.1);
+  /* Glow Effects - Amber/Gold */
+  .glow-amber {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3),
+                0 0 40px rgba(245, 158, 11, 0.1);
   }
 
-  .glow-orange-intense {
-    box-shadow: 0 0 30px rgba(249, 115, 22, 0.5),
-                0 0 60px rgba(249, 115, 22, 0.2),
-                0 0 80px rgba(249, 115, 22, 0.1);
+  .glow-amber-intense {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.5),
+                0 0 60px rgba(245, 158, 11, 0.2),
+                0 0 80px rgba(245, 158, 11, 0.1);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 25px rgba(251, 191, 36, 0.4),
+                0 0 50px rgba(251, 191, 36, 0.15);
   }
 
   .glow-cyan {
@@ -164,9 +185,44 @@
                 0 0 40px rgba(14, 165, 233, 0.1);
   }
 
+  /* Match Tier Glow Effects */
+  .glow-match-excellent {
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3),
+                0 0 20px rgba(251, 191, 36, 0.25),
+                0 0 40px rgba(251, 191, 36, 0.1);
+  }
+
+  .glow-match-good {
+    box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2),
+                0 0 15px rgba(14, 165, 233, 0.15);
+  }
+
+  /* Shimmer animation for skeletons */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
   /* Drag Handle */
   .drag-handle {
     @apply w-10 h-1 rounded-full bg-white/30 mx-auto;
+  }
+
+  /* Scroll fade edges */
+  .scroll-fade-x {
+    mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
   }
 }
 

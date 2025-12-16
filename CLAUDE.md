@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+In all instructions and commit messages, be extremely concise and sacrifice a grammar for the sake of concision.
+
 ## Project Overview
 
 upNext is an AI-powered semantic movie and TV show search application using multi-embedding vector search. The system uses three separate embeddings (content, vibe, metadata) for each title and supports both fixed weights (fast, consistent) and dynamic LLM-driven weight adjustment (adaptive).
@@ -528,3 +530,6 @@ RERANK_WEIGHT_QUALITY=0.05
 RERANK_WEIGHT_POPULARITY=0.03
 RERANK_WEIGHT_RECENCY=0.02
 ```
+
+## Plan
+At the end of each plan, give me a list of unresolved questions to answer. If any, make the questions extremely concise. Sacrifice grammar for the sake of concision.

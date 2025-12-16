@@ -1,36 +1,93 @@
-import { Search, Sparkles, Film } from "lucide-react";
+import { motion } from "framer-motion";
+import { Search, Sparkles, Film, Frown } from "lucide-react";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 24,
+    },
+  },
+};
+
+const iconVariants = {
+  hidden: { scale: 0.8, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 20,
+    },
+  },
+};
+
+const floatAnimation = {
+  y: [0, -8, 0],
+  transition: {
+    duration: 3,
+    repeat: Infinity,
+    ease: "easeInOut",
+  },
+};
 
 /**
- * Empty state component for various scenarios
+ * Enhanced empty state component with animations
  */
-export function EmptyState({ type = "no-results", query }) {
+export function EmptyState({ type = "no-results", query, onSuggestionClick }) {
   const states = {
     "no-results": {
-      icon: Search,
+      icon: Frown,
       title: "No matches found",
-      description: `We couldn't find any titles matching "${query}". Try adjusting your search with different keywords, genres, or moods.`,
+      description: query
+        ? `We couldn't find anything matching "${query}". Try different keywords or moods.`
+        : "We couldn't find any matches. Try adjusting your search.",
+      iconBg: "bg-amber-500/10",
+      iconRing: "ring-amber-500/20",
+      iconColor: "text-amber-400",
       suggestions: [
-        "Try broader terms like 'action' or 'comedy'",
-        "Add mood descriptors like 'cozy' or 'intense'",
-        "Include time periods like '90s' or 'modern'",
+        "cozy comfort movies",
+        "mind-bending sci-fi",
+        "feel-good underdog stories",
       ],
     },
     "search-ready": {
       icon: Sparkles,
       title: "Ready to discover?",
       description:
-        "Search by mood, genre, theme, or describe the vibe you're looking for. Our AI will find the perfect match.",
+        "Search by mood, genre, or describe the vibe you're looking for.",
+      iconBg: "bg-amber-500/10",
+      iconRing: "ring-amber-500/20",
+      iconColor: "text-amber-400",
       suggestions: [
-        '"cozy romantic comedies"',
-        '"dark psychological thrillers"',
-        '"uplifting coming-of-age stories"',
+        "cozy rainy day vibes",
+        "dark psychological thrillers",
+        "90s nostalgia trip",
       ],
     },
     error: {
       icon: Film,
       title: "Something went wrong",
-      description:
-        "We hit a snag loading content. Please try again in a moment.",
+      description: "We hit a snag loading content. Please try again.",
+      iconBg: "bg-red-500/10",
+      iconRing: "ring-red-500/20",
+      iconColor: "text-red-400",
       suggestions: [],
     },
   };
@@ -39,38 +96,73 @@ export function EmptyState({ type = "no-results", query }) {
   const Icon = state.icon;
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 px-4 py-12 text-center animate-fade-in">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-1 ring-inset ring-primary/20">
-        <Icon className="h-10 w-10 text-primary" />
-      </div>
+    <motion.div
+      className="flex flex-col items-center justify-center gap-6 px-4 py-16 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Animated Icon */}
+      <motion.div
+        variants={iconVariants}
+        animate={floatAnimation}
+        className={`flex h-20 w-20 items-center justify-center rounded-full ${state.iconBg} ring-1 ring-inset ${state.iconRing}`}
+      >
+        <Icon className={`h-9 w-9 ${state.iconColor}`} />
+      </motion.div>
 
-      <div className="space-y-2">
+      {/* Title and Description */}
+      <motion.div variants={itemVariants} className="space-y-3">
         <h3 className="text-2xl font-semibold tracking-tight text-foreground">
           {state.title}
         </h3>
-        <p className="mx-auto max-w-md text-sm text-muted-foreground/80 leading-relaxed">
+        <p className="mx-auto max-w-md text-sm text-muted-foreground/70 leading-relaxed">
           {state.description}
         </p>
-      </div>
+      </motion.div>
 
+      {/* Suggestions */}
       {state.suggestions.length > 0 && (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground/60">
-            Try searching for:
+        <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 mt-2">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50">
+            Try searching for
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {state.suggestions.map((suggestion, index) => (
-              <span
+              <motion.button
                 key={index}
-                className="rounded-full border border-border/50 bg-secondary/40 px-3 py-1.5 text-sm text-secondary-foreground transition-colors hover:border-border/70 hover:bg-secondary/60"
+                type="button"
+                onClick={() => onSuggestionClick?.(suggestion)}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{
+                  delay: 0.4 + index * 0.1,
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/60 transition-all hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-400"
               >
                 {suggestion}
-              </span>
+              </motion.button>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+
+      {/* Decorative elements */}
+      <motion.div
+        className="absolute inset-0 -z-10 overflow-hidden pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 1 }}
+      >
+        {/* Subtle gradient orbs */}
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl" />
+      </motion.div>
+    </motion.div>
   );
 }
-

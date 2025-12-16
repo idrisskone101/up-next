@@ -5,6 +5,7 @@ import {
   getFixedWeights,
 } from "./embeddings.js";
 import { rerankResults } from "./reranker.js";
+import { detectQueryIntent, filterVibeConflicts, getIntentExclusions } from "./vibeConflict.js";
 import { config } from "./config.js";
 
 // Initialize Supabase client
@@ -166,6 +167,23 @@ export async function searchTitles(
     const beforeFilter = results.length;
     results = results.filter(title => isAcceptableContent(title));
     console.log("[Search] Language filter: " + beforeFilter + " -> " + results.length + " results");
+
+    // Apply vibe conflict filter if enabled (excludes tonally incompatible results)
+    let queryIntent = null;
+    if (config.enableVibeConflictFilter) {
+      queryIntent = detectQueryIntent(query);
+      if (queryIntent) {
+        const beforeVibeFilter = results.length;
+        results = filterVibeConflicts(results, queryIntent);
+        const excluded = beforeVibeFilter - results.length;
+        const exclusions = getIntentExclusions(queryIntent);
+        console.log(`[Search] Vibe filter: "${queryIntent}" intent detected, excluded ${excluded} titles (rules: ${JSON.stringify(exclusions)})`);
+      } else {
+        console.log("[Search] Vibe filter: No intent detected, skipping");
+      }
+    } else {
+      console.log("[Search] Vibe filter: DISABLED in config");
+    }
 
     // Step 5: Re-rank results if enabled
     let finalResults = results;

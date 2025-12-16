@@ -170,6 +170,44 @@ export const gridContainerVariants = {
 };
 
 /**
+ * Calculate diagonal wave delay for grid items
+ * Creates a ripple effect from top-left to bottom-right
+ * @param {number} index - Item index in the grid
+ * @param {number} columns - Number of columns in the grid
+ * @param {number} baseDelay - Base delay between items (default: 0.04s)
+ */
+export const getDiagonalDelay = (index, columns, baseDelay = 0.04) => {
+  const row = Math.floor(index / columns);
+  const col = index % columns;
+  // Diagonal distance from origin (0,0)
+  const diagonalIndex = row + col;
+  return diagonalIndex * baseDelay;
+};
+
+/**
+ * Grid item variants with diagonal wave animation
+ */
+export const gridItemVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.92,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: springConfigs.bouncy,
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    y: -10,
+    transition: { duration: 0.2, ease: "easeIn" },
+  },
+};
+
+/**
  * Custom hook for 3D tilt effect on mouse move
  * @param {React.RefObject} ref - Reference to the element
  * @param {number} intensity - Tilt intensity (default: 10)

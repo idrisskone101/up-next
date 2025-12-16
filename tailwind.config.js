@@ -60,6 +60,29 @@ export default {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
+        match: {
+          excellent: "hsl(var(--match-excellent))",
+          good: "hsl(var(--match-good))",
+          fair: "hsl(var(--match-fair))",
+        },
+        amber: {
+          DEFAULT: "#F59E0B",
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          200: "#FDE68A",
+          300: "#FCD34D",
+          400: "#FBBF24",
+          500: "#F59E0B",
+          600: "#D97706",
+          700: "#B45309",
+          800: "#92400E",
+          900: "#78350F",
+        },
+        gold: {
+          DEFAULT: "#FBBF24",
+          light: "#FCD34D",
+          dark: "#D97706",
+        },
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",
@@ -70,6 +93,7 @@ export default {
       fontFamily: {
         sans: ["Satoshi", "sans-serif"],
         heading: ["Satoshi", "sans-serif"],
+        display: ["Playfair Display", "serif"],
         serif: ["Instrument Serif", "serif"],
       },
       boxShadow: {
@@ -90,6 +114,7 @@ export default {
         "wiggle": "wiggle 0.3s ease-in-out",
         "pulse-glow": "pulseGlow 2s ease-in-out infinite",
         "pop": "pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "shimmer": "shimmer 2s infinite",
       },
       keyframes: {
         fadeIn: {
@@ -123,13 +148,25 @@ export default {
           "50%": { transform: "rotate(3deg)" },
         },
         pulseGlow: {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)" },
-          "50%": { boxShadow: "0 0 35px rgba(249, 115, 22, 0.45)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(245, 158, 11, 0.2)" },
+          "50%": { boxShadow: "0 0 35px rgba(245, 158, 11, 0.45)" },
+        },
+        pulseGlowGold: {
+          "0%, 100%": { boxShadow: "0 0 15px rgba(251, 191, 36, 0.2)" },
+          "50%": { boxShadow: "0 0 30px rgba(251, 191, 36, 0.5)" },
+        },
+        countUp: {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         pop: {
           "0%": { transform: "scale(0.95)", opacity: "0.8" },
           "50%": { transform: "scale(1.05)" },
           "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
       },
       spacing: {
