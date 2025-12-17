@@ -81,6 +81,14 @@ export function MovieCard({ movie, onClick, index = 0 }) {
   const matchTier = getMatchTier(matchPercentage);
   const tierStyle = tierStyles[matchTier];
 
+  // Preload backdrop image on hover for instant modal display
+  useEffect(() => {
+    if (isHovered && movie.backdrop_path) {
+      const img = new Image();
+      img.src = `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`;
+    }
+  }, [isHovered, movie.backdrop_path]);
+
   const handleClick = (e) => {
     haptics.light();
     onClick?.(e);

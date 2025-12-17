@@ -72,7 +72,7 @@ export function MovieModal({ movie, onClose }) {
   const safeVibes = vibes || [];
 
   const backdropUrl = backdrop_path
-    ? `https://image.tmdb.org/t/p/original${backdrop_path}`
+    ? `https://image.tmdb.org/t/p/w1280${backdrop_path}`
     : poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : null;

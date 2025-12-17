@@ -58,6 +58,16 @@ export function ResultsGrid({
   const startY = useRef(0);
   const columns = useGridColumns();
 
+  // Preload first 6 visible results' backdrops for instant modal display
+  useEffect(() => {
+    results.slice(0, 6).forEach((movie) => {
+      if (movie.backdrop_path) {
+        const img = new Image();
+        img.src = `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`;
+      }
+    });
+  }, [results]);
+
   // Handle touch start
   const handleTouchStart = useCallback((e) => {
     if (containerRef.current && window.scrollY <= 0) {
