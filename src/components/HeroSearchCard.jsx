@@ -328,6 +328,7 @@ export function HeroSearchCard({ onSearch, loading }) {
                       queryScrollRef.current.scrollLeft = 0;
                     }
                   }}
+                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.95 }}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 snap-start shrink-0 ${
                     isActive
@@ -335,7 +336,12 @@ export function HeroSearchCard({ onSearch, loading }) {
                       : "bg-white/[0.03] text-white/40 border border-white/5 hover:bg-white/[0.06] hover:text-white/60"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <motion.span
+                    animate={isActive ? { rotate: [0, -10, 10, 0] } : { rotate: 0 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </motion.span>
                   <span>{category.label}</span>
                 </motion.button>
               );

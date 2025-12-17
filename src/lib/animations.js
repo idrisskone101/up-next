@@ -208,6 +208,70 @@ export const gridItemVariants = {
 };
 
 /**
+ * Enhanced grid item variants matching query pill smoothness
+ * Includes blur effect for polished entrance
+ */
+export const enhancedGridItemVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.94,
+    y: 16,
+    filter: "blur(4px)",
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      ...springConfigs.snappy,
+      opacity: { duration: 0.25, ease: "easeOut" },
+      filter: { duration: 0.3 },
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.96,
+    y: -8,
+    filter: "blur(2px)",
+    transition: { duration: 0.18, ease: "easeIn" },
+  },
+};
+
+/**
+ * Card hover variants matching query pill behavior
+ * scale: 1.03, y: -2 on hover (same as HeroSearchCard pills)
+ */
+export const cardHoverVariants = {
+  initial: { scale: 1, y: 0 },
+  hover: {
+    scale: 1.03,
+    y: -2,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 25,
+      mass: 0.5,
+    },
+  },
+  tap: {
+    scale: 0.97,
+    transition: { duration: 0.1 },
+  },
+};
+
+/**
+ * Faster diagonal delay for quicker cascade effect
+ * Matches query pill stagger (30ms vs 40ms)
+ */
+export const getFastDiagonalDelay = (index, columns, baseDelay = 0.03) => {
+  const row = Math.floor(index / columns);
+  const col = index % columns;
+  const diagonalIndex = row + col;
+  return diagonalIndex * baseDelay;
+};
+
+/**
  * Custom hook for 3D tilt effect on mouse move
  * @param {React.RefObject} ref - Reference to the element
  * @param {number} intensity - Tilt intensity (default: 10)

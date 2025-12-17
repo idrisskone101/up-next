@@ -5,6 +5,7 @@ import { Film, Star, Sparkles } from "lucide-react";
 import {
   springConfigs,
   cardVariants,
+  cardHoverVariants,
   badgeVariants,
   use3DTilt,
 } from "../lib/animations";
@@ -81,9 +82,9 @@ export function MovieCard({ movie, onClick, index = 0 }) {
   const matchTier = getMatchTier(matchPercentage);
   const tierStyle = tierStyles[matchTier];
 
-  // Animate percentage count-up on mount
+  // Animate percentage count-up on mount - faster stagger matching query pills
   useEffect(() => {
-    const delay = index * 50 + 200; // Stagger based on card index
+    const delay = index * 40 + 150; // Faster cascade matching grid stagger
     const timer = setTimeout(() => {
       const duration = matchTier === "excellent" ? 600 : 400;
       let start = 0;
@@ -119,8 +120,8 @@ export function MovieCard({ movie, onClick, index = 0 }) {
       initial="hidden"
       animate="visible"
       exit="exit"
-      whileHover="hover"
-      whileTap="tap"
+      whileHover={{ scale: 1.03, y: -2, transition: { type: "spring", stiffness: 400, damping: 25, mass: 0.5 } }}
+      whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
       custom={index}
       className="group relative flex w-full flex-col gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background perspective-1000"
       onMouseEnter={() => setIsHovered(true)}

@@ -6,7 +6,7 @@ import { MovieDetailSheet } from "./MovieDetailSheet";
 import { SearchMetadata } from "./SearchMetadata";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
-import { getDiagonalDelay, gridItemVariants, springConfigs } from "../lib/animations";
+import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
 import { useIsMobile } from "../hooks/useMediaQuery";
 import { RefreshCw, ChevronDown } from "lucide-react";
@@ -185,13 +185,13 @@ export function ResultsGrid({
                   <motion.div
                     key={movie.id}
                     layout
-                    variants={gridItemVariants}
+                    variants={enhancedGridItemVariants}
                     initial="hidden"
                     animate="visible"
                     exit="exit"
                     transition={{
-                      ...springConfigs.bouncy,
-                      delay: getDiagonalDelay(index, columns, 0.04),
+                      ...springConfigs.snappy,
+                      delay: getDiagonalDelay(index, columns, 0.03),
                     }}
                   >
                     <MovieCard

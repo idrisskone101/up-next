@@ -4,17 +4,26 @@ import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "
 import { haptics } from "../lib/haptics";
 import { X } from "lucide-react";
 
-// Spring configs
+// Refined spring configs - smoother, more natural feel
 const enterSpring = {
   type: "spring",
-  stiffness: 600,
-  damping: 40,
+  stiffness: 380,
+  damping: 35,
+  mass: 0.8,
 };
 
 const exitSpring = {
   type: "spring",
+  stiffness: 320,
+  damping: 28,
+  mass: 0.9,
+};
+
+const snapBackSpring = {
+  type: "spring",
   stiffness: 400,
-  damping: 30,
+  damping: 32,
+  mass: 0.7,
 };
 
 // Drag thresholds
@@ -97,12 +106,14 @@ export function BottomSheet({ isOpen, onClose, children }) {
     }
   };
 
-  // Handle drag end
+  // Handle drag end with velocity-aware animation
   const handleDragEnd = useCallback((_, info) => {
     setIsDragging(false);
+    const { velocity, offset } = info;
+
     const shouldDismiss =
-      info.offset.y > DISMISS_THRESHOLD ||
-      info.velocity.y > VELOCITY_THRESHOLD;
+      offset.y > DISMISS_THRESHOLD ||
+      velocity.y > VELOCITY_THRESHOLD;
 
     if (shouldDismiss) {
       haptics.success();
@@ -110,8 +121,8 @@ export function BottomSheet({ isOpen, onClose, children }) {
       // Reset dragY so variant animation takes over cleanly
       dragY.set(0);
     } else {
-      // Snap back
-      animate(dragY, 0, { type: "spring", stiffness: 500, damping: 30 });
+      // Smooth snap back with refined spring
+      animate(dragY, 0, snapBackSpring);
     }
   }, [dragY]);
 

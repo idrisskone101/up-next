@@ -91,11 +91,11 @@ export default {
         sm: "calc(var(--radius) - 6px)",
       },
       fontFamily: {
-        sans: ["Cabinet Grotesk", "sans-serif"],
-        heading: ["Syne", "sans-serif"],
-        display: ["Syne", "sans-serif"],
-        serif: ["Instrument Serif", "serif"],
-        playful: ["Syne", "sans-serif"],
+        sans: ["Nunito", "sans-serif"],
+        heading: ["Outfit", "sans-serif"],
+        display: ["Pacifico", "cursive"],
+        serif: ["Pacifico", "cursive"],
+        playful: ["Outfit", "sans-serif"],
       },
       boxShadow: {
         soft: "0 20px 60px -35px hsl(var(--shadow) / 0.4)",

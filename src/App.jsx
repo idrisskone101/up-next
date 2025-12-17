@@ -90,16 +90,31 @@ function App() {
                 {/* Logo/Wordmark */}
                 <motion.div
                   className="text-center"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.5 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
                 >
-                  <h1 className="font-serif text-4xl sm:text-5xl text-white tracking-tight">
+                  <motion.h1
+                    className="font-display text-5xl sm:text-6xl text-white"
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 25,
+                      delay: 0.15
+                    }}
+                  >
                     upNext
-                  </h1>
-                  <p className="mt-3 text-base sm:text-lg text-white/50 font-medium">
+                  </motion.h1>
+                  <motion.p
+                    className="mt-4 text-base sm:text-lg text-white/50 font-medium"
+                    initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    transition={{ delay: 0.35, duration: 0.4, ease: "easeOut" }}
+                  >
                     Describe a vibe. Find your next watch.
-                  </p>
+                  </motion.p>
                 </motion.div>
 
                 {/* Search Card */}
@@ -145,7 +160,7 @@ function App() {
                   <button
                     type="button"
                     onClick={handleBackToHero}
-                    className="font-serif text-xl text-white tracking-tight hover:text-white/80 transition-colors hidden sm:block"
+                    className="font-display text-2xl text-white hover:text-white/80 transition-colors hidden sm:block"
                   >
                     upNext
                   </button>
