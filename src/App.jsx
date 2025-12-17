@@ -69,7 +69,7 @@ function App() {
   };
 
   return (
-    <div className="relative min-h-dvh">
+    <div className={`relative min-h-dvh ${viewState === "hero" ? "h-dvh overflow-hidden" : ""}`}>
       {/* Sticky Nav - Only render when showing results */}
       {viewState === "results" && (
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl">
