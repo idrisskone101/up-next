@@ -2,13 +2,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { MovieCard } from "./MovieCard";
 import { MovieModal } from "./MovieModal";
-import { MovieDetailSheet } from "./MovieDetailSheet";
 import { SearchMetadata } from "./SearchMetadata";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
-import { useIsMobile } from "../hooks/useMediaQuery";
 import { RefreshCw, ChevronDown } from "lucide-react";
 
 // Pull-to-refresh constants
@@ -59,7 +57,6 @@ export function ResultsGrid({
   const containerRef = useRef(null);
   const startY = useRef(0);
   const columns = useGridColumns();
-  const isMobile = useIsMobile();
 
   // Handle touch start
   const handleTouchStart = useCallback((e) => {
@@ -240,22 +237,11 @@ export function ResultsGrid({
         </motion.div>
       </div>
 
-      {/* Movie Detail - Sheet on mobile, Modal on desktop */}
-      <AnimatePresence mode="wait">
-        {selectedMovie && (
-          isMobile ? (
-            <MovieDetailSheet
-              movie={selectedMovie}
-              onClose={() => setSelectedMovie(null)}
-            />
-          ) : (
-            <MovieModal
-              movie={selectedMovie}
-              onClose={() => setSelectedMovie(null)}
-            />
-          )
-        )}
-      </AnimatePresence>
+      {/* Movie Detail Dialog */}
+      <MovieModal
+        movie={selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+      />
     </LayoutGroup>
   );
 }
