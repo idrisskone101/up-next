@@ -225,28 +225,14 @@ export function MovieCard({ movie, onClick, index = 0 }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springConfigs.bouncy, delay: index * 0.05 + 0.1 }}
       >
-        <motion.h3
-          className="text-sm font-bold leading-tight text-foreground line-clamp-1 sm:text-base"
-          animate={{
-            color: isHovered ? "rgb(251, 191, 36)" : "rgb(250, 250, 250)",
-          }}
-          transition={{ duration: 0.2 }}
-        >
+        <h3 className="text-sm font-bold leading-tight text-foreground line-clamp-1 sm:text-base">
           {title}
-        </motion.h3>
+        </h3>
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-muted-foreground sm:text-xs">
-          <motion.span
-            className="flex items-center gap-1"
-            animate={{
-              color: isHovered
-                ? "rgba(255,255,255,0.8)"
-                : "rgba(255,255,255,0.5)",
-            }}
-            transition={{ duration: 0.2 }}
-          >
+          <span className="flex items-center gap-1">
             {year}
-          </motion.span>
+          </span>
 
           {vote_average && (
             <span className="flex items-center gap-1 text-amber-400/90">

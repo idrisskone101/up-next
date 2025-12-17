@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchTrailer } from "../lib/api";
+import { getTrailer } from "../lib/trailerCache";
 
 /**
  * YouTube trailer player component with auto-loading
@@ -15,6 +16,15 @@ export function TrailerPlayer({ tmdbId, mediaType = "movie", title }) {
     async function loadTrailer() {
       if (!tmdbId) {
         console.warn("[TrailerPlayer] No TMDB ID provided");
+        setLoading(false);
+        return;
+      }
+
+      // Check cache first
+      const cached = getTrailer(tmdbId);
+      if (cached) {
+        console.log("[TrailerPlayer] Using cached trailer:", cached.name);
+        setTrailer(cached);
         setLoading(false);
         return;
       }

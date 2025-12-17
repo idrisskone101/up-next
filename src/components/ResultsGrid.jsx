@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
+import { prefetchTrailers } from "../lib/trailerCache";
 import { RefreshCw, ChevronDown } from "lucide-react";
 
 // Pull-to-refresh constants
@@ -66,6 +67,13 @@ export function ResultsGrid({
         img.src = `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`;
       }
     });
+  }, [results]);
+
+  // Prefetch trailers for first 10 results
+  useEffect(() => {
+    if (results.length > 0) {
+      prefetchTrailers(results, 10);
+    }
   }, [results]);
 
   // Handle touch start
