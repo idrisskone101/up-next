@@ -14,9 +14,7 @@ import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
 import { HeroSearchCard } from "./components/HeroSearchCard";
-import { BottomNav } from "./components/BottomNav";
 import { useSearch } from "./hooks/useSearch";
-import { useIsMobile } from "./hooks/useMediaQuery";
 import { springConfigs } from "./lib/animations";
 import { haptics } from "./lib/haptics";
 
@@ -29,10 +27,8 @@ function App() {
   const { results, loading, loadingMore, refreshing, error, searchMetadata, hasMore, search, loadMore, refresh, reset } = useSearch();
   const [compactQuery, setCompactQuery] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [activeTab, setActiveTab] = useState("search");
   const compactInputRef = useRef(null);
   const { scrollY } = useScroll();
-  const isMobile = useIsMobile();
 
   const hasResults = results.length > 0;
   const hasSearched = !!searchMetadata;
@@ -73,7 +69,81 @@ function App() {
   };
 
   return (
-    <div className="relative min-h-dvh overflow-x-hidden">
+    <div className="relative min-h-dvh">
+      {/* Sticky Nav - Only render when showing results */}
+      {viewState === "results" && (
+        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl">
+
+        <div className="container flex h-16 items-center gap-4 px-4 sm:px-6">
+          {/* Back Button */}
+          <motion.button
+            type="button"
+            onClick={handleBackToHero}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+            aria-label="Back to search"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </motion.button>
+
+          {/* Logo */}
+          <button
+            type="button"
+            onClick={handleBackToHero}
+            className="font-display text-2xl text-white hover:text-white/80 transition-colors hidden sm:block"
+          >
+            upNext
+          </button>
+
+          {/* Compact Search */}
+          <form onSubmit={handleCompactSubmit} className="flex-1 max-w-xl">
+            <div className="relative flex items-center">
+              <input
+                ref={compactInputRef}
+                type="text"
+                value={compactQuery}
+                onChange={(e) => setCompactQuery(e.target.value)}
+                placeholder="Search for a vibe..."
+                disabled={loading}
+                className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
+              />
+              <div className="absolute right-1 flex items-center gap-1">
+                <AnimatePresence>
+                  {compactQuery && !loading && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.15 }}
+                      type="button"
+                      onClick={() => setCompactQuery("")}
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                <motion.button
+                  type="submit"
+                  disabled={loading || !compactQuery.trim()}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Spinner size={14} className="text-white" ariaLabel="Searching..." />
+                  ) : (
+                    <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+                  )}
+                </motion.button>
+              </div>
+            </div>
+          </form>
+        </div>
+        </header>
+      )}
+
       <div className="relative flex min-h-dvh flex-col">
         <AnimatePresence mode="wait">
           {viewState === "hero" ? (
@@ -134,86 +204,10 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={pageTransition}
-              className="flex flex-1 flex-col"
+              className="flex flex-1 flex-col pt-16"
             >
-              {/* Compact Top Bar */}
-              <motion.header
-                className="sticky top-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-              >
-                <div className="container flex h-16 items-center gap-4 px-4 sm:px-6">
-                  {/* Back Button */}
-                  <motion.button
-                    type="button"
-                    onClick={handleBackToHero}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
-                    aria-label="Back to search"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </motion.button>
-
-                  {/* Logo */}
-                  <button
-                    type="button"
-                    onClick={handleBackToHero}
-                    className="font-display text-2xl text-white hover:text-white/80 transition-colors hidden sm:block"
-                  >
-                    upNext
-                  </button>
-
-                  {/* Compact Search */}
-                  <form onSubmit={handleCompactSubmit} className="flex-1 max-w-xl">
-                    <div className="relative flex items-center">
-                      <input
-                        ref={compactInputRef}
-                        type="text"
-                        value={compactQuery}
-                        onChange={(e) => setCompactQuery(e.target.value)}
-                        placeholder="Search for a vibe..."
-                        disabled={loading}
-                        className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
-                      />
-                      <div className="absolute right-1 flex items-center gap-1">
-                        <AnimatePresence>
-                          {compactQuery && !loading && (
-                            <motion.button
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              transition={{ duration: 0.15 }}
-                              type="button"
-                              onClick={() => setCompactQuery("")}
-                              className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
-                        <motion.button
-                          type="submit"
-                          disabled={loading || !compactQuery.trim()}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {loading ? (
-                            <Spinner size={14} className="text-white" ariaLabel="Searching..." />
-                          ) : (
-                            <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
-                          )}
-                        </motion.button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              </motion.header>
-
-              {/* Main Content - extra padding for bottom nav on mobile */}
-              <main className={`container flex w-full flex-1 flex-col gap-8 pt-8 px-4 sm:px-6 ${isMobile ? 'pb-28' : 'pb-16'}`}>
+              {/* Main Content */}
+              <main className="container flex w-full flex-1 flex-col gap-8 pt-8 px-4 sm:px-6 pb-16">
                 {/* Loading State */}
                 <AnimatePresence mode="wait">
                   {loading && (
@@ -306,7 +300,7 @@ function App() {
                 </AnimatePresence>
               </main>
 
-              {/* Floating Back to Top Button - positioned above bottom nav on mobile */}
+              {/* Floating Back to Top Button */}
               <AnimatePresence>
                 {showBackToTop && (
                   <motion.button
@@ -315,7 +309,7 @@ function App() {
                     exit={{ opacity: 0, scale: 0.8, y: 20 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     onClick={handleBackToTop}
-                    className={`fixed right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/90 text-white shadow-lg shadow-amber-500/30 backdrop-blur-sm hover:bg-amber-500 active:scale-95 transition-colors ${isMobile ? 'bottom-24' : 'bottom-6'}`}
+                    className="fixed right-6 bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/90 text-white shadow-lg shadow-amber-500/30 backdrop-blur-sm hover:bg-amber-500 active:scale-95 transition-colors"
                     aria-label="Back to top"
                   >
                     <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
@@ -332,14 +326,6 @@ function App() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Bottom Navigation - Mobile only */}
-        {isMobile && (
-          <BottomNav
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        )}
       </div>
     </div>
   );
