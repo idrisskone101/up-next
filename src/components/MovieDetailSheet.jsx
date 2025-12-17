@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, Calendar, Clock, User, PlayCircle, Sparkles, Film, Palette, Tag, X } from "lucide-react";
-import { haptics } from "../lib/haptics";
+import { Star, Calendar, Clock, User, PlayCircle, Sparkles, Film, Palette, Tag } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { TrailerPlayer } from "./TrailerPlayer";
 import { BottomSheet } from "./BottomSheet";
@@ -104,8 +103,8 @@ export function MovieDetailSheet({ movie, onClose }) {
 
   return (
     <BottomSheet isOpen={!!movie} onClose={onClose}>
-      {/* Hero Image - Flush with rounded corners */}
-      <div className="relative h-36 overflow-hidden rounded-t-3xl -mt-3">
+      {/* Hero Image - Extends to top, under floating header */}
+      <div className="relative h-44 overflow-hidden">
         {backdropUrl && (
           <motion.img
             src={backdropUrl}
@@ -117,20 +116,8 @@ export function MovieDetailSheet({ movie, onClose }) {
           />
         )}
         {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-slate-900/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/20 to-transparent" />
-        {/* Close button */}
-        <motion.button
-          onClick={() => {
-            haptics.light();
-            onClose();
-          }}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/80 hover:bg-black/70 hover:text-white transition-colors z-10"
-          whileTap={{ scale: 0.9 }}
-          aria-label="Close"
-        >
-          <X className="h-5 w-5" />
-        </motion.button>
       </div>
 
       {/* Title & Metadata */}

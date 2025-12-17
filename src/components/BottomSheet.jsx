@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { haptics } from "../lib/haptics";
+import { X } from "lucide-react";
 
 // Spring configs
 const enterSpring = {
@@ -16,11 +17,45 @@ const exitSpring = {
   damping: 30,
 };
 
+// Drag thresholds
+const DISMISS_THRESHOLD = 120;
+const VELOCITY_THRESHOLD = 500;
+
 /**
- * iOS-style bottom sheet
- * Opens at 95vh with X button to close
+ * iOS-style bottom sheet with swipe-to-dismiss
+ * Floating header with drag handle and close button overlays content
  */
 export function BottomSheet({ isOpen, onClose, children }) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const dragY = useMotionValue(0);
+  const sheetRef = useRef(null);
+  const contentRef = useRef(null);
+
+  // Transform drag to opacity for backdrop
+  const backdropOpacity = useTransform(dragY, [0, 200], [1, 0.3]);
+
+  // Reset dragY when opening
+  useEffect(() => {
+    if (isOpen) {
+      dragY.set(0);
+      setIsClosing(false);
+    }
+  }, [isOpen, dragY]);
+
+  // Animated close function - sets isClosing to trigger exit animation
+  const handleClose = useCallback(() => {
+    if (isClosing) return;
+    setIsClosing(true);
+    haptics.light();
+  }, [isClosing]);
+
+  // When closing animation completes, call onClose
+  const handleAnimationComplete = useCallback((definition) => {
+    if (definition === "closed" && isClosing) {
+      onClose();
+    }
+  }, [isClosing, onClose]);
 
   // Handle escape key
   useEffect(() => {
@@ -28,14 +63,13 @@ export function BottomSheet({ isOpen, onClose, children }) {
 
     const handleEscape = (e) => {
       if (e.key === "Escape") {
-        haptics.light();
-        onClose();
+        handleClose();
       }
     };
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   // Lock body scroll when open
   useEffect(() => {
@@ -59,10 +93,36 @@ export function BottomSheet({ isOpen, onClose, children }) {
   // Handle backdrop click
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
-      haptics.light();
-      onClose();
+      handleClose();
     }
   };
+
+  // Handle drag end
+  const handleDragEnd = useCallback((_, info) => {
+    setIsDragging(false);
+    const shouldDismiss =
+      info.offset.y > DISMISS_THRESHOLD ||
+      info.velocity.y > VELOCITY_THRESHOLD;
+
+    if (shouldDismiss) {
+      haptics.success();
+      setIsClosing(true);
+      // Reset dragY so variant animation takes over cleanly
+      dragY.set(0);
+    } else {
+      // Snap back
+      animate(dragY, 0, { type: "spring", stiffness: 500, damping: 30 });
+    }
+  }, [dragY]);
+
+  // Handle drag start - only allow if content is scrolled to top
+  const handleDragStart = useCallback(() => {
+    if (contentRef.current && contentRef.current.scrollTop > 0) {
+      return false;
+    }
+    setIsDragging(true);
+    haptics.light();
+  }, []);
 
   return createPortal(
     <AnimatePresence>
@@ -72,27 +132,71 @@ export function BottomSheet({ isOpen, onClose, children }) {
           <motion.div
             className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: isClosing ? 0 : 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            style={{ opacity: isClosing ? undefined : backdropOpacity }}
+            transition={{ duration: 0.25 }}
             onClick={handleBackdropClick}
           />
 
           {/* Sheet Container */}
           <motion.div
-            className="fixed inset-x-0 bottom-0 z-50 flex flex-col"
-            style={{ height: "95vh" }}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={isOpen ? enterSpring : exitSpring}
+            ref={sheetRef}
+            className="fixed inset-x-0 bottom-0 z-50 flex flex-col touch-none"
+            style={{ height: "95dvh", y: isClosing ? undefined : dragY }}
+            initial="hidden"
+            animate={isClosing ? "closed" : "visible"}
+            exit="closed"
+            variants={{
+              hidden: { y: "100%" },
+              visible: { y: 0 },
+              closed: { y: "100%" },
+            }}
+            transition={isClosing ? exitSpring : enterSpring}
+            onAnimationComplete={handleAnimationComplete}
+            drag={isClosing ? false : "y"}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
           >
             {/* Sheet */}
             <div className="relative flex h-full flex-col overflow-hidden rounded-t-3xl bg-slate-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 border-t border-x border-white/10">
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+
+              {/* Floating Header - Overlays content */}
+              <div className="absolute top-0 left-0 right-0 z-20 pt-safe-top">
+                {/* Drag Handle */}
+                <div className="flex justify-center pt-3 pb-2">
+                  <div
+                    className={`w-9 h-1 rounded-full transition-colors ${
+                      isDragging ? 'bg-white/60' : 'bg-white/30'
+                    }`}
+                  />
+                </div>
+
+                {/* Close Button - Positioned top right */}
+                <div className="absolute top-3 right-3 pt-safe-top">
+                  <motion.button
+                    onClick={handleClose}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/80 hover:bg-black/70 hover:text-white transition-colors"
+                    whileTap={{ scale: 0.9 }}
+                    aria-label="Close"
+                  >
+                    <X className="h-5 w-5" />
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Scrollable Content - Full height, content handles its own padding */}
+              <div
+                ref={contentRef}
+                className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
+              >
                 {children}
               </div>
+
+              {/* Safe area padding at bottom */}
+              <div className="flex-shrink-0 pb-safe-bottom" />
             </div>
           </motion.div>
         </>

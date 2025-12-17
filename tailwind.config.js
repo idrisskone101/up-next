@@ -91,10 +91,11 @@ export default {
         sm: "calc(var(--radius) - 6px)",
       },
       fontFamily: {
-        sans: ["Satoshi", "sans-serif"],
-        heading: ["Satoshi", "sans-serif"],
-        display: ["Playfair Display", "serif"],
+        sans: ["Cabinet Grotesk", "sans-serif"],
+        heading: ["Syne", "sans-serif"],
+        display: ["Syne", "sans-serif"],
         serif: ["Instrument Serif", "serif"],
+        playful: ["Syne", "sans-serif"],
       },
       boxShadow: {
         soft: "0 20px 60px -35px hsl(var(--shadow) / 0.4)",

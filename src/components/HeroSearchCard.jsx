@@ -1,41 +1,140 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, X, Sparkles, Heart, Skull, Brain, Popcorn, Moon, Flame, Clock } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 
-const EXAMPLE_QUERIES = [
-  "Movies that make you ugly cry",
-  "Cozy rainy day vibes",
-  "Mind-bending plot twists",
-  "90s nostalgia trip",
-  "Feel-good underdog stories",
-  "Existential crisis at 2am",
-  "Heist movies but make it funny",
-  "Visually stunning cinematography",
-  "Slow-burn psychological horror",
-  "Enemies to lovers romcoms",
-  "Time loop paradoxes",
-  "Gritty noir detective stories"
-];
-
-const chipVariants = {
-  hidden: { opacity: 0, y: 10, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1 }
-};
-
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.04, delayChildren: 0.1 }
+const QUERY_CATEGORIES = [
+  {
+    id: "vibes",
+    label: "Vibes",
+    icon: Sparkles,
+    queries: [
+      "That 3am can't-sleep melancholy",
+      "Sunday morning coffee & rain",
+      "Hot girl summer energy",
+      "Cozy autumn blanket fort",
+      "Chaotic bisexual energy",
+      "Corporate dystopia aesthetics",
+      "Liminal space unease",
+      "Golden hour nostalgia"
+    ]
+  },
+  {
+    id: "moods",
+    label: "Moods",
+    icon: Heart,
+    queries: [
+      "Need a good ugly cry",
+      "Angry at capitalism today",
+      "Feeling seen and understood",
+      "Existential but make it pretty",
+      "Yearning for something unnamed",
+      "Hopeful against all odds",
+      "Deliciously petty revenge",
+      "Quietly devastating"
+    ]
+  },
+  {
+    id: "chaos",
+    label: "Chaos",
+    icon: Flame,
+    queries: [
+      "Unhinged female protagonists",
+      "Men being absolute disasters",
+      "Messy found family dynamics",
+      "Morally bankrupt but charming",
+      "Everything goes wrong hilariously",
+      "Scheming and backstabbing",
+      "Beautiful people doing crimes",
+      "Problematic faves only"
+    ]
+  },
+  {
+    id: "brainy",
+    label: "Brainy",
+    icon: Brain,
+    queries: [
+      "Makes you question reality",
+      "Unreliable narrator mind games",
+      "Philosophy disguised as plot",
+      "Time isn't linear anymore",
+      "What even is consciousness",
+      "Puzzle box storytelling",
+      "After credits existential crisis",
+      "Needs a second watch immediately"
+    ]
+  },
+  {
+    id: "dark",
+    label: "Dark",
+    icon: Skull,
+    queries: [
+      "Psychological horror slow burn",
+      "Folk horror unsettling vibes",
+      "True crime but artsy",
+      "Dread that stays with you",
+      "Beautiful but disturbing",
+      "Cult stuff that hits different",
+      "Body horror with a message",
+      "Atmospheric terror no jump scares"
+    ]
+  },
+  {
+    id: "comfort",
+    label: "Comfort",
+    icon: Popcorn,
+    queries: [
+      "Rom-com with actual chemistry",
+      "Found family heals trauma",
+      "Gentle slice of life healing",
+      "Childhood nostalgia trip",
+      "Studio Ghibli comfort blanket",
+      "Predictable but satisfying",
+      "Zero conflict just vibes",
+      "Background while I doom scroll"
+    ]
+  },
+  {
+    id: "late",
+    label: "Late Night",
+    icon: Moon,
+    queries: [
+      "2am existential rabbit hole",
+      "Insomnia companion piece",
+      "Dreamlike and hypnotic",
+      "Weird but compelling",
+      "Surreal fever dream energy",
+      "Art house but accessible",
+      "Slow cinema for overthinkers",
+      "Meditative visual poetry"
+    ]
+  },
+  {
+    id: "specific",
+    label: "Specific",
+    icon: Clock,
+    queries: [
+      "European train romance energy",
+      "Heist crew with sexual tension",
+      "Sword fights and yearning",
+      "Space isolation goes wrong",
+      "Rich people being terrible",
+      "Small town dark secrets",
+      "Journalist uncovers conspiracy",
+      "90s NYC apartment aesthetics"
+    ]
   }
-};
+];
 
 export function HeroSearchCard({ onSearch, loading }) {
   const [query, setQuery] = useState("");
   const [moviesEnabled, setMoviesEnabled] = useState(false);
   const [tvEnabled, setTvEnabled] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("vibes");
   const textareaRef = useRef(null);
+  const categoryScrollRef = useRef(null);
+  const queryScrollRef = useRef(null);
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -207,29 +306,73 @@ export function HeroSearchCard({ onSearch, loading }) {
           </div>
         </motion.div>
 
-        {/* Example Queries */}
-        <motion.div
-          className="flex flex-wrap items-center justify-center gap-2 px-2"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <span className="text-xs text-white/35 mr-1">Try:</span>
-          {EXAMPLE_QUERIES.map((example, index) => (
-            <motion.button
-              key={example}
-              variants={chipVariants}
-              type="button"
-              onClick={() => handleExampleClick(example)}
-              disabled={loading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="text-xs px-3 py-1.5 rounded-full border border-white/5 bg-white/[0.03] text-white/45 hover:bg-white/10 hover:text-white/70 hover:border-white/15 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+        {/* Query Categories - Mobile-first horizontal scroll */}
+        <div className="space-y-3">
+          {/* Category Tabs */}
+          <div
+            ref={categoryScrollRef}
+            className="flex gap-2 overflow-x-auto scrollbar-none px-1 pb-1 -mx-1 scroll-smooth snap-x snap-mandatory"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {QUERY_CATEGORIES.map((category) => {
+              const Icon = category.icon;
+              const isActive = activeCategory === category.id;
+              return (
+                <motion.button
+                  key={category.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    // Reset query scroll position when category changes
+                    if (queryScrollRef.current) {
+                      queryScrollRef.current.scrollLeft = 0;
+                    }
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 snap-start shrink-0 ${
+                    isActive
+                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+                      : "bg-white/[0.03] text-white/40 border border-white/5 hover:bg-white/[0.06] hover:text-white/60"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{category.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Query Pills - Horizontal scroll */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              ref={queryScrollRef}
+              className="flex gap-2 overflow-x-auto scrollbar-none px-1 pb-2 -mx-1 scroll-smooth"
+              style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              {example}
-            </motion.button>
-          ))}
-        </motion.div>
+              {QUERY_CATEGORIES.find(c => c.id === activeCategory)?.queries.map((q, idx) => (
+                <motion.button
+                  key={q}
+                  type="button"
+                  onClick={() => handleExampleClick(q)}
+                  disabled={loading}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.03, duration: 0.2 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0 bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] text-white/60 hover:text-white/90 hover:border-white/15 hover:from-white/[0.1] hover:to-white/[0.04] hover:shadow-lg hover:shadow-black/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {q}
+                </motion.button>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
