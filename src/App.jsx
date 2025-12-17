@@ -72,7 +72,7 @@ function App() {
     <div className={`relative min-h-dvh ${viewState === "hero" ? "h-dvh overflow-hidden" : ""}`}>
       {/* Sticky Nav - Only render when showing results */}
       {viewState === "results" && (
-        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl">
+        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
 
         <div className="container flex h-16 items-center gap-4 px-4 sm:px-6">
           {/* Back Button */}
@@ -204,7 +204,7 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={pageTransition}
-              className="flex flex-1 flex-col pt-16"
+              className="flex flex-1 flex-col pt-[calc(4rem+env(safe-area-inset-top))]"
             >
               {/* Main Content */}
               <main className="container flex w-full flex-1 flex-col gap-8 pt-8 px-4 sm:px-6 pb-16">
