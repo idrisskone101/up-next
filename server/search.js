@@ -12,44 +12,6 @@ import { config } from "./config.js";
 const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
 /**
- * Helper for case-insensitive language matching
- * Handles both ISO codes ('en', 'ja') and full names ('English', 'Japanese')
- * @param {string[]|null} languages - Array of language codes/names
- * @param {...string} codes - Language codes to check for
- * @returns {boolean} - True if any code matches
- */
-function hasLanguage(languages, ...codes) {
-  if (!languages) return false;
-  const normalized = languages.map(l => l.toLowerCase());
-  return codes.some(code => normalized.includes(code.toLowerCase()));
-}
-
-/**
- * Check if content is acceptable based on language and production country
- * @param {Object} title - Title object with languages, production_countries, and genres
- * @returns {boolean} - True if content should be included
- */
-function isAcceptableContent(title) {
-  const ENGLISH_SPEAKING_COUNTRIES = ['US', 'GB', 'CA', 'AU', 'NZ', 'IE'];
-
-  // Check if English language (handles 'en', 'English')
-  if (hasLanguage(title.languages, 'en', 'english')) return true;
-
-  // Check if from English-speaking country
-  if (title.production_countries?.some(c => ENGLISH_SPEAKING_COUNTRIES.includes(c))) {
-    return true;
-  }
-
-  // Check if Japanese anime (handles 'ja'/'Japanese' + 'animation'/'Animation')
-  const isJapanese = hasLanguage(title.languages, 'ja', 'japanese');
-  const isAnimation = title.genres?.some(g => g.toLowerCase() === 'animation');
-  if (isJapanese && isAnimation) return true;
-
-  return false;
-}
-
-
-/**
  * Main search handler - orchestrates query analysis, embedding generation, and database search
  * Uses single embedding with match_titles_multi RPC for efficient weighted search
  * Supports both fixed weights (fast) and dynamic LLM-based weights (slower but adaptive)
@@ -100,17 +62,15 @@ export async function searchTitles(
     console.log("[Search] Embedding generated successfully");
 
     // Step 3: Call match_titles_multi RPC with single embedding passed to all three vectors
-    // Request 25% more to compensate for ~20% filter loss
-    const FILTER_BUFFER = 1.25;
+    // No buffer needed - is_searchable partial index eliminates post-filter waste
     const resultsNeeded = page * pageSize;
-    const bufferedCount = Math.ceil(matchCount * FILTER_BUFFER);
-    const dbMatchCount = Math.min(Math.max(bufferedCount, resultsNeeded + 1), 200);
+    const dbMatchCount = Math.min(Math.max(matchCount, resultsNeeded + 1), 400);
 
     console.log("[Search] Calling match_titles_multi RPC...");
     if (kindFilter) {
       console.log("[Search] Filtering by kind: " + kindFilter.join(", "));
     }
-    console.log("[Search] Pagination: page=" + page + ", pageSize=" + pageSize + ", fetching " + dbMatchCount + " results (buffered from " + matchCount + ")");
+    console.log("[Search] Pagination: page=" + page + ", pageSize=" + pageSize + ", fetching " + dbMatchCount + " results");
 
     const dbStartTime = Date.now();
 
@@ -163,18 +123,7 @@ export async function searchTitles(
 
     console.log("[Search] Found " + results.length + " results from database");
 
-    // Apply language filter (English, English-speaking countries, or anime)
-    const beforeFilter = results.length;
-    results = results.filter(title => isAcceptableContent(title));
-    console.log("[Search] Language filter: " + beforeFilter + " -> " + results.length + " results");
-
-    // Filter out reality and talk shows
-    const beforeRealityFilter = results.length;
-    results = results.filter(title => {
-      const genres = title.genres || [];
-      return !genres.some(g => g.toLowerCase() === 'reality');
-    });
-    console.log("[Search] Reality filter: " + beforeRealityFilter + " -> " + results.length + " results");
+    // Language and reality filters now handled by is_searchable column in database
 
     // Apply vibe conflict filter if enabled (excludes tonally incompatible results)
     let queryIntent = null;
