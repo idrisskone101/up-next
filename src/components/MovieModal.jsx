@@ -118,13 +118,10 @@ export function MovieModal({ movie, onClose }) {
           {/* Hero Image Section */}
           <div className="relative overflow-hidden h-48 sm:h-64 md:h-72">
             {backdropUrl && (
-              <motion.img
+              <img
                 src={backdropUrl}
                 alt={title}
                 className="h-full w-full object-cover"
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.4 }}
               />
             )}
             {/* Gradient overlays */}
@@ -133,22 +130,12 @@ export function MovieModal({ movie, onClose }) {
 
             {/* Title overlay */}
             <div className="absolute bottom-0 left-0 right-0 px-6 pb-4">
-              <motion.h1
-                className="text-2xl sm:text-3xl font-display font-semibold text-white mb-2 drop-shadow-lg tracking-tight"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
+              <h1 className="text-2xl sm:text-3xl font-semibold text-white mb-2 drop-shadow-lg tracking-tight">
                 {title}
-              </motion.h1>
+              </h1>
 
               {/* Metadata row */}
-              <motion.div
-                className="flex flex-wrap items-center gap-2 text-sm text-white/80"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
+              <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
                 </span>
@@ -179,17 +166,12 @@ export function MovieModal({ movie, onClose }) {
                 <Badge className="bg-amber-500/90 text-amber-950 text-xs py-0 h-5 ml-1 font-medium">
                   {kind === "tv" ? "TV" : "Movie"}
                 </Badge>
-              </motion.div>
+              </div>
             </div>
           </div>
 
           {/* Match Score Bar */}
-          <motion.div
-            className="flex flex-wrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-slate-900/50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-slate-900/50">
             {/* Match Score with Tier Styling */}
             <div className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full ${tier.bg} ${tier.border} border`}>
               {TierIcon && <TierIcon className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${tier.color}`} />}
@@ -219,33 +201,25 @@ export function MovieModal({ movie, onClose }) {
                  strongest_signal === 'vibe' ? 'Vibe' : 'Details'}
               </Badge>
             </div>
-          </motion.div>
+          </div>
 
           {/* Content Sections */}
           <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
             {/* Overview */}
-            <motion.section
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
+            <section>
               <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
                 Overview
               </h3>
               <p className="text-sm leading-relaxed text-white/80">
                 {overview || "No overview available."}
               </p>
-            </motion.section>
+            </section>
 
             {/* Two Column Layout for Genres & Vibes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Genres */}
               {safeGenres.length > 0 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
+                <section>
                   <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
                     <Tag className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-amber-400" /> Genres
                   </h3>
@@ -260,16 +234,12 @@ export function MovieModal({ movie, onClose }) {
                       </Badge>
                     ))}
                   </div>
-                </motion.section>
+                </section>
               )}
 
               {/* Vibes */}
               {safeVibes.length > 0 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35 }}
-                >
+                <section>
                   <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
                     <Palette className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-purple-400" /> Vibes
                   </h3>
@@ -280,17 +250,13 @@ export function MovieModal({ movie, onClose }) {
                       </span>
                     ))}
                   </div>
-                </motion.section>
+                </section>
               )}
             </div>
 
             {/* Trailer */}
             {id && (
-              <motion.section
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
+              <section>
                 <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
                   <PlayCircle className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-amber-400" /> Trailer
                 </h3>
@@ -301,18 +267,14 @@ export function MovieModal({ movie, onClose }) {
                     title={title}
                   />
                 </div>
-              </motion.section>
+              </section>
             )}
 
             {/* Two Column Layout for Cast & Director */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Cast */}
               {topCast.length > 0 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45 }}
-                >
+                <section>
                   <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
                     Cast
                   </h3>
@@ -324,21 +286,17 @@ export function MovieModal({ movie, onClose }) {
                       </li>
                     ))}
                   </ul>
-                </motion.section>
+                </section>
               )}
 
               {/* Director */}
               {director && (
-                <motion.section
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
+                <section>
                   <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
                     Director
                   </h3>
                   <p className="text-xs sm:text-sm text-white/80">{director}</p>
-                </motion.section>
+                </section>
               )}
             </div>
 

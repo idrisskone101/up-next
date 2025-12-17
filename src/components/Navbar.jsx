@@ -28,7 +28,7 @@ export function Navbar() {
           aria-label="upNext home"
         >
           <UpnextLogo className="h-8 w-8 text-orange-500 transition-transform group-hover:scale-110" />
-          <span className="text-xl font-bold tracking-tighter">upNext</span>
+          <span className="text-xl font-display font-bold tracking-tighter">upNext</span>
         </button>
       </div>
     </header>

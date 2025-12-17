@@ -69,7 +69,6 @@ export function MovieCard({ movie, onClick, index = 0 }) {
   } = movie;
 
   const [isHovered, setIsHovered] = useState(false);
-  const [displayedPercentage, setDisplayedPercentage] = useState(0);
   const cardRef = useRef(null);
   const { handleMouseMove, handleMouseLeave } = use3DTilt(cardRef, 5);
 
@@ -81,31 +80,6 @@ export function MovieCard({ movie, onClick, index = 0 }) {
   const matchPercentage = Math.round((combined_score || 0) * 100);
   const matchTier = getMatchTier(matchPercentage);
   const tierStyle = tierStyles[matchTier];
-
-  // Animate percentage count-up on mount - faster stagger matching query pills
-  useEffect(() => {
-    const delay = index * 40 + 150; // Faster cascade matching grid stagger
-    const timer = setTimeout(() => {
-      const duration = matchTier === "excellent" ? 600 : 400;
-      let start = 0;
-      const end = matchPercentage;
-      const increment = end / (duration / 16);
-
-      const counter = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setDisplayedPercentage(end);
-          clearInterval(counter);
-        } else {
-          setDisplayedPercentage(Math.floor(start));
-        }
-      }, 16);
-
-      return () => clearInterval(counter);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [matchPercentage, index, matchTier]);
 
   const handleClick = (e) => {
     haptics.light();
@@ -214,7 +188,7 @@ export function MovieCard({ movie, onClick, index = 0 }) {
                 {matchTier === "excellent" && (
                   <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 )}
-                {displayedPercentage}%
+                {matchPercentage}%
               </span>
             </Badge>
           </motion.div>

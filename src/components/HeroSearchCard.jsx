@@ -369,7 +369,6 @@ export function HeroSearchCard({ onSearch, loading }) {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.03, duration: 0.2 }}
-                  whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   className="px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0 bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] text-white/60 hover:text-white/90 hover:border-white/15 hover:from-white/[0.1] hover:to-white/[0.04] hover:shadow-lg hover:shadow-black/20 disabled:opacity-40 disabled:cursor-not-allowed"
                 >

@@ -168,6 +168,14 @@ export async function searchTitles(
     results = results.filter(title => isAcceptableContent(title));
     console.log("[Search] Language filter: " + beforeFilter + " -> " + results.length + " results");
 
+    // Filter out reality and talk shows
+    const beforeRealityFilter = results.length;
+    results = results.filter(title => {
+      const genres = title.genres || [];
+      return !genres.some(g => g.toLowerCase() === 'reality');
+    });
+    console.log("[Search] Reality filter: " + beforeRealityFilter + " -> " + results.length + " results");
+
     // Apply vibe conflict filter if enabled (excludes tonally incompatible results)
     let queryIntent = null;
     if (config.enableVibeConflictFilter) {

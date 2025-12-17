@@ -114,7 +114,7 @@ export function ResultsGrid({
     <LayoutGroup>
       <div
         ref={containerRef}
-        className="space-y-8 relative"
+        className="space-y-8 relative pb-16"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -167,7 +167,7 @@ export function ResultsGrid({
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           {/* Search metadata */}
-          <SearchMetadata metadata={searchMetadata} />
+          {/* <SearchMetadata metadata={searchMetadata} /> */}
 
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
