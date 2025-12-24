@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   analyzeQueryIntent,
-  generateQueryEmbedding,
+  generateQueryEmbeddings,
   getFixedWeights,
 } from "./embeddings.js";
 import { rerankResults } from "./reranker.js";
@@ -16,23 +16,19 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
  * Uses single embedding with match_titles_multi RPC for efficient weighted search
  * Supports both fixed weights (fast) and dynamic LLM-based weights (slower but adaptive)
  * Includes re-ranking to enhance results with quality signals
- * Supports pagination with page and pageSize parameters
+ * Returns all 300 candidates sorted by VIBE score - frontend handles pagination
  *
  * @param {string} query - The user's search query
- * @param {number} matchCount - Number of results to fetch from database (default: from config)
+ * @param {number} matchCount - Ignored, always fetches 300 candidates
  * @param {number} matchThreshold - Minimum similarity score (default: from config)
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
- * @param {number} page - Page number (1-indexed, default: 1)
- * @param {number} pageSize - Number of results per page (default: 20)
- * @returns {Promise<Object>} Search results with weights and reasoning
+ * @returns {Promise<Object>} All search results sorted by vibe_score descending
  */
 export async function searchTitles(
   query,
   matchCount = config.search.defaultMatchCount,
   matchThreshold = config.search.defaultMatchThreshold,
   kindFilter = null,
-  page = 1,
-  pageSize = 20,
 ) {
   try {
     console.log('[Search] Query: "' + query + '"');
@@ -56,28 +52,27 @@ export async function searchTitles(
       "[Search] Weights (" + weightSource + "): content=" + weights.content.toFixed(2) + ", vibe=" + weights.vibe.toFixed(2) + ", metadata=" + weights.metadata.toFixed(2),
     );
 
-    // Step 2: Generate single embedding for the query
-    console.log("[Search] Generating embedding...");
-    const embedding = await generateQueryEmbedding(query);
-    console.log("[Search] Embedding generated successfully");
+    // Step 2: Generate three separate embeddings for the query (structured to match DB format)
+    console.log("[Search] Generating structured embeddings...");
+    const embeddings = await generateQueryEmbeddings(query);
+    console.log("[Search] Embeddings generated successfully (content, vibe, metadata)");
 
-    // Step 3: Call match_titles_multi RPC with single embedding passed to all three vectors
-    // No buffer needed - is_searchable partial index eliminates post-filter waste
-    const resultsNeeded = page * pageSize;
-    const dbMatchCount = Math.min(Math.max(matchCount, resultsNeeded + 1), 400);
+    // Step 3: Call match_titles_multi RPC with three structured embeddings
+    // Always fetch 300 candidates for frontend pagination (no re-fetching on page change)
+    const dbMatchCount = 300;
 
-    console.log("[Search] Calling match_titles_multi RPC...");
+    console.log("[Search] Calling match_titles_multi RPC with 3 structured embeddings...");
     if (kindFilter) {
       console.log("[Search] Filtering by kind: " + kindFilter.join(", "));
     }
-    console.log("[Search] Pagination: page=" + page + ", pageSize=" + pageSize + ", fetching " + dbMatchCount + " results");
+    console.log("[Search] Fetching " + dbMatchCount + " candidates for frontend pagination");
 
     const dbStartTime = Date.now();
 
     const { data, error } = await supabase.rpc("match_titles_multi", {
-      query_content_embedding: embedding,
-      query_vibe_embedding: embedding,
-      query_metadata_embedding: embedding,
+      query_content_embedding: embeddings.content,
+      query_vibe_embedding: embeddings.vibe,
+      query_metadata_embedding: embeddings.metadata,
       weight_content: weights.content,
       weight_vibe: weights.vibe,
       weight_metadata: weights.metadata,
@@ -106,6 +101,7 @@ export async function searchTitles(
       director: row.director,
       vibes: row.vibes,
       themes: row.themes,
+      keywords: row.keywords,
       runtime_minutes: row.runtime_minutes,
       vote_average: row.vote_average,
       certification: row.certification,
@@ -164,17 +160,11 @@ export async function searchTitles(
     const searchEndTime = Date.now();
     console.log("[Search] Total search time: " + (searchEndTime - searchStartTime) + "ms");
 
-    // Step 6: Apply pagination
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedResults = finalResults.slice(startIndex, endIndex);
-    const hasMore = paginatedResults.length === pageSize && finalResults.length > endIndex;
+    // Return all 300 candidates - frontend handles pagination
     const totalResults = finalResults.length;
-    const totalPages = Math.ceil(totalResults / pageSize);
+    console.log("[Search] Returning all " + totalResults + " candidates for frontend pagination");
 
-    console.log("[Search] Pagination: Returning page " + page + " (" + paginatedResults.length + " results, hasMore: " + hasMore + ", fetched " + totalResults + " total)");
-
-    // Step 7: Return formatted results with pagination metadata
+    // Step 7: Return all results - frontend handles pagination
     return {
       query,
       weights: {
@@ -184,13 +174,9 @@ export async function searchTitles(
       },
       weightReasoning: weights.reasoning,
       weightSource,
-      results: paginatedResults,
-      count: paginatedResults.length,
+      results: finalResults,
+      count: finalResults.length,
       totalCount: totalResults,
-      page,
-      pageSize,
-      totalPages,
-      hasMore,
       rerankingApplied,
     };
   } catch (error) {

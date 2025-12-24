@@ -24,7 +24,7 @@ const pageTransition = {
 };
 
 function App() {
-  const { results, loading, loadingMore, refreshing, error, searchMetadata, hasMore, search, loadMore, refresh, reset } = useSearch();
+  const { results, loading, refreshing, error, searchMetadata, hasMore, currentPage, totalPages, search, loadMore, goToPage, refresh, reset } = useSearch();
   const [compactQuery, setCompactQuery] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const compactInputRef = useRef(null);
@@ -289,8 +289,9 @@ function App() {
                         results={results}
                         searchMetadata={searchMetadata}
                         hasMore={hasMore}
-                        loadingMore={loadingMore}
-                        onLoadMore={loadMore}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
                         onRefresh={refresh}
                         isRefreshing={refreshing}
                         totalCount={searchMetadata?.totalCount}

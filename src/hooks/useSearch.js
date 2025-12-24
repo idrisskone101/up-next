@@ -1,30 +1,37 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { searchMovies } from '../lib/api';
 
+const PAGE_SIZE = 20;
+
 /**
- * Custom hook for managing search state and API calls with pagination support
+ * Custom hook for managing search state with local frontend pagination
+ * All 300 candidates are fetched once and paginated locally
  */
 export function useSearch() {
-  const [results, setResults] = useState([]);
+  const [allResults, setAllResults] = useState([]); // All 300 candidates
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [searchMetadata, setSearchMetadata] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
   const [currentQuery, setCurrentQuery] = useState(null);
   const [currentMatchCount, setCurrentMatchCount] = useState(80);
   const [currentMatchThreshold, setCurrentMatchThreshold] = useState(0);
   const [currentKindFilter, setCurrentKindFilter] = useState(null);
-  const pageSize = 20;
+
+  // Compute paginated results from allResults
+  const totalPages = useMemo(() => Math.ceil(allResults.length / PAGE_SIZE), [allResults.length]);
+  const hasMore = useMemo(() => currentPage < totalPages, [currentPage, totalPages]);
+  const results = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return allResults.slice(start, start + PAGE_SIZE);
+  }, [allResults, currentPage]);
 
   const search = useCallback(async (query, matchCount = 80, matchThreshold = 0, kindFilter = null) => {
     if (!query || query.trim().length === 0) {
-      setResults([]);
+      setAllResults([]);
       setSearchMetadata(null);
       setCurrentPage(1);
-      setHasMore(false);
       setCurrentQuery(null);
       return;
     }
@@ -38,88 +45,54 @@ export function useSearch() {
     setCurrentKindFilter(kindFilter);
 
     try {
-      const data = await searchMovies(query, matchCount, matchThreshold, kindFilter, 1, pageSize);
+      // Fetch all candidates - backend returns them sorted by reranked_score
+      const data = await searchMovies(query, matchCount, matchThreshold, kindFilter);
 
-      setResults(data.results || []);
-      setHasMore(data.hasMore || false);
+      setAllResults(data.results || []);
       setSearchMetadata({
         query: data.query,
         weights: data.weights,
         weightReasoning: data.weightReasoning,
         count: data.count,
         totalCount: data.totalCount,
-        page: data.page,
-        totalPages: data.totalPages,
-        hasMore: data.hasMore,
         metadata: data.metadata
       });
     } catch (err) {
-      // Preserve timeout flag for better error handling
       const errorMessage = err.message || 'An error occurred while searching';
       const isTimeout = err.timeout || errorMessage.toLowerCase().includes('timeout');
-      
+
       setError({
         message: errorMessage,
         timeout: isTimeout,
         originalError: err,
       });
-      setResults([]);
+      setAllResults([]);
       setSearchMetadata(null);
-      setHasMore(false);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const loadMore = useCallback(async () => {
-    if (!currentQuery || loadingMore || !hasMore) return;
+  // Navigate to a specific page (local pagination, no API call)
+  const goToPage = useCallback((page) => {
+    const validPage = Math.max(1, Math.min(page, totalPages));
+    setCurrentPage(validPage);
+  }, [totalPages]);
 
-    const nextPage = currentPage + 1;
-    setLoadingMore(true);
-    setError(null);
-
-    try {
-      const data = await searchMovies(
-        currentQuery, 
-        currentMatchCount, 
-        currentMatchThreshold, 
-        currentKindFilter, 
-        nextPage, 
-        pageSize
-      );
-
-      setResults(prev => [...prev, ...(data.results || [])]);
-      setHasMore(data.hasMore || false);
-      setCurrentPage(nextPage);
-      setSearchMetadata(prev => ({
-        ...prev,
-        count: prev.count + (data.count || 0),
-        page: data.page,
-        hasMore: data.hasMore,
-      }));
-    } catch (err) {
-      const errorMessage = err.message || 'An error occurred while loading more results';
-      const isTimeout = err.timeout || errorMessage.toLowerCase().includes('timeout');
-      
-      setError({
-        message: errorMessage,
-        timeout: isTimeout,
-        originalError: err,
-      });
-    } finally {
-      setLoadingMore(false);
+  // Load next page (for compatibility with existing UI)
+  const loadMore = useCallback(() => {
+    if (hasMore) {
+      setCurrentPage(prev => prev + 1);
     }
-  }, [currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, currentPage, hasMore, loadingMore]);
+  }, [hasMore]);
 
   const reset = useCallback(() => {
-    setResults([]);
+    setAllResults([]);
     setError(null);
     setSearchMetadata(null);
     setLoading(false);
-    setLoadingMore(false);
     setRefreshing(false);
     setCurrentPage(1);
-    setHasMore(false);
     setCurrentQuery(null);
   }, []);
 
@@ -132,19 +105,16 @@ export function useSearch() {
     setCurrentPage(1);
 
     try {
-      const data = await searchMovies(currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, 1, pageSize);
+      // Fetch all candidates - backend returns them sorted by reranked_score
+      const data = await searchMovies(currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter);
 
-      setResults(data.results || []);
-      setHasMore(data.hasMore || false);
+      setAllResults(data.results || []);
       setSearchMetadata({
         query: data.query,
         weights: data.weights,
         weightReasoning: data.weightReasoning,
         count: data.count,
         totalCount: data.totalCount,
-        page: data.page,
-        totalPages: data.totalPages,
-        hasMore: data.hasMore,
         metadata: data.metadata
       });
     } catch (err) {
@@ -163,14 +133,18 @@ export function useSearch() {
 
   return {
     results,
+    allResults,
     loading,
-    loadingMore,
     refreshing,
     error,
     searchMetadata,
     hasMore,
+    currentPage,
+    totalPages,
+    pageSize: PAGE_SIZE,
     search,
     loadMore,
+    goToPage,
     refresh,
     reset,
   };

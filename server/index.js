@@ -161,13 +161,11 @@ app.get("/api/recommendations", async (req, res) => {
 });
 app.post("/api/search", async (req, res) => {
   try {
-    const { 
-      query, 
-      matchCount = config.search.defaultMatchCount, 
-      matchThreshold = config.search.defaultMatchThreshold, 
+    const {
+      query,
+      matchCount = config.search.defaultMatchCount,
+      matchThreshold = config.search.defaultMatchThreshold,
       kindFilter = null,
-      page = 1,
-      pageSize = 20,
     } = req.body;
 
     // Validate request
@@ -193,24 +191,6 @@ app.post("/api/search", async (req, res) => {
       });
     }
 
-    // Validate pagination parameters
-    const pageNum = parseInt(page, 10);
-    const pageSizeNum = parseInt(pageSize, 10);
-    
-    if (isNaN(pageNum) || pageNum < 1) {
-      return res.status(400).json({
-        error: "Invalid request",
-        message: "page must be a positive integer",
-      });
-    }
-
-    if (isNaN(pageSizeNum) || pageSizeNum < 1 || pageSizeNum > 50) {
-      return res.status(400).json({
-        error: "Invalid request",
-        message: "pageSize must be between 1 and 50",
-      });
-    }
-
     // Validate kindFilter if provided
     if (kindFilter !== null && !Array.isArray(kindFilter)) {
       return res.status(400).json({
@@ -230,15 +210,13 @@ app.post("/api/search", async (req, res) => {
       }
     }
 
-    // Perform search
+    // Perform search - returns all 300 candidates sorted by VIBE score
     const startTime = Date.now();
     const results = await searchTitles(
       query.trim(),
       matchCount,
       matchThreshold,
       kindFilter,
-      pageNum,
-      pageSizeNum,
     );
     const duration = Date.now() - startTime;
 

@@ -24,16 +24,15 @@ function sleep(ms) {
 
 /**
  * Search for movies and TV shows with timeout and retry logic
+ * Returns all 300 candidates sorted by VIBE score - frontend handles pagination
  * @param {string} query - Search query
- * @param {number} matchCount - Number of results to return
+ * @param {number} matchCount - Ignored, backend always fetches 300 candidates
  * @param {number} matchThreshold - Minimum similarity threshold
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
- * @param {number} page - Page number (1-indexed, default: 1)
- * @param {number} pageSize - Number of results per page (default: 20)
  * @param {number} retryCount - Current retry attempt (internal use)
- * @returns {Promise<Object>} Search results
+ * @returns {Promise<Object>} All search results sorted by vibe_score
  */
-export async function searchMovies(query, matchCount = 80, matchThreshold = 0, kindFilter = null, page = 1, pageSize = 20, retryCount = 0) {
+export async function searchMovies(query, matchCount = 80, matchThreshold = 0, kindFilter = null, retryCount = 0) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
 
@@ -49,8 +48,6 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
           matchCount,
           matchThreshold,
           kindFilter,
-          page,
-          pageSize,
         }),
         signal: abortController.signal,
       }),
@@ -64,15 +61,15 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
       const error = new Error(errorData.message || `HTTP error! status: ${response.status}`);
       error.status = response.status;
       error.timeout = errorData.timeout || response.status === 504;
-      
+
       // Retry on timeout or 504 errors if we haven't exceeded max retries
       if ((error.timeout || response.status === 504) && retryCount < MAX_RETRIES) {
         const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff, max 5s
         console.log(`[API] Retrying search (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
         await sleep(delay);
-        return searchMovies(query, matchCount, matchThreshold, kindFilter, page, pageSize, retryCount + 1);
+        return searchMovies(query, matchCount, matchThreshold, kindFilter, retryCount + 1);
       }
-      
+
       throw error;
     }
 
@@ -80,23 +77,23 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
     return data;
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     // Handle abort/timeout errors
     if (error.name === 'AbortError' || error.message === 'Request timeout') {
       const timeoutError = new Error('Search request timed out. The server may be busy. Please try again.');
       timeoutError.timeout = true;
-      
+
       // Retry on timeout if we haven't exceeded max retries
       if (retryCount < MAX_RETRIES) {
         const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
         console.log(`[API] Retrying search after timeout (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
         await sleep(delay);
-        return searchMovies(query, matchCount, matchThreshold, kindFilter, page, pageSize, retryCount + 1);
+        return searchMovies(query, matchCount, matchThreshold, kindFilter, retryCount + 1);
       }
-      
+
       throw timeoutError;
     }
-    
+
     console.error('API Error:', error);
     throw error;
   }

@@ -15,6 +15,15 @@
  * - excludeVibes: vibe thresholds that disqualify a title
  */
 const INTENT_CLUSTERS = {
+  // Fall/Autumn - exclude Christmas/holiday content
+  fall: {
+    keywords: [
+      'fall', 'autumn', 'autumnal', 'october', 'november', 'harvest',
+      'back to school', 'thanksgiving', 'falling leaves', 'pumpkin spice'
+    ],
+    excludeVibes: {},
+    excludeKeywords: ['christmas', 'holiday', 'santa', 'xmas', 'new year']
+  },
   // Romantic comedy - must check genres since vibes can be misleading
   romcom: {
     keywords: [
@@ -127,6 +136,26 @@ export function hasVibeConflict(title, intent) {
   // No cluster = no conflict
   if (!cluster) {
     return false;
+  }
+
+  // Check keyword exclusions (for seasonal conflicts like fall vs christmas)
+  if (cluster.excludeKeywords && cluster.excludeKeywords.length > 0) {
+    // Check title name
+    const titleLower = (title.title || '').toLowerCase();
+    for (const keyword of cluster.excludeKeywords) {
+      if (titleLower.includes(keyword.toLowerCase())) {
+        return true; // Title name contains excluded keyword
+      }
+    }
+    // Check keywords array if present
+    if (title.keywords && Array.isArray(title.keywords)) {
+      const titleKeywords = title.keywords.map(k => k.toLowerCase());
+      for (const excludedKeyword of cluster.excludeKeywords) {
+        if (titleKeywords.some(k => k.includes(excludedKeyword.toLowerCase()))) {
+          return true; // Keyword conflict found - exclude this title
+        }
+      }
+    }
   }
 
   // Check genre exclusions first (more reliable than vibes)

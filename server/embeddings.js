@@ -29,29 +29,62 @@ export function getFixedWeights() {
  * @returns {Promise<{content: number, vibe: number, metadata: number, reasoning: string}>}
  */
 export async function analyzeQueryIntent(query) {
-  const systemPrompt = `You are a query analyzer for a movie/TV semantic search system with three embedding types:
+  const systemPrompt = `You analyze queries for a movie/TV semantic search with three embedding types:
 
-1. CONTENT embedding: Captures story/plot elements
-   - Narrative themes (revenge, redemption, coming-of-age)
-   - Story structure (time travel, heist, mystery)
-   - Character arcs and relationships
+CONTENT: Story/plot (themes, narrative, character arcs)
+VIBE: Emotional feel (mood, tone, pacing, atmosphere)
+METADATA: Categories (genres, actors, directors, keywords)
 
-2. VIBE embedding: Captures emotional/atmospheric qualities
-   - Mood and feeling (cozy, dark, whimsical, gritty)
-   - Tone (earnest, melancholic, campy, noir)
-   - Pacing (slow-burn, kinetic, contemplative)
+CRITICAL RULE: Vibe must NEVER go below 0.25. Movies are emotional experiences.
 
-3. METADATA embedding: Captures factual/categorical information
-   - Genres (superhero, comedy, thriller)
-   - Directors and creators
-   - Actors, years, ratings
+GENRE → VIBE MAPPINGS (use these exact vibe terms):
+- romance → romantic, heartwarming, sentimental
+- comedy → lighthearted, playful, comedic, whimsical
+- horror → dark, tense, suspenseful, atmospheric
+- thriller → tense, suspenseful, thrilling, intense
+- drama → earnest, melancholic, bittersweet, somber
+- action → intense, kinetic, energetic, thrilling
+- adventure → epic, energetic, uplifting
+- animation → whimsical, playful, heartwarming
+- family → heartwarming, uplifting, lighthearted
+- fantasy → dreamy, whimsical, epic, surreal
+- sci-fi → atmospheric, trippy, surreal, intense
+- crime → gritty, noir, dark, tense
+- mystery → atmospheric, suspenseful, brooding
+- documentary → earnest, somber
+- war → gritty, intense, somber, epic
+- western → gritty, atmospheric, epic
 
-WEIGHTING RULES:
-- Genre/franchise/director/actor mentions → prioritize METADATA (0.5-0.7)
-- Plot/story/theme descriptions → prioritize CONTENT (0.5-0.7)
-- Mood/feeling/atmosphere adjectives → prioritize VIBE (0.5-0.7)
-- Hybrid queries → distribute proportionally
-- Ambiguous → default balanced (0.4, 0.35, 0.25)
+SEASONAL/THEMATIC → VIBE MAPPINGS:
+- christmas/holiday → cozy, heartwarming, sentimental, whimsical
+- fall/autumn → melancholic, cozy, atmospheric, bittersweet
+- summer → energetic, lighthearted, uplifting
+- noir → dark, brooding, cynical, atmospheric
+- indie → earnest, melancholic, whimsical
+
+KEY INSIGHT: When a query mentions a genre, it implies BOTH metadata AND vibe.
+"Christmas rom-coms" = christmas keyword (metadata) + romance genre (metadata) + cozy/heartwarming/romantic vibes
+
+WEIGHTING GUIDELINES:
+- Plot/theme queries ("movies about X") → content: 0.50, vibe: 0.30, metadata: 0.20
+- Pure vibe queries ("something cozy") → vibe: 0.55, content: 0.25, metadata: 0.20
+- Genre+feeling queries ("rom-coms", "horror") → vibe: 0.40, metadata: 0.35, content: 0.25
+- Seasonal+genre ("Christmas rom-coms") → vibe: 0.40, metadata: 0.35, content: 0.25
+- Seasonal+vibe ("cozy fall movies") → vibe: 0.50, metadata: 0.25, content: 0.25
+- Director/actor queries → metadata: 0.50, vibe: 0.25, content: 0.25
+- Ambiguous → balanced (0.35, 0.35, 0.30)
+
+EXAMPLES:
+- "Christmas rom-coms" → vibe: 0.40, metadata: 0.35, content: 0.25
+  (implies: cozy, heartwarming, romantic vibes)
+- "cozy fall movies" → vibe: 0.50, metadata: 0.25, content: 0.25
+  (implies: cozy, melancholic, atmospheric vibes)
+- "movies about revenge" → content: 0.50, vibe: 0.30, metadata: 0.20
+- "dark psychological thrillers" → vibe: 0.45, metadata: 0.30, content: 0.25
+  (implies: dark, tense, intense, brooding vibes)
+- "Nolan films" → metadata: 0.50, vibe: 0.25, content: 0.25
+- "feel-good comedies" → vibe: 0.50, metadata: 0.30, content: 0.20
+  (implies: lighthearted, uplifting, comedic vibes)
 
 Return ONLY valid JSON:
 {
@@ -91,53 +124,97 @@ Return ONLY valid JSON:
   }
 }
 
+// Standardized schema values - MUST match database enrichment exactly
+const VIBE_DIMENSIONS = [
+  "cozy", "whimsical", "lighthearted", "romantic", "heartwarming", "sentimental",
+  "earnest", "uplifting", "melancholic", "bittersweet", "somber", "brooding",
+  "dark", "gritty", "noir", "atmospheric", "dreamy", "surreal", "trippy",
+  "tense", "suspenseful", "thrilling", "intense", "chaotic", "kinetic",
+  "energetic", "epic", "playful", "campy", "satirical", "absurdist", "comedic",
+  "cynical", "bleak", "rebellious", "subversive"
+];
+
+const TONES = [
+  "serious", "earnest", "hopeful", "bleak", "grim", "cynical", "optimistic",
+  "playful", "humorous", "sarcastic", "satirical", "dramatic", "melancholic",
+  "poetic", "noir", "whimsical", "philosophical", "intense"
+];
+
+const PACING = ["ultra-slow", "slow-burn", "moderate", "fast-paced", "hyper-kinetic"];
+
 /**
  * Structures a user query into expanded formats matching the original database embedding structure
  * Uses GPT-4o-mini to expand lazy queries like "Cosy Night In" into proper structured text
  * that matches how the original vectors were created
  *
+ * CRITICAL: The vibe text format MUST match text-builders.js exactly:
+ * - Vibes with score >= 0.8 are DOUBLED (e.g., "cozy cozy")
+ * - Vibes with score 0.3-0.79 appear once
+ * - Only use standardized vibe/tone/pacing values
+ *
  * @param {string} query - The user's raw search query
  * @returns {Promise<{content: string, vibe: string, metadata: string}>}
  */
 export async function structureQuery(query) {
-  const systemPrompt = `You are a query structurer for a movie/TV semantic search system. Your task is to expand and structure user queries into formats that match how the original database embeddings were created.
+  const systemPrompt = `You are a query structurer for a movie/TV semantic search system. Your task is to expand user queries into formats that EXACTLY match how the database embeddings were created.
 
-The database has three embedding types built from these fields:
+CRITICAL: The database uses ONLY these standardized values:
 
-1. CONTENT embedding (built from: profile_string, themes, overview, slots, keywords)
-   - profile_string: One-sentence spoiler-safe logline
-   - themes: Array of narrative themes (e.g., ["revenge", "coming-of-age"])
-   - overview: 2-3 sentence plot description
-   - slots: Story structure elements (protagonist, setting, goal, obstacle, stakes)
-   - keywords: Relevant story keywords
+VIBES (pick relevant ones, assign scores 0.0-1.0):
+${VIBE_DIMENSIONS.join(", ")}
 
-2. VIBE embedding (built from: vibes, tone, pacing, tagline)
-   - vibes: Array of mood descriptors (e.g., ["cozy", "dark", "whimsical"])
-   - tone: Single tone descriptor (e.g., "earnest", "melancholic", "noir")
-   - pacing: Single pacing descriptor (e.g., "slow-burn", "kinetic", "contemplative")
-   - tagline: Marketing tagline or atmospheric one-liner
+TONES (pick exactly ONE):
+${TONES.join(", ")}
 
-3. METADATA embedding (built from: genres, director, writers, certification, production_countries, collection)
-   - genres: Array of genre names (e.g., ["drama", "romance", "comedy"])
-   - director: Director name or style description
-   - writers: Writer names or style descriptions
-   - certification: Age rating (e.g., "PG-13", "R", "TV-MA")
-   - production_countries: Country codes or names
-   - collection: Franchise or series name
+PACING (pick exactly ONE):
+${PACING.join(", ")}
 
-INSTRUCTIONS:
-- Expand the user's query while preserving their intent
-- Generate structured text for each embedding type matching the database format
-- Be creative but accurate - infer what the user likely wants
-- For Content: Create a profile_string-style logline, themes, overview, story structure hints, keywords
-- For Vibe: Extract mood descriptors, determine tone and pacing, create tagline
-- For Metadata: Suggest genres, determine type (movie/tv), director/writer styles, appropriate rating, countries, collections
+VIBE TEXT FORMAT (MUST match exactly):
+- For each vibe with score >= 0.8: DOUBLE the word (e.g., "cozy cozy")
+- For each vibe with score 0.3-0.79: single word
+- Sort by score descending
+- Format: "Vibes: [vibes]. Tone: [tone]. Pacing: [pacing]"
+
+EXAMPLES - follow these patterns:
+
+Cozy romantic query ("cozy date night"):
+"Vibes: cozy cozy, heartwarming heartwarming, romantic, lighthearted, sentimental
+Tone: hopeful
+Pacing: moderate"
+
+Anti-establishment/satirical query ("angry at capitalism", "eat the rich", "corporate dystopia"):
+"Vibes: satirical satirical, dark dark, gritty, cynical, absurdist, atmospheric
+Tone: cynical
+Pacing: moderate"
+
+Noir/atmospheric query ("moody detective vibes", "rainy city nights"):
+"Vibes: noir noir, atmospheric atmospheric, dark, brooding, melancholic, tense
+Tone: noir
+Pacing: slow-burn"
+
+Chaotic/unhinged query ("unhinged energy", "chaotic mess"):
+"Vibes: chaotic chaotic, absurdist, dark, energetic, kinetic, playful
+Tone: sarcastic
+Pacing: fast-paced"
+
+CONTENT embedding format:
+"Story: [one-sentence logline]
+Themes: [comma-separated themes]
+Overview: [2-3 sentence description]
+Keywords: [comma-separated keywords]"
+
+METADATA embedding format:
+"Type: [film or television series]
+Genres: [comma-separated genres]
+Director: [style or names]
+Rating: [PG, PG-13, R, TV-MA, etc.]"
 
 Return ONLY valid JSON:
 {
-  "content": "Profile: [one-sentence logline]. Overview: [2-3 sentence description]. Themes: [comma-separated themes]. Story structure: [brief structure elements]. Keywords: [comma-separated keywords]",
-  "vibe": "Vibes: [comma-separated vibes]. Tone: [single tone descriptor]. Pacing: [single pacing descriptor]. Tagline: [atmospheric tagline]",
-  "metadata": "Genres: [comma-separated genres]. Director: [suggested director style or names]. Writers: [suggested writer styles]. Certification: [appropriate rating]. Countries: [relevant countries]. Collection: [relevant franchises/series]"
+  "content": "[content text as described above]",
+  "vibe": "[vibe text with doubled high-score vibes as described above]",
+  "metadata": "[metadata text as described above]",
+  "vibeScores": {"vibe1": 0.9, "vibe2": 0.7, ...}
 }`;
 
   try {

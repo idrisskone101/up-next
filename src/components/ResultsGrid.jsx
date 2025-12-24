@@ -5,10 +5,19 @@ import { MovieModal } from "./MovieModal";
 import { SearchMetadata } from "./SearchMetadata";
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "./ui/pagination";
 import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
 import { prefetchTrailers } from "../lib/trailerCache";
-import { RefreshCw, ChevronDown } from "lucide-react";
+import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Pull-to-refresh constants
 const PULL_THRESHOLD = 80;
@@ -39,14 +48,15 @@ function useGridColumns() {
 
 /**
  * Responsive grid container for movie cards with diagonal wave animations,
- * pull-to-refresh, and shared element support
+ * pull-to-refresh, pagination, and shared element support
  */
 export function ResultsGrid({
   results,
   searchMetadata,
   hasMore,
-  loadingMore,
-  onLoadMore,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
   onRefresh,
   isRefreshing = false,
   totalCount,
@@ -121,9 +131,6 @@ export function ResultsGrid({
   const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
   const indicatorRotation = pullProgress * 180 + (isRefreshing ? 360 : 0);
 
-  // Calculate remaining count for Load More button
-  const remainingCount = totalCount ? totalCount - results.length : null;
-
   if (results.length === 0) {
     return null;
   }
@@ -185,7 +192,7 @@ export function ResultsGrid({
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           {/* Search metadata */}
-          {/* <SearchMetadata metadata={searchMetadata} /> */}
+          <SearchMetadata metadata={searchMetadata} />
 
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
@@ -219,36 +226,125 @@ export function ResultsGrid({
               </AnimatePresence>
             </motion.div>
 
-            {/* Load More button with remaining count */}
-            {hasMore && (
+            {/* Pagination */}
+            {totalPages > 1 && (
               <motion.div
-                className="mt-10 flex justify-center"
+                className="mt-10 flex flex-col items-center gap-4"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springConfigs.gentle, delay: 0.3 }}
               >
-                <Button
-                  onClick={onLoadMore}
-                  disabled={loadingMore}
-                  size="lg"
-                  className="group relative min-w-[220px] h-12 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-amber-500/30 text-white/80 hover:text-white transition-all duration-300"
-                >
-                  {loadingMore ? (
-                    <span className="flex items-center gap-2">
-                      <Spinner size={18} className="text-amber-400" />
-                      <span className="text-sm">Loading...</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <ChevronDown className="h-4 w-4 text-amber-400 group-hover:translate-y-0.5 transition-transform" />
-                      <span className="text-sm font-medium">
-                        {remainingCount !== null && remainingCount > 0
-                          ? `Load ${Math.min(remainingCount, 20)} more${remainingCount > 20 ? ` of ${remainingCount}` : ""}`
-                          : "Load More"}
-                      </span>
-                    </span>
-                  )}
-                </Button>
+                {/* Page info */}
+                <p className="text-sm text-white/40">
+                  Page {currentPage} of {totalPages} · {totalCount} results
+                </p>
+
+                {/* Pagination controls */}
+                <Pagination>
+                  <PaginationContent className="gap-1">
+                    {/* Previous button */}
+                    <PaginationItem>
+                      <button
+                        onClick={() => {
+                          haptics.light();
+                          onPageChange(currentPage - 1);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        disabled={currentPage === 1}
+                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="hidden sm:inline">Previous</span>
+                      </button>
+                    </PaginationItem>
+
+                    {/* Page numbers */}
+                    {(() => {
+                      const pages = [];
+                      const showEllipsisStart = currentPage > 3;
+                      const showEllipsisEnd = currentPage < totalPages - 2;
+
+                      // Always show first page
+                      pages.push(1);
+
+                      // Show ellipsis or page 2
+                      if (showEllipsisStart) {
+                        pages.push("ellipsis-start");
+                      } else if (totalPages > 1) {
+                        pages.push(2);
+                      }
+
+                      // Show current page and neighbors
+                      for (let i = Math.max(3, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) {
+                        if (!pages.includes(i)) {
+                          pages.push(i);
+                        }
+                      }
+
+                      // Show ellipsis or second-to-last page
+                      if (showEllipsisEnd) {
+                        pages.push("ellipsis-end");
+                      } else if (totalPages > 2) {
+                        if (!pages.includes(totalPages - 1)) {
+                          pages.push(totalPages - 1);
+                        }
+                      }
+
+                      // Always show last page
+                      if (totalPages > 1 && !pages.includes(totalPages)) {
+                        pages.push(totalPages);
+                      }
+
+                      return pages.map((page, idx) => {
+                        if (page === "ellipsis-start" || page === "ellipsis-end") {
+                          return (
+                            <PaginationItem key={page}>
+                              <span className="flex h-10 w-10 items-center justify-center text-white/40">
+                                ...
+                              </span>
+                            </PaginationItem>
+                          );
+                        }
+
+                        const isActive = page === currentPage;
+                        return (
+                          <PaginationItem key={page}>
+                            <button
+                              onClick={() => {
+                                haptics.light();
+                                onPageChange(page);
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                              className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-all ${
+                                isActive
+                                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+                                  : "text-white/60 hover:text-white hover:bg-white/[0.08]"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </PaginationItem>
+                        );
+                      });
+                    })()}
+
+                    {/* Next button */}
+                    <PaginationItem>
+                      <button
+                        onClick={() => {
+                          haptics.light();
+                          onPageChange(currentPage + 1);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        disabled={currentPage === totalPages}
+                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all"
+                      >
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </motion.div>
             )}
           </div>
