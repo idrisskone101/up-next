@@ -56,27 +56,26 @@ GENRE → VIBE MAPPINGS (use these exact vibe terms):
 - western → gritty, atmospheric, epic
 
 SEASONAL/THEMATIC → VIBE MAPPINGS:
-- christmas/holiday → cozy, heartwarming, sentimental, whimsical
 - fall/autumn → melancholic, cozy, atmospheric, bittersweet
 - summer → energetic, lighthearted, uplifting
 - noir → dark, brooding, cynical, atmospheric
 - indie → earnest, melancholic, whimsical
 
 KEY INSIGHT: When a query mentions a genre, it implies BOTH metadata AND vibe.
-"Christmas rom-coms" = christmas keyword (metadata) + romance genre (metadata) + cozy/heartwarming/romantic vibes
+"summer action flicks" = summer keyword (metadata) + action genre (metadata) + energetic/thrilling vibes
 
 WEIGHTING GUIDELINES:
 - Plot/theme queries ("movies about X") → content: 0.50, vibe: 0.30, metadata: 0.20
 - Pure vibe queries ("something cozy") → vibe: 0.55, content: 0.25, metadata: 0.20
 - Genre+feeling queries ("rom-coms", "horror") → vibe: 0.40, metadata: 0.35, content: 0.25
-- Seasonal+genre ("Christmas rom-coms") → vibe: 0.40, metadata: 0.35, content: 0.25
+- Seasonal+genre ("summer thrillers", "fall dramas") → vibe: 0.40, metadata: 0.35, content: 0.25
 - Seasonal+vibe ("cozy fall movies") → vibe: 0.50, metadata: 0.25, content: 0.25
 - Director/actor queries → metadata: 0.50, vibe: 0.25, content: 0.25
 - Ambiguous → balanced (0.35, 0.35, 0.30)
 
 EXAMPLES:
-- "Christmas rom-coms" → vibe: 0.40, metadata: 0.35, content: 0.25
-  (implies: cozy, heartwarming, romantic vibes)
+- "summer action movies" → vibe: 0.40, metadata: 0.35, content: 0.25
+  (implies: energetic, thrilling, intense vibes)
 - "cozy fall movies" → vibe: 0.50, metadata: 0.25, content: 0.25
   (implies: cozy, melancholic, atmospheric vibes)
 - "movies about revenge" → content: 0.50, vibe: 0.30, metadata: 0.20
@@ -267,51 +266,31 @@ export async function generateQueryEmbedding(query) {
 }
 
 /**
- * Generates three separate embeddings for a query, formatted for each embedding type
- * @deprecated Use generateQueryEmbedding() instead with match_titles_multi RPC
+ * Creates fallback template text when query structuring is disabled or fails
+ * @param {string} query - Raw query string
+ * @returns {{content: string, vibe: string, metadata: string}}
+ */
+export function createFallbackStructuredText(query) {
+  return {
+    content: `Story: ${query}. Overview: ${query}. Themes: ${query}`,
+    vibe: `Vibes: ${query}. Tone: ${query}. Tagline: ${query}`,
+    metadata: `Genres: ${query}. Type: ${query}. Keywords: ${query}`,
+  };
+}
+
+/**
+ * Generates embeddings from pre-structured text (for parallel processing)
+ * Use this when you already have structured query text from structureQuery()
  *
- * @param {string} query - The user's search query
+ * @param {{content: string, vibe: string, metadata: string}} structuredText
  * @returns {Promise<{content: number[], vibe: number[], metadata: number[]}>}
  */
-export async function generateQueryEmbeddings(query) {
-  let texts;
-
-  // Optionally structure query using LLM if enabled
-  if (config.useQueryStructuring) {
-    try {
-      console.log("[Embeddings] Structuring query with LLM...");
-      const structured = await structureQuery(query);
-      // Use structured texts directly (already in correct format)
-      texts = {
-        content: structured.content,
-        vibe: structured.vibe,
-        metadata: structured.metadata,
-      };
-      console.log("[Embeddings] Query structured successfully");
-    } catch (error) {
-      console.warn("[Embeddings] Query structuring failed, falling back to template method:", error.message);
-      // Fallback to template repetition method
-      texts = {
-        content: `Story: ${query}. Overview: ${query}. Themes: ${query}`,
-        vibe: `Vibes: ${query}. Tone: ${query}. Tagline: ${query}`,
-        metadata: `Genres: ${query}. Type: ${query}. Keywords: ${query}`,
-      };
-    }
-  } else {
-    // Format query differently for each embedding type to match how database was built
-    texts = {
-      content: `Story: ${query}. Overview: ${query}. Themes: ${query}`,
-      vibe: `Vibes: ${query}. Tone: ${query}. Tagline: ${query}`,
-      metadata: `Genres: ${query}. Type: ${query}. Keywords: ${query}`,
-    };
-  }
-
+export async function generateEmbeddingsFromStructured(structuredText) {
   try {
-    // Generate all 3 embeddings in a single API call for efficiency
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
       dimensions: 1536,
-      input: [texts.content, texts.vibe, texts.metadata],
+      input: [structuredText.content, structuredText.vibe, structuredText.metadata],
       encoding_format: "float",
     });
 
@@ -322,6 +301,33 @@ export async function generateQueryEmbeddings(query) {
     };
   } catch (error) {
     console.error("Embedding generation failed:", error);
-    throw new Error("Failed to generate query embeddings");
+    throw new Error("Failed to generate embeddings from structured text");
   }
+}
+
+/**
+ * Generates three separate embeddings for a query, formatted for each embedding type
+ * Note: For parallel processing, use structureQuery() + generateEmbeddingsFromStructured() separately
+ *
+ * @param {string} query - The user's search query
+ * @returns {Promise<{content: number[], vibe: number[], metadata: number[]}>}
+ */
+export async function generateQueryEmbeddings(query) {
+  let texts;
+
+  if (config.useQueryStructuring) {
+    try {
+      console.log("[Embeddings] Structuring query with LLM...");
+      const structured = await structureQuery(query);
+      texts = structured;
+      console.log("[Embeddings] Query structured successfully");
+    } catch (error) {
+      console.warn("[Embeddings] Query structuring failed, falling back to template method:", error.message);
+      texts = createFallbackStructuredText(query);
+    }
+  } else {
+    texts = createFallbackStructuredText(query);
+  }
+
+  return generateEmbeddingsFromStructured(texts);
 }

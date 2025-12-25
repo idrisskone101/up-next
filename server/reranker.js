@@ -1,11 +1,12 @@
 /**
  * Simple Re-Ranker for upNext
  *
- * Two factors only:
- * 1. Recency - boost recent titles, penalize old ones
+ * Three factors:
+ * 1. Recency - penalize pre-2000 titles
  * 2. Mainstream - boost English-language, major market productions
+ * 3. Keywords - boost results matching query keywords/themes
  *
- * Both factors are multipliers applied to the semantic score.
+ * All factors are multipliers applied to the semantic score.
  */
 
 // Major English-speaking markets
@@ -34,21 +35,17 @@ const THEMATIC_CONCEPTS = {
 
 /**
  * Calculate recency multiplier
- * Recent titles get a slight boost, no penalty for classics
+ * Penalizes pre-2000 titles, neutral for 2000+
  *
  * @param {string|null} releaseDate - ISO date string
- * @returns {number} Multiplier (1.0 - 1.10)
+ * @returns {number} Multiplier (0.90 - 1.0)
  */
 function getRecencyMultiplier(releaseDate) {
-  if (!releaseDate) return 1.0; // Unknown date = neutral
+  if (!releaseDate) return 1.0;
 
   const year = new Date(releaseDate).getFullYear();
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-
-  if (age <= 1) return 1.10;   // 2024-2025: 10% boost
-  if (age <= 3) return 1.05;   // 2022-2023: 5% boost
-  return 1.0;                  // Everything else: neutral (no penalty)
+  if (year < 2000) return 0.90; // 10% penalty for pre-2000
+  return 1.0;
 }
 
 /**

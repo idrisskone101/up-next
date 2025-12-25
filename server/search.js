@@ -1,12 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   analyzeQueryIntent,
-  generateQueryEmbeddings,
+  generateEmbeddingsFromStructured,
+  structureQuery,
+  createFallbackStructuredText,
   getFixedWeights,
 } from "./embeddings.js";
 import { rerankResults } from "./reranker.js";
 import { detectQueryIntent, filterVibeConflicts, getIntentExclusions } from "./vibeConflict.js";
 import { config } from "./config.js";
+import {
+  embeddingCache,
+  searchCache,
+  weightCache,
+  structuredQueryCache,
+  getSearchCacheKey,
+  normalizeQuery,
+} from "./cache.js";
 
 // Initialize Supabase client
 const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
@@ -33,29 +43,98 @@ export async function searchTitles(
   try {
     console.log('[Search] Query: "' + query + '"');
     const searchStartTime = Date.now();
+    const normalizedQuery = normalizeQuery(query);
 
-    // Step 1: Get weights (either fixed or dynamic based on config)
+    // Check full search cache first (instant response for repeated queries)
+    if (config.enableSearchCache) {
+      const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter);
+      const cachedResult = searchCache.get(cacheKey);
+      if (cachedResult) {
+        console.log(`[Search] Full cache HIT - returning in ${Date.now() - searchStartTime}ms`);
+        return cachedResult;
+      }
+    }
+
+    // Step 1: Get weights and structured query IN PARALLEL
     let weights;
     let weightSource;
+    let structuredText;
 
+    // Check caches for weights and structured query
+    const cachedWeights = config.useDynamicWeights ? weightCache.get(normalizedQuery) : null;
+    const cachedStructured = config.useQueryStructuring ? structuredQueryCache.get(normalizedQuery) : null;
+
+    // Build list of parallel operations needed
+    const parallelOps = [];
+
+    // Weight analysis (if dynamic and not cached)
     if (config.useDynamicWeights) {
-      console.log("[Search] Using DYNAMIC weights (LLM analysis)...");
-      weights = await analyzeQueryIntent(query);
-      weightSource = "dynamic";
+      if (cachedWeights) {
+        weights = cachedWeights;
+        weightSource = "dynamic (cached)";
+      } else {
+        parallelOps.push(
+          analyzeQueryIntent(query).then(w => {
+            weightCache.set(normalizedQuery, w);
+            return { type: "weights", value: w };
+          })
+        );
+      }
     } else {
-      console.log("[Search] Using FIXED weights from config...");
       weights = getFixedWeights();
       weightSource = "fixed";
+    }
+
+    // Query structuring (if enabled and not cached)
+    if (config.useQueryStructuring) {
+      if (cachedStructured) {
+        structuredText = cachedStructured;
+        console.log("[Search] Structured query cache HIT");
+      } else {
+        parallelOps.push(
+          structureQuery(query)
+            .then(s => {
+              structuredQueryCache.set(normalizedQuery, s);
+              return { type: "structured", value: s };
+            })
+            .catch(err => {
+              console.warn("[Search] Query structuring failed:", err.message);
+              return { type: "structured", value: createFallbackStructuredText(query) };
+            })
+        );
+      }
+    } else {
+      structuredText = createFallbackStructuredText(query);
+    }
+
+    // Run parallel operations
+    if (parallelOps.length > 0) {
+      console.log(`[Search] Running ${parallelOps.length} LLM operation(s) in parallel...`);
+      const results = await Promise.all(parallelOps);
+      for (const result of results) {
+        if (result.type === "weights") {
+          weights = result.value;
+          weightSource = "dynamic";
+        } else if (result.type === "structured") {
+          structuredText = result.value;
+        }
+      }
     }
 
     console.log(
       "[Search] Weights (" + weightSource + "): content=" + weights.content.toFixed(2) + ", vibe=" + weights.vibe.toFixed(2) + ", metadata=" + weights.metadata.toFixed(2),
     );
 
-    // Step 2: Generate three separate embeddings for the query (structured to match DB format)
-    console.log("[Search] Generating structured embeddings...");
-    const embeddings = await generateQueryEmbeddings(query);
-    console.log("[Search] Embeddings generated successfully (content, vibe, metadata)");
+    // Step 2: Generate embeddings from structured text (check cache first)
+    let embeddings = embeddingCache.get(normalizedQuery);
+    if (embeddings) {
+      console.log("[Search] Embedding cache HIT");
+    } else {
+      console.log("[Search] Generating embeddings from structured text...");
+      embeddings = await generateEmbeddingsFromStructured(structuredText);
+      embeddingCache.set(normalizedQuery, embeddings);
+      console.log("[Search] Embeddings generated and cached");
+    }
 
     // Step 3: Call match_titles_multi RPC with three structured embeddings
     // Always fetch 300 candidates for frontend pagination (no re-fetching on page change)
@@ -164,8 +243,8 @@ export async function searchTitles(
     const totalResults = finalResults.length;
     console.log("[Search] Returning all " + totalResults + " candidates for frontend pagination");
 
-    // Step 7: Return all results - frontend handles pagination
-    return {
+    // Step 7: Build and cache result
+    const result = {
       query,
       weights: {
         content: weights.content,
@@ -179,6 +258,14 @@ export async function searchTitles(
       totalCount: totalResults,
       rerankingApplied,
     };
+
+    // Cache the full search result
+    if (config.enableSearchCache) {
+      const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter);
+      searchCache.set(cacheKey, result);
+    }
+
+    return result;
   } catch (error) {
     console.error("[Search] Error:", error);
     throw error;
