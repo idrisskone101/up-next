@@ -140,7 +140,7 @@ export async function searchTitles(
     // Always fetch 300 candidates for frontend pagination (no re-fetching on page change)
     const dbMatchCount = 300;
 
-    console.log("[Search] Calling match_titles_multi RPC with 3 structured embeddings...");
+    console.log("[Search] Calling match_titles_multi RPC with 3 embeddings...");
     if (kindFilter) {
       console.log("[Search] Filtering by kind: " + kindFilter.join(", "));
     }
@@ -155,7 +155,7 @@ export async function searchTitles(
       weight_content: weights.content,
       weight_vibe: weights.vibe,
       weight_metadata: weights.metadata,
-      weight_popularity: 0, // Let reranker handle popularity
+      weight_popularity: 0,
       match_threshold: matchThreshold,
       match_count: dbMatchCount,
       filter_kind: kindFilter,
