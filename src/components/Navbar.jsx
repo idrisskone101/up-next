@@ -1,5 +1,7 @@
+import { UpNextLogo } from "./ui/UpNextLogo";
+
 // Upnext logo icon component
-const UpnextLogo = (props) => (
+const UpnextLogoIcon = (props) => (
   <svg
     width="24"
     height="24"
@@ -27,8 +29,8 @@ export function Navbar() {
           className="flex items-center gap-3 text-foreground hover:text-orange-500 transition-colors group"
           aria-label="upNext home"
         >
-          <UpnextLogo className="h-8 w-8 text-orange-500 transition-transform group-hover:scale-110" />
-          <span className="text-xl font-display font-bold tracking-tighter">upNext</span>
+          <UpnextLogoIcon className="h-8 w-8 text-orange-500 transition-transform group-hover:scale-110" />
+          <UpNextLogo size="md" gradient={false} />
         </button>
       </div>
     </header>

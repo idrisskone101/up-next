@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
-  ChevronRight,
   Home,
   Sparkles,
   Grid3X3,
@@ -22,6 +21,7 @@ import { SidebarSection } from "./SidebarSection";
 import { SidebarSearch } from "./SidebarSearch";
 import { RecentSearches } from "./RecentSearches";
 import { MobileDrawer } from "./MobileDrawer";
+import { UpNextLogo } from "../ui/UpNextLogo";
 
 // Icon map for categories
 const ICON_MAP = {
@@ -124,7 +124,7 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isE
                     className="
                       flex items-center justify-between w-full
                       px-3 py-2.5 rounded-lg text-sm font-medium
-                      text-white/70 hover:text-white/90 hover:bg-white/[0.04]
+                      text-white/55 hover:text-white/90 hover:bg-amber-500/[0.06]
                       transition-colors duration-200
                     "
                   >
@@ -151,7 +151,7 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isE
                       transition={{ ...springConfigs.snappy, opacity: { duration: 0.15 } }}
                       className="overflow-hidden pl-3"
                     >
-                      <div className="space-y-0.5 py-1 border-l border-white/[0.06] pl-3">
+                      <div className="space-y-0.5 py-1 border-l border-amber-500/10 pl-3">
                         {QUERY_CATEGORIES.map((category, index) => {
                           const Icon = ICON_MAP[category.icon];
                           return (
@@ -162,12 +162,12 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isE
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ ...springConfigs.snappy, delay: index * 0.02 }}
-                              whileHover={{ x: 2, backgroundColor: "rgba(255,255,255,0.04)" }}
+                              whileHover={{ x: 2, backgroundColor: "rgba(245, 158, 11, 0.05)" }}
                               whileTap={{ scale: 0.98 }}
                               className="
                                 flex items-center gap-2 w-full
                                 px-2 py-2 rounded-lg text-sm
-                                text-white/50 hover:text-white/80
+                                text-white/50 hover:text-amber-200/90
                                 transition-colors duration-150
                                 min-h-[44px]
                               "
@@ -208,76 +208,67 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isE
  * Desktop sidebar - collapsible icon rail / expanded nav
  */
 function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
-  const { isOpen, toggle } = useSidebar();
+  const { isOpen, toggle, close } = useSidebar();
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
   const handleSurpriseMe = () => {
     const query = getRandomQuery();
     onSurpriseMe?.(query);
+    close();
   };
 
   const handleCategoryClick = (categoryId) => {
     const query = getRandomQueryFromCategory(categoryId);
     if (query) {
       onCategorySelect?.(query);
+      close();
     }
+  };
+
+  const handleSearchClick = (query) => {
+    onSearch?.(query);
+    close();
   };
 
   return (
     <motion.aside
-      className="fixed top-0 left-0 h-dvh z-[60] flex flex-col border-r border-white/[0.06] overflow-hidden"
-      style={{ backgroundColor: "var(--surface-elevated)" }}
+      className="fixed top-0 left-0 h-dvh z-[60] flex flex-col border-r border-white/[0.06] overflow-hidden will-change-[width] bg-[#0a0a0f]"
+      style={{
+        backgroundImage: `
+          linear-gradient(180deg, rgba(12, 12, 14, 0.95) 0%, rgba(10, 10, 12, 1) 100%),
+          radial-gradient(ellipse at 30% 10%, rgba(245, 158, 11, 0.03) 0%, transparent 60%)
+        `
+      }}
       initial={false}
       animate={{ width: isOpen ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)" }}
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
     >
       {/* Header: Logo + Toggle */}
-      <div className="flex items-center h-16 px-2.5 shrink-0">
+      <div className="relative flex items-center h-16 px-2.5 shrink-0">
+        {/* Subtle amber accent line at bottom */}
+        <div className="absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0" />
+
         <motion.button
           type="button"
           onClick={toggle}
-          whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.08)" }}
+          whileHover={{ scale: 1.05, backgroundColor: "rgba(245, 158, 11, 0.08)" }}
           whileTap={{ scale: 0.95 }}
-          className="flex items-center justify-center w-11 h-11 rounded-xl text-white/60 hover:text-white/90 transition-colors"
+          className="flex-none flex items-center justify-center w-11 h-11 rounded-xl text-white/50 hover:text-amber-300/90 transition-colors duration-200"
           aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
-          <AnimatePresence mode="wait" initial={false}>
-            {isOpen ? (
-              <motion.span
-                key="collapse"
-                initial={{ opacity: 0, rotate: -90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: 90 }}
-                transition={{ duration: 0.15 }}
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="expand"
-                initial={{ opacity: 0, rotate: 90 }}
-                animate={{ opacity: 1, rotate: 0 }}
-                exit={{ opacity: 0, rotate: -90 }}
-                transition={{ duration: 0.15 }}
-              >
-                <ChevronRight className="w-5 h-5" />
-              </motion.span>
-            )}
-          </AnimatePresence>
+          <motion.span
+            initial={false}
+            animate={{ rotate: isOpen ? 0 : 180 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24 }}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </motion.span>
         </motion.button>
 
         {/* Logo text */}
         <AnimatePresence>
           {isOpen && (
-            <motion.span
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -8 }}
-              transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.05 }}
-              className="ml-2 font-display text-xl text-white whitespace-nowrap overflow-hidden"
-            >
-              upNext
-            </motion.span>
+            <UpNextLogo size="md" animated className="ml-2" />
           )}
         </AnimatePresence>
       </div>
@@ -328,7 +319,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
                     className="
                       flex items-center justify-between w-full
                       px-3 py-2.5 rounded-lg text-sm font-medium
-                      text-white/70 hover:text-white/90 hover:bg-white/[0.04]
+                      text-white/55 hover:text-white/90 hover:bg-amber-500/[0.06]
                       transition-colors duration-200
                     "
                   >
@@ -355,7 +346,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
                       transition={{ ...springConfigs.snappy, opacity: { duration: 0.15 } }}
                       className="overflow-hidden pl-3"
                     >
-                      <div className="space-y-0.5 py-1 border-l border-white/[0.06] pl-3">
+                      <div className="space-y-0.5 py-1 border-l border-amber-500/10 pl-3">
                         {QUERY_CATEGORIES.map((category, index) => {
                           const Icon = ICON_MAP[category.icon];
                           return (
@@ -366,12 +357,12 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ ...springConfigs.snappy, delay: index * 0.02 }}
-                              whileHover={{ x: 2, backgroundColor: "rgba(255,255,255,0.04)" }}
+                              whileHover={{ x: 2, backgroundColor: "rgba(245, 158, 11, 0.05)" }}
                               whileTap={{ scale: 0.98 }}
                               className="
                                 flex items-center gap-2 w-full
                                 px-2 py-2 rounded-lg text-sm
-                                text-white/50 hover:text-white/80
+                                text-white/50 hover:text-amber-200/90
                                 transition-colors duration-150
                               "
                             >
@@ -400,7 +391,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
 
         {/* RECENT SEARCHES section */}
         <SidebarSection title="Recent Searches" collapsed={!isOpen}>
-          <RecentSearches onSearchClick={onSearch} collapsed={!isOpen} />
+          <RecentSearches onSearchClick={handleSearchClick} collapsed={!isOpen} />
         </SidebarSection>
 
         {/* Collapsed recent icon */}
@@ -429,8 +420,8 @@ export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
     return (
       <MobileDrawer isOpen={isOpen} onClose={close}>
         {/* Mobile header */}
-        <div className="flex items-center h-14 px-4 border-b border-white/[0.06]">
-          <span className="font-display text-xl text-white">upNext</span>
+        <div className="flex items-center h-14 px-4 border-b border-amber-500/10">
+          <UpNextLogo size="md" />
         </div>
 
         <SidebarContent

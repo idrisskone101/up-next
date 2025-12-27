@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import { AlertCircle, ArrowUp, X, ArrowLeft, Menu } from "lucide-react";
+import { AlertCircle, ArrowUp, X, Menu } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "./components/ui/card";
 import { Spinner } from "./components/ui/spinner";
+import { UpNextLogo } from "./components/ui/UpNextLogo";
 import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
@@ -43,6 +44,87 @@ function MobileMenuButton() {
     >
       <Menu className="h-4 w-4" />
     </motion.button>
+  );
+}
+
+/**
+ * Sticky results header with sidebar-aware positioning
+ * Uses useSidebar internally so it must be rendered inside SidebarProvider
+ */
+function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit, onBackToHero, compactInputRef }) {
+  const { isOpen, isMobile } = useSidebar();
+
+  // Calculate left position for header (full-width, responds to sidebar)
+  const headerLeft = isMobile ? 0 : isOpen ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)";
+
+  return (
+    <motion.header
+      className="fixed top-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]"
+      initial={false}
+      animate={{ left: headerLeft }}
+      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+    >
+      <div className="container px-4 sm:px-6">
+        <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8 flex h-16 items-center gap-4">
+            {/* Mobile Menu Button - only visible on mobile */}
+            <MobileMenuButton />
+
+            {/* Logo */}
+            <button
+              type="button"
+              onClick={onBackToHero}
+              className="hidden sm:block shrink-0"
+            >
+              <UpNextLogo size="lg" />
+            </button>
+
+            {/* Compact Search */}
+            <form onSubmit={onSubmit} className="flex-1 max-w-xl">
+              <div className="relative flex items-center">
+                <input
+                  ref={compactInputRef}
+                  type="text"
+                  value={compactQuery}
+                  onChange={(e) => setCompactQuery(e.target.value)}
+                  placeholder="Search for a vibe..."
+                  disabled={loading}
+                  className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
+                />
+                <div className="absolute right-1 flex items-center gap-1">
+                  <AnimatePresence>
+                    {compactQuery && !loading && (
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }}
+                        type="button"
+                        onClick={() => setCompactQuery("")}
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+                  <motion.button
+                    type="submit"
+                    disabled={loading || !compactQuery.trim()}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <Spinner size={14} className="text-white" ariaLabel="Searching..." />
+                    ) : (
+                      <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+            </form>
+        </div>
+      </div>
+    </motion.header>
   );
 }
 
@@ -142,79 +224,14 @@ function App() {
     <div className="relative min-h-dvh">
       {/* Sticky Nav - Only render when showing results */}
       {viewState === "results" && (
-        <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
-
-        <div className="container flex h-16 items-center gap-4 px-4 sm:px-6">
-          {/* Mobile Menu Button - only visible on mobile */}
-          <MobileMenuButton />
-
-          {/* Back Button */}
-          <motion.button
-            type="button"
-            onClick={handleBackToHero}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
-            aria-label="Back to search"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </motion.button>
-
-          {/* Logo */}
-          <button
-            type="button"
-            onClick={handleBackToHero}
-            className="font-display text-2xl text-white hover:text-white/80 transition-colors hidden sm:block"
-          >
-            upNext
-          </button>
-
-          {/* Compact Search */}
-          <form onSubmit={handleCompactSubmit} className="flex-1 max-w-xl">
-            <div className="relative flex items-center">
-              <input
-                ref={compactInputRef}
-                type="text"
-                value={compactQuery}
-                onChange={(e) => setCompactQuery(e.target.value)}
-                placeholder="Search for a vibe..."
-                disabled={loading}
-                className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
-              />
-              <div className="absolute right-1 flex items-center gap-1">
-                <AnimatePresence>
-                  {compactQuery && !loading && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.15 }}
-                      type="button"
-                      onClick={() => setCompactQuery("")}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-                <motion.button
-                  type="submit"
-                  disabled={loading || !compactQuery.trim()}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <Spinner size={14} className="text-white" ariaLabel="Searching..." />
-                  ) : (
-                    <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
-                  )}
-                </motion.button>
-              </div>
-            </div>
-          </form>
-        </div>
-        </header>
+        <StickyResultsHeader
+          compactQuery={compactQuery}
+          setCompactQuery={setCompactQuery}
+          loading={loading}
+          onSubmit={handleCompactSubmit}
+          onBackToHero={handleBackToHero}
+          compactInputRef={compactInputRef}
+        />
       )}
 
       <div className="relative flex min-h-dvh flex-col">
@@ -239,7 +256,6 @@ function App() {
                     transition={{ delay: 0.1, duration: 0.3 }}
                   >
                     <motion.h1
-                      className="font-display text-5xl sm:text-6xl text-white"
                       initial={{ opacity: 0, y: 15, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{
@@ -249,7 +265,7 @@ function App() {
                         delay: 0.15
                       }}
                     >
-                      upNext
+                      <UpNextLogo size="hero" />
                     </motion.h1>
                     <motion.p
                       className="mt-4 text-base sm:text-lg text-white/50 font-medium"

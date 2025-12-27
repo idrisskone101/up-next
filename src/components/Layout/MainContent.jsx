@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { useSidebar } from "../../contexts/SidebarContext";
 
+// Shared spring config - must match Sidebar.jsx exactly
+const sidebarSpring = { type: "spring", stiffness: 300, damping: 24 };
+
 /**
  * Main content area that responds to sidebar width
  * Adjusts left margin based on sidebar state
@@ -15,9 +18,10 @@ export function MainContent({ children }) {
 
   return (
     <motion.main
-      className="flex-1 min-w-0"
+      className="flex-1 min-w-0 will-change-[margin-left]"
+      initial={false}
       animate={{ marginLeft }}
-      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+      transition={sidebarSpring}
     >
       {children}
     </motion.main>

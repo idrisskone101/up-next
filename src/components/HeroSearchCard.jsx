@@ -99,7 +99,7 @@ export function HeroSearchCard({ onSearch, loading }) {
       <div className="space-y-5">
         {/* Main Search Card */}
         <motion.div
-          className="relative overflow-hidden rounded-[1.75rem] bg-black/50 backdrop-blur-2xl border"
+          className={`relative overflow-hidden rounded-[1.75rem] bg-black/50 backdrop-blur-2xl border orbit-border ${isFocused ? 'focused' : ''}`}
           animate={{
             boxShadow: isFocused
               ? "0 0 40px rgba(245,158,11,0.15), 0 25px 50px -12px rgba(0,0,0,0.5)"

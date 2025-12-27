@@ -23,13 +23,13 @@ export function SidebarSection({ title, children, defaultOpen = true, collapsed 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between w-full px-3 py-1.5 group"
       >
-        <span className="text-xs font-semibold text-white/40 tracking-wider uppercase">
+        <span className="text-[10px] font-semibold text-white/30 tracking-[0.15em] uppercase">
           {title}
         </span>
         <motion.span
           animate={{ rotate: isOpen ? 0 : -90 }}
           transition={springConfigs.snappy}
-          className="text-white/30 group-hover:text-white/50 transition-colors"
+          className="text-white/20 group-hover:text-amber-500/60 transition-colors"
         >
           <ChevronDown className="w-3.5 h-3.5" />
         </motion.span>

@@ -12,6 +12,22 @@ const ANIMATION_QUERY_TERMS = [
 ];
 
 /**
+ * Calibrate raw cosine similarity to intuitive display percentage
+ * Raw scores: ~0.30 (average) to ~0.65 (excellent)
+ * Display scores: 50% to 95%
+ */
+function calibrateScore(rawScore) {
+  const MIN_RAW = 0.30;
+  const MAX_RAW = 0.65;
+  const MIN_DISPLAY = 0.50;
+  const MAX_DISPLAY = 0.95;
+
+  const normalized = (rawScore - MIN_RAW) / (MAX_RAW - MIN_RAW);
+  const clamped = Math.max(0, Math.min(1, normalized));
+  return MIN_DISPLAY + clamped * (MAX_DISPLAY - MIN_DISPLAY);
+}
+
+/**
  * Check if query mentions animation
  */
 function queryMentionsAnimation(query) {
@@ -54,7 +70,7 @@ export function rerankResults(results, query, config) {
 
     return {
       ...result,
-      reranked_score: rerankedScore,
+      reranked_score: calibrateScore(rerankedScore),
       recency_multiplier: recencyMultiplier,
       animation_multiplier: animationMultiplier,
     };

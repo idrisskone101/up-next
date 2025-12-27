@@ -66,6 +66,7 @@ export function MovieCard({ movie, onClick, index = 0 }) {
     vote_average,
     poster_path,
     combined_score,
+    reranked_score,
   } = movie;
 
   const [isHovered, setIsHovered] = useState(false);
@@ -77,7 +78,9 @@ export function MovieCard({ movie, onClick, index = 0 }) {
     : null;
 
   const year = release_date ? new Date(release_date).getFullYear() : "N/A";
-  const matchPercentage = Math.round((combined_score || 0) * 100);
+  // Use calibrated reranked_score if available, else raw combined_score
+  const displayScore = reranked_score ?? combined_score ?? 0;
+  const matchPercentage = Math.round(displayScore * 100);
   const matchTier = getMatchTier(matchPercentage);
   const tierStyle = tierStyles[matchTier];
 

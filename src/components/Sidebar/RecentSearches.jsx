@@ -39,7 +39,7 @@ export function RecentSearches({ onSearchClick, collapsed }) {
               className="
                 w-full text-left px-3 py-2 rounded-lg
                 text-sm text-white/50 truncate
-                hover:text-white/80 hover:bg-white/[0.04]
+                hover:text-white/85 hover:bg-amber-500/[0.04]
                 transition-colors duration-150
                 pr-8
               "
@@ -57,7 +57,7 @@ export function RecentSearches({ onSearchClick, collapsed }) {
               className="
                 absolute right-2 top-1/2 -translate-y-1/2
                 w-5 h-5 flex items-center justify-center rounded
-                text-white/30 hover:text-white/70 hover:bg-white/10
+                text-white/20 hover:text-red-400/70 hover:bg-red-500/10
                 opacity-0 group-hover:opacity-100
                 transition-all duration-150
               "
@@ -76,7 +76,7 @@ export function RecentSearches({ onSearchClick, collapsed }) {
           onClick={() => setShowAll(!showAll)}
           className="
             flex items-center gap-1 px-3 py-1.5
-            text-xs text-white/40 hover:text-white/60
+            text-xs text-white/30 hover:text-amber-400/70
             transition-colors
           "
         >

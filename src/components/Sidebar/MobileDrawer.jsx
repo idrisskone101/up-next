@@ -111,9 +111,12 @@ export function MobileDrawer({ isOpen, onClose, children }) {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-white/[0.06]"
+            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-white/[0.06] bg-[#0a0a0f]"
             style={{
-              backgroundColor: "var(--surface-elevated)",
+              backgroundImage: `
+                linear-gradient(180deg, rgba(18, 18, 24, 0.9) 0%, rgba(10, 10, 15, 1) 100%),
+                radial-gradient(ellipse at 30% 5%, rgba(245, 158, 11, 0.04) 0%, transparent 60%)
+              `,
               paddingTop: "env(safe-area-inset-top)",
               paddingLeft: "env(safe-area-inset-left)",
               paddingBottom: "env(safe-area-inset-bottom)",
@@ -128,7 +131,7 @@ export function MobileDrawer({ isOpen, onClose, children }) {
                 initial={{ opacity: 0, scaleX: 0.5 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: 0.1, ...springConfigs.snappy }}
-                className="h-1 w-10 rounded-full bg-white/30"
+                className="h-1 w-10 rounded-full bg-amber-500/30"
               />
             </div>
 

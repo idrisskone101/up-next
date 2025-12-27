@@ -100,6 +100,7 @@ export function MovieModal({ movie, onClose, onMoreLikeThis }) {
     poster_path,
     backdrop_path,
     combined_score,
+    reranked_score,
     strongest_signal,
   } = displayMovie;
 
@@ -124,10 +125,12 @@ export function MovieModal({ movie, onClose, onMoreLikeThis }) {
   const parsedCast = typeof cast === "string" ? JSON.parse(cast) : cast;
   const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 5) : [];
 
-  const matchTier = getMatchTier(combined_score);
+  // Use calibrated reranked_score if available, else raw combined_score
+  const displayScore = reranked_score ?? combined_score ?? 0;
+  const matchTier = getMatchTier(displayScore);
   const tier = tierConfig[matchTier];
   const TierIcon = tier.icon;
-  const matchPercentage = Math.round(combined_score * 100);
+  const matchPercentage = Math.round(displayScore * 100);
 
   return (
     <AnimatePresence onExitComplete={handleExitComplete}>

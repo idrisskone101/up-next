@@ -12,6 +12,12 @@
     --surface-elevated: #121218;
     --surface-card: #1a1a22;
 
+    /* Sidebar-specific surfaces */
+    --sidebar-bg: #0a0a0f;
+    --sidebar-glow: rgba(245, 158, 11, 0.03);
+    --sidebar-hover: rgba(245, 158, 11, 0.06);
+    --sidebar-active: rgba(245, 158, 11, 0.10);
+
     /* Background & Surface - Deep Space Black with warm undertone */
     --background: 240 10% 4%;
     --foreground: 0 0% 98%;
@@ -277,5 +283,101 @@
   display: none;
 }
 
+/* Orbit animation for hero search */
+@property --orbit-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
 
+@keyframes orbit-light {
+  to { --orbit-angle: 360deg; }
+}
+
+@keyframes orbit-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.orbit-border {
+  position: relative;
+}
+
+.orbit-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(1.75rem + 2px);
+  padding: 2px;
+  background: conic-gradient(
+    from var(--orbit-angle),
+    transparent 0deg,
+    transparent 260deg,
+    rgba(251, 191, 36, 0.15) 290deg,
+    rgba(245, 158, 11, 0.6) 330deg,
+    rgba(251, 191, 36, 0.9) 350deg,
+    rgba(245, 158, 11, 0.6) 355deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(3px);
+  animation:
+    orbit-light 4s linear infinite,
+    orbit-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+/* Second layer for ambient glow */
+.orbit-border::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: calc(1.75rem + 4px);
+  padding: 4px;
+  background: conic-gradient(
+    from var(--orbit-angle),
+    transparent 0deg,
+    transparent 270deg,
+    rgba(251, 191, 36, 0.08) 310deg,
+    rgba(245, 158, 11, 0.25) 345deg,
+    rgba(251, 191, 36, 0.4) 350deg,
+    rgba(245, 158, 11, 0.25) 355deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(8px);
+  animation:
+    orbit-light 4s linear infinite,
+    orbit-pulse 2s ease-in-out infinite 0.1s;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.orbit-border.focused::before,
+.orbit-border.focused::after {
+  opacity: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-border::before,
+  .orbit-border::after {
+    animation: none;
+    background: rgba(245, 158, 11, 0.15);
+    filter: none;
+  }
+}
 
