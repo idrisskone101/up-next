@@ -29,6 +29,14 @@ See `ARCHITECTURE.md` for full technical details.
 - Only add comments where logic isn't self-evident
 - If something is unused, delete it completely. No backwards-compatibility hacks
 
+### Best Practices
+
+- **KISS**: Simplest solution wins. No premature optimization
+- **DRY**: Extract shared logic only when pattern repeats 3+ times
+- **YAGNI**: Don't build for hypothetical futures
+- **Single Responsibility**: Each function/component does one thing well
+- **Ask first**: If anything is unclear, ask before assuming
+
 ### Security
 
 - Never introduce command injection, XSS, SQL injection, or OWASP top 10 vulnerabilities

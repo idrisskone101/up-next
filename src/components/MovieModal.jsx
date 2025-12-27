@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Star, Calendar, Clock, User, PlayCircle, Sparkles, Film, Palette, Tag } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { TrailerPlayer } from "./TrailerPlayer";
@@ -46,9 +47,43 @@ const tierConfig = {
  * Unified component for all devices
  */
 export function MovieModal({ movie, onClose }) {
-  if (!movie) return null;
+  // Cache movie data so we can render during exit animation
+  const [isOpen, setIsOpen] = useState(false);
+  const cachedMovie = useRef(null);
 
-  // Extract movie data
+  // Update cached movie and open state when movie changes
+  useEffect(() => {
+    if (movie) {
+      cachedMovie.current = movie;
+      setIsOpen(true);
+      document.body.style.overflow = 'hidden';
+    }
+  }, [movie]);
+
+  // Reset scroll on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  // Handle close - trigger exit animation, then call onClose
+  const handleClose = () => {
+    haptics.light();
+    setIsOpen(false);
+    document.body.style.overflow = '';
+  };
+
+  // After exit animation completes, call onClose to clear parent state
+  const handleExitComplete = () => {
+    onClose();
+  };
+
+  // Use cached movie for rendering (persists during exit animation)
+  const displayMovie = cachedMovie.current;
+  if (!displayMovie) return null;
+
+  // Extract movie data from cached/display movie
   const {
     id,
     title,
@@ -66,7 +101,7 @@ export function MovieModal({ movie, onClose }) {
     backdrop_path,
     combined_score,
     strongest_signal,
-  } = movie;
+  } = displayMovie;
 
   const safeGenres = genres || [];
   const safeVibes = vibes || [];
@@ -95,17 +130,16 @@ export function MovieModal({ movie, onClose }) {
   const matchPercentage = Math.round(combined_score * 100);
 
   return (
-    <Dialog
-      open={!!movie}
-      onOpenChange={(open) => {
-        if (!open) {
-          haptics.light();
-          onClose();
-        }
-      }}
-    >
-      <DialogContent
-        className="max-w-3xl w-[calc(100vw-2rem)] max-h-[70vh] sm:max-h-[85vh] p-0 gap-0 overflow-hidden bg-slate-900/95 backdrop-blur-xl border-white/10 rounded-2xl shadow-2xl shadow-black/50"
+    <AnimatePresence onExitComplete={handleExitComplete}>
+      {isOpen && (
+        <Dialog
+          open={isOpen}
+          onOpenChange={(open) => {
+            if (!open) handleClose();
+          }}
+        >
+          <DialogContent
+        className="max-w-3xl w-[calc(100vw-2rem)] max-h-[70vh] sm:max-h-[85vh] p-0 gap-0 overflow-hidden bg-[#0a0a0f]/95 backdrop-blur-2xl border border-white/[0.08] rounded-[1.75rem] shadow-2xl shadow-black/50"
       >
         {/* Visually hidden title and description for accessibility */}
         <DialogTitle className="sr-only">{title}</DialogTitle>
@@ -125,8 +159,8 @@ export function MovieModal({ movie, onClose }) {
               />
             )}
             {/* Gradient overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/40 to-transparent" />
 
             {/* Title overlay */}
             <div className="absolute bottom-0 left-0 right-0 px-6 pb-4">
@@ -171,7 +205,7 @@ export function MovieModal({ movie, onClose }) {
           </div>
 
           {/* Match Score Bar */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-slate-900/50">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 px-5 sm:px-6 py-4 bg-white/[0.02]">
             {/* Match Score with Tier Styling */}
             <div className={`flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full ${tier.bg} ${tier.border} border`}>
               {TierIcon && <TierIcon className={`h-3.5 sm:h-4 w-3.5 sm:w-4 ${tier.color}`} />}
@@ -207,7 +241,7 @@ export function MovieModal({ movie, onClose }) {
           <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
             {/* Overview */}
             <section>
-              <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+              <h3 className="text-sm font-medium text-white/40 mb-2">
                 Overview
               </h3>
               <p className="text-sm leading-relaxed text-white/80">
@@ -220,8 +254,8 @@ export function MovieModal({ movie, onClose }) {
               {/* Genres */}
               {safeGenres.length > 0 && (
                 <section>
-                  <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Tag className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-amber-400" /> Genres
+                  <h3 className="text-sm font-medium text-white/40 mb-2 flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-amber-400" /> Genres
                   </h3>
                   <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {safeGenres.map((g) => (
@@ -240,8 +274,8 @@ export function MovieModal({ movie, onClose }) {
               {/* Vibes */}
               {safeVibes.length > 0 && (
                 <section>
-                  <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Palette className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-purple-400" /> Vibes
+                  <h3 className="text-sm font-medium text-white/40 mb-2 flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-purple-400" /> Vibes
                   </h3>
                   <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {safeVibes.map((v) => (
@@ -257,8 +291,8 @@ export function MovieModal({ movie, onClose }) {
             {/* Trailer */}
             {id && (
               <section>
-                <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <PlayCircle className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-amber-400" /> Trailer
+                <h3 className="text-sm font-medium text-white/40 mb-2 flex items-center gap-2">
+                  <PlayCircle className="h-4 w-4 text-amber-400" /> Trailer
                 </h3>
                 <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50">
                   <TrailerPlayer
@@ -275,7 +309,7 @@ export function MovieModal({ movie, onClose }) {
               {/* Cast */}
               {topCast.length > 0 && (
                 <section>
-                  <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                  <h3 className="text-sm font-medium text-white/40 mb-2">
                     Cast
                   </h3>
                   <ul className="space-y-1 sm:space-y-1.5">
@@ -292,7 +326,7 @@ export function MovieModal({ movie, onClose }) {
               {/* Director */}
               {director && (
                 <section>
-                  <h3 className="text-xs sm:text-sm font-medium text-white/50 uppercase tracking-wider mb-2">
+                  <h3 className="text-sm font-medium text-white/40 mb-2">
                     Director
                   </h3>
                   <p className="text-xs sm:text-sm text-white/80">{director}</p>
@@ -304,7 +338,9 @@ export function MovieModal({ movie, onClose }) {
             <div className="h-2" />
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
+    </AnimatePresence>
   );
 }

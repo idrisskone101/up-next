@@ -54,6 +54,7 @@ function App() {
   const handleCompactSubmit = (e) => {
     e?.preventDefault();
     if (compactQuery.trim()) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       search(compactQuery.trim(), 80, 0, null);
     }
   };
@@ -207,7 +208,7 @@ function App() {
               className="flex flex-1 flex-col pt-[calc(4rem+env(safe-area-inset-top))]"
             >
               {/* Main Content */}
-              <main className="container flex w-full flex-1 flex-col gap-8 pt-8 px-4 sm:px-6 pb-16">
+              <main className="container flex w-full flex-1 flex-col gap-8 pt-4 sm:pt-6 px-4 sm:px-6 pb-16">
                 {/* Loading State */}
                 <AnimatePresence mode="wait">
                   {loading && (

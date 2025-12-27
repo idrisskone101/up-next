@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { MovieCard } from "./MovieCard";
 import { MovieModal } from "./MovieModal";
-import { SearchMetadata } from "./SearchMetadata";
+
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
 import {
@@ -136,14 +136,15 @@ export function ResultsGrid({
   }
 
   return (
-    <LayoutGroup>
-      <div
-        ref={containerRef}
-        className="space-y-8 relative pb-16"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+    <>
+      <LayoutGroup>
+        <div
+          ref={containerRef}
+          className="space-y-8 relative pb-16"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
         {/* Pull-to-refresh indicator - Amber themed */}
         <AnimatePresence>
           {(pullDistance > 0 || isRefreshing) && (
@@ -192,7 +193,6 @@ export function ResultsGrid({
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           {/* Search metadata */}
-          <SearchMetadata metadata={searchMetadata} />
 
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
@@ -350,12 +350,13 @@ export function ResultsGrid({
           </div>
         </motion.div>
       </div>
+      </LayoutGroup>
 
-      {/* Movie Detail Dialog */}
+      {/* Movie Detail Dialog - Outside LayoutGroup to prevent grid re-animation */}
       <MovieModal
         movie={selectedMovie}
         onClose={() => setSelectedMovie(null)}
       />
-    </LayoutGroup>
+    </>
   );
 }

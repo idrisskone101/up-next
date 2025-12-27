@@ -148,3 +148,159 @@ Write like a friend texting movie recs at 2am:
 - Hyper-specific scenarios ("Heist crew with sexual tension")
 
 **Avoid:** Corporate streaming language, generic genre labels, formal phrasing.
+
+---
+
+## UX & Animation System
+
+**Every animation must be mobile-first, smooth, and purposeful.**
+
+### Animation Philosophy
+
+1. **Purpose-driven**: Every animation serves UX (feedback, orientation, delight)
+2. **Mobile-first**: Design for touch, 60fps on low-end devices
+3. **Interruptible**: User can cancel/redirect mid-animation
+4. **Consistent**: Shared spring configs from `src/lib/animations.js`
+5. **Paired**: Every enter animation has a matching exit
+
+### Entry/Exit Rules (CRITICAL)
+
+```jsx
+/* ALWAYS wrap conditional renders in AnimatePresence */
+<AnimatePresence mode="wait">
+  {show && (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -16 }}  /* REQUIRED - never omit */
+      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+    />
+  )}
+</AnimatePresence>
+```
+
+**Rules:**
+- Every `initial` needs matching `exit`
+- AnimatePresence required for exit animations to fire
+- Elements exit same direction they entered (or reverse for natural flow)
+- No orphaned animations: never animate in without animate out
+
+### Mobile Animation Guidelines
+
+| Property | Guideline |
+|----------|-----------|
+| Transform properties | Prefer `scale`, `rotate`, `x`, `y` (GPU-accelerated) |
+| Opacity | Safe, GPU-accelerated |
+| Duration (micro) | Max 300ms for buttons, hovers, toggles |
+| Duration (page) | Max 500ms for modals, page transitions |
+| Physics | Spring over easing (feels natural on touch) |
+| Touch feedback | Immediate response <100ms |
+| Reduced motion | Always respect `prefers-reduced-motion` |
+
+### Spring Configurations
+
+Import from `src/lib/animations.js`:
+
+```jsx
+import { springConfigs } from '@/lib/animations';
+
+// Available configs:
+springConfigs.bouncy   // { stiffness: 300, damping: 24, mass: 0.8 } - buttons, cards
+springConfigs.snappy   // { stiffness: 400, damping: 30, mass: 0.5 } - hover states
+springConfigs.wobbly   // { stiffness: 250, damping: 20, mass: 1 }   - emphasis
+springConfigs.gentle   // { stiffness: 180, damping: 26, mass: 1 }   - modals
+springConfigs.soft     // { stiffness: 120, damping: 24, mass: 1 }   - backgrounds
+```
+
+### Animation Patterns
+
+**Staggered Children:**
+```jsx
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 }
+  },
+  exit: {
+    opacity: 0,
+    transition: { staggerChildren: 0.03, staggerDirection: -1 }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 }
+};
+
+<motion.div variants={container} initial="hidden" animate="show" exit="exit">
+  {items.map(i => <motion.div key={i} variants={item} />)}
+</motion.div>
+```
+
+**Layout Animations (shared element transitions):**
+```jsx
+<LayoutGroup>
+  <motion.div layout layoutId="shared-element" />
+</LayoutGroup>
+```
+
+**Hover + Tap (touch-first):**
+```jsx
+<motion.button
+  whileHover={{ scale: 1.03, y: -2 }}
+  whileTap={{ scale: 0.97 }}
+  transition={springConfigs.snappy}
+/>
+```
+
+### Anti-Patterns (DO NOT)
+
+- ❌ Animate without AnimatePresence for conditionals
+- ❌ Use CSS transitions for complex sequences (use Framer Motion)
+- ❌ Animate layout properties directly (width, height, top, left)
+- ❌ Exceed 500ms for any single animation
+- ❌ Use different easing for related elements
+- ❌ Animate in without animating out
+- ❌ Ignore `prefers-reduced-motion`
+
+### Accessibility
+
+```jsx
+import { prefersReducedMotion, getTransition } from '@/lib/animations';
+
+// Check user preference
+if (prefersReducedMotion()) {
+  // Use instant transitions or skip animation
+}
+
+// Or use helper that auto-handles reduced motion
+transition={getTransition(springConfigs.bouncy)}
+```
+
+### Component Reference
+
+Study these implementations for patterns:
+
+| Component | File | Key Patterns |
+|-----------|------|--------------|
+| MovieCard | `src/components/MovieCard.jsx` | Entry/exit stagger, hover lift+scale, 3D tilt |
+| ResultsGrid | `src/components/ResultsGrid.jsx` | Diagonal wave stagger, pull-to-refresh, layout animations |
+| HeroSearchCard | `src/components/HeroSearchCard.jsx` | Focus glow animation, category tab switching |
+| EmptyState | `src/components/EmptyState.jsx` | Floating icon, staggered children |
+| BottomNav | `src/components/BottomNav.jsx` | Hide/show on scroll, `layoutId` for active indicator |
+| SearchMetadata | `src/components/SearchMetadata.jsx` | Expand/collapse, progress bar fill |
+
+### Checklist for New Animations
+
+Before shipping any animated component:
+
+- [ ] Has `exit` prop matching `initial` direction
+- [ ] Wrapped in `AnimatePresence` if conditional
+- [ ] Uses spring physics (not duration-based easing)
+- [ ] Duration ≤300ms (micro) or ≤500ms (page transition)
+- [ ] Uses GPU-accelerated properties only
+- [ ] Respects `prefers-reduced-motion`
+- [ ] Tested on mobile (touch, 60fps)
+- [ ] Animation serves UX purpose (not just decoration)
