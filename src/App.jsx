@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import { AlertCircle, ArrowUp, X, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowUp, X, ArrowLeft, Menu } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -14,9 +14,37 @@ import { SkeletonCard } from "./components/SkeletonCard";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
 import { HeroSearchCard } from "./components/HeroSearchCard";
+import { DiscoverySection } from "./components/Discovery";
+import { AppLayout } from "./components/Layout/AppLayout";
 import { useSearch } from "./hooks/useSearch";
+import { useRecentSearches } from "./hooks/useRecentSearches";
+import { useRecommendations } from "./hooks/useRecommendations";
+import { useSidebar } from "./contexts/SidebarContext";
 import { springConfigs } from "./lib/animations";
 import { haptics } from "./lib/haptics";
+
+/**
+ * Mobile hamburger menu button
+ * Opens sidebar drawer on tap
+ */
+function MobileMenuButton() {
+  const { toggle, isMobile } = useSidebar();
+
+  if (!isMobile) return null;
+
+  return (
+    <motion.button
+      type="button"
+      onClick={toggle}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors md:hidden"
+      aria-label="Open menu"
+    >
+      <Menu className="h-4 w-4" />
+    </motion.button>
+  );
+}
 
 const pageTransition = {
   duration: 0.4,
@@ -25,6 +53,8 @@ const pageTransition = {
 
 function App() {
   const { results, loading, refreshing, error, searchMetadata, hasMore, currentPage, totalPages, search, loadMore, goToPage, refresh, reset } = useSearch();
+  const { addSearch } = useRecentSearches();
+  const { recommendations, loading: recsLoading, error: recsError } = useRecommendations();
   const [compactQuery, setCompactQuery] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const compactInputRef = useRef(null);
@@ -48,7 +78,23 @@ function App() {
 
   const handleSearch = (query, kindFilter) => {
     setCompactQuery(query);
+    addSearch(query);
     search(query, 80, 0, kindFilter);
+  };
+
+  // Sidebar search handler
+  const handleSidebarSearch = (query) => {
+    handleSearch(query, null);
+  };
+
+  // Surprise Me - picks random query and searches
+  const handleSurpriseMe = (query) => {
+    handleSearch(query, null);
+  };
+
+  // Category select - picks random from category and searches
+  const handleCategorySelect = (query) => {
+    handleSearch(query, null);
   };
 
   const handleCompactSubmit = (e) => {
@@ -69,13 +115,39 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // More Like This - search for similar movies based on vibes/genres
+  const handleMoreLikeThis = (movie) => {
+    const vibes = movie.vibes || [];
+    const genres = movie.genres || [];
+
+    // Build a query from vibes and genres
+    let query;
+    if (vibes.length > 0) {
+      query = `${vibes.slice(0, 2).join(" ")} ${movie.kind === "tv" ? "TV shows" : "movies"}`;
+    } else if (genres.length > 0) {
+      query = `${genres.slice(0, 2).join(" ")} ${movie.kind === "tv" ? "TV shows" : "movies"} like ${movie.title}`;
+    } else {
+      query = `Movies similar to ${movie.title}`;
+    }
+
+    handleSearch(query, movie.kind === "tv" ? "tv" : "movie");
+  };
+
   return (
-    <div className={`relative min-h-dvh ${viewState === "hero" ? "h-dvh overflow-hidden" : ""}`}>
+    <AppLayout
+      onSearch={handleSidebarSearch}
+      onSurpriseMe={handleSurpriseMe}
+      onCategorySelect={handleCategorySelect}
+    >
+    <div className="relative min-h-dvh">
       {/* Sticky Nav - Only render when showing results */}
       {viewState === "results" && (
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
 
         <div className="container flex h-16 items-center gap-4 px-4 sm:px-6">
+          {/* Mobile Menu Button - only visible on mobile */}
+          <MobileMenuButton />
+
           {/* Back Button */}
           <motion.button
             type="button"
@@ -154,49 +226,60 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
               transition={pageTransition}
-              className="flex flex-1 flex-col items-center justify-center px-4 py-12"
+              className="flex flex-1 flex-col"
             >
-              {/* Hero Content */}
-              <div className="w-full max-w-2xl space-y-10">
-                {/* Logo/Wordmark */}
-                <motion.div
-                  className="text-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.3 }}
-                >
-                  <motion.h1
-                    className="font-display text-5xl sm:text-6xl text-white"
-                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 350,
-                      damping: 25,
-                      delay: 0.15
-                    }}
+              {/* Hero Content - Centered search area */}
+              <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-12">
+                <div className="w-full max-w-2xl space-y-10">
+                  {/* Logo/Wordmark */}
+                  <motion.div
+                    className="text-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1, duration: 0.3 }}
                   >
-                    upNext
-                  </motion.h1>
-                  <motion.p
-                    className="mt-4 text-base sm:text-lg text-white/50 font-medium"
-                    initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    transition={{ delay: 0.35, duration: 0.4, ease: "easeOut" }}
-                  >
-                    Describe a vibe. Find your next watch.
-                  </motion.p>
-                </motion.div>
+                    <motion.h1
+                      className="font-display text-5xl sm:text-6xl text-white"
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 350,
+                        damping: 25,
+                        delay: 0.15
+                      }}
+                    >
+                      upNext
+                    </motion.h1>
+                    <motion.p
+                      className="mt-4 text-base sm:text-lg text-white/50 font-medium"
+                      initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{ delay: 0.35, duration: 0.4, ease: "easeOut" }}
+                    >
+                      Describe a vibe. Find your next watch.
+                    </motion.p>
+                  </motion.div>
 
-                {/* Search Card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                  <HeroSearchCard onSearch={handleSearch} loading={loading} />
-                </motion.div>
+                  {/* Search Card */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                  >
+                    <HeroSearchCard onSearch={handleSearch} loading={loading} />
+                  </motion.div>
+                </div>
               </div>
+
+              {/* Discovery Section - Below hero */}
+              <DiscoverySection
+                recommendations={recommendations}
+                loading={recsLoading}
+                error={recsError}
+                onCardClick={(item) => handleSearch(item.title, null)}
+                onMoodClick={(query) => handleSearch(query, null)}
+              />
             </motion.div>
           ) : (
             <motion.div
@@ -296,6 +379,7 @@ function App() {
                         onRefresh={refresh}
                         isRefreshing={refreshing}
                         totalCount={searchMetadata?.totalCount}
+                        onMoreLikeThis={handleMoreLikeThis}
                       />
                     </motion.div>
                   )}
@@ -330,6 +414,7 @@ function App() {
         </AnimatePresence>
       </div>
     </div>
+    </AppLayout>
   );
 }
 

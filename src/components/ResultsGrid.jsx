@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { MovieCard } from "./MovieCard";
 import { MovieModal } from "./MovieModal";
+import { FilterBar } from "./FilterBar";
 
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
@@ -60,14 +61,41 @@ export function ResultsGrid({
   onRefresh,
   isRefreshing = false,
   totalCount,
+  onMoreLikeThis,
 }) {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("match");
   const containerRef = useRef(null);
   const startY = useRef(0);
   const columns = useGridColumns();
+
+  // Filter and sort results
+  const filteredResults = useMemo(() => {
+    let filtered = results;
+
+    // Apply type filter
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((movie) => movie.kind === typeFilter);
+    }
+
+    // Apply sort
+    if (sortOrder === "year") {
+      filtered = [...filtered].sort((a, b) => {
+        const yearA = a.release_date ? new Date(a.release_date).getFullYear() : 0;
+        const yearB = b.release_date ? new Date(b.release_date).getFullYear() : 0;
+        return yearB - yearA;
+      });
+    } else if (sortOrder === "rating") {
+      filtered = [...filtered].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+    }
+    // Default "match" sort uses original order (already sorted by score)
+
+    return filtered;
+  }, [results, typeFilter, sortOrder]);
 
   // Preload first 6 visible results' backdrops for instant modal display
   useEffect(() => {
@@ -196,6 +224,14 @@ export function ResultsGrid({
 
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
+            {/* Filter Bar */}
+            <FilterBar
+              activeType={typeFilter}
+              onTypeChange={setTypeFilter}
+              activeSort={sortOrder}
+              onSortChange={setSortOrder}
+            />
+
             <motion.div
               className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
               initial="hidden"
@@ -203,7 +239,7 @@ export function ResultsGrid({
               exit="exit"
             >
               <AnimatePresence mode="popLayout">
-                {results.map((movie, index) => (
+                {filteredResults.map((movie, index) => (
                   <motion.div
                     key={movie.id}
                     layout
@@ -356,6 +392,7 @@ export function ResultsGrid({
       <MovieModal
         movie={selectedMovie}
         onClose={() => setSelectedMovie(null)}
+        onMoreLikeThis={onMoreLikeThis}
       />
     </>
   );

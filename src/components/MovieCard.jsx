@@ -36,12 +36,12 @@ const tierStyles = {
     hoverBorderColor: "rgba(251, 191, 36, 0.8)",
   },
   good: {
-    badgeBg: "bg-cyan-500/80",
+    badgeBg: "bg-amber-600/80",
     badgeText: "text-white",
-    badgeBorder: "border-cyan-400/30",
-    glowColor: "rgba(14, 165, 233, 0.25)",
-    borderColor: "rgba(14, 165, 233, 0.4)",
-    hoverBorderColor: "rgba(14, 165, 233, 0.6)",
+    badgeBorder: "border-amber-500/30",
+    glowColor: "rgba(245, 158, 11, 0.2)",
+    borderColor: "rgba(245, 158, 11, 0.35)",
+    hoverBorderColor: "rgba(245, 158, 11, 0.5)",
   },
   fair: {
     badgeBg: "bg-white/10",

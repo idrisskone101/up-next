@@ -4,6 +4,14 @@
 
 @layer base {
   :root {
+    /* Layout - Sidebar dimensions */
+    --sidebar-collapsed: 64px;
+    --sidebar-expanded: 280px;
+
+    /* Surface colors - elevated and card */
+    --surface-elevated: #121218;
+    --surface-card: #1a1a22;
+
     /* Background & Surface - Deep Space Black with warm undertone */
     --background: 240 10% 4%;
     --foreground: 0 0% 98%;
@@ -26,7 +34,7 @@
 
     /* Match Tier Colors */
     --match-excellent: 43 96% 56%;
-    --match-good: 180 100% 45%;
+    --match-good: 38 92% 50%;
     --match-fair: 220 10% 50%;
 
     /* Secondary & Muted */
@@ -176,11 +184,6 @@
                 0 0 50px rgba(251, 191, 36, 0.15);
   }
 
-  .glow-cyan {
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3),
-                0 0 40px rgba(14, 165, 233, 0.1);
-  }
-
   /* Match Tier Glow Effects */
   .glow-match-excellent {
     box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3),
@@ -189,8 +192,8 @@
   }
 
   .glow-match-good {
-    box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.2),
-                0 0 15px rgba(14, 165, 233, 0.15);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2),
+                0 0 15px rgba(245, 158, 11, 0.15);
   }
 
   /* Shimmer animation for skeletons */

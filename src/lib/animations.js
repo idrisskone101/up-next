@@ -326,3 +326,65 @@ export const getTransition = (config) => {
   }
   return config;
 };
+
+/**
+ * Get variants that respect reduced motion preference
+ * Returns empty variants (no animation) when reduced motion is preferred
+ */
+export const getReducedMotionVariants = (variants) => {
+  if (prefersReducedMotion()) {
+    return {
+      hidden: {},
+      visible: {},
+      exit: {},
+    };
+  }
+  return variants;
+};
+
+/**
+ * Sidebar/nav item stagger variants
+ */
+export const navContainerVariants = {
+  collapsed: { opacity: 0 },
+  expanded: {
+    opacity: 1,
+    transition: { staggerChildren: 0.03, delayChildren: 0.1 },
+  },
+};
+
+export const navItemVariants = {
+  collapsed: { opacity: 0, x: -10 },
+  expanded: { opacity: 1, x: 0, transition: springConfigs.snappy },
+};
+
+/**
+ * List item entrance variants for staggered lists
+ */
+export const listContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.05,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.02,
+      staggerDirection: -1,
+    },
+  },
+};
+
+export const listItemVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: springConfigs.snappy,
+  },
+  exit: { opacity: 0, x: -8, transition: { duration: 0.15 } },
+};

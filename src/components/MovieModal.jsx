@@ -29,9 +29,9 @@ const tierConfig = {
     icon: Sparkles,
   },
   good: {
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/20",
-    border: "border-cyan-500/30",
+    color: "text-amber-400",
+    bg: "bg-amber-500/20",
+    border: "border-amber-500/30",
     icon: null,
   },
   fair: {
@@ -46,7 +46,7 @@ const tierConfig = {
  * Movie detail dialog using shadcn Dialog
  * Unified component for all devices
  */
-export function MovieModal({ movie, onClose }) {
+export function MovieModal({ movie, onClose, onMoreLikeThis }) {
   // Cache movie data so we can render during exit animation
   const [isOpen, setIsOpen] = useState(false);
   const cachedMovie = useRef(null);
@@ -333,6 +333,22 @@ export function MovieModal({ movie, onClose }) {
                 </section>
               )}
             </div>
+
+            {/* More Like This Button */}
+            {onMoreLikeThis && (
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    onMoreLikeThis(displayMovie);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/[0.06] border border-white/10 text-white/80 hover:bg-white/[0.1] hover:text-white hover:border-white/20 transition-all"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  More Like This
+                </button>
+              </div>
+            )}
 
             {/* Bottom padding */}
             <div className="h-2" />
