@@ -29,10 +29,12 @@ function sleep(ms) {
  * @param {number} matchCount - Ignored, backend always fetches 300 candidates
  * @param {number} matchThreshold - Minimum similarity threshold
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
+ * @param {number|null} minReleaseYear - Filter out titles before this year
+ * @param {string[]|null} excludeGenres - Filter out titles with these genres
  * @param {number} retryCount - Current retry attempt (internal use)
  * @returns {Promise<Object>} All search results sorted by vibe_score
  */
-export async function searchMovies(query, matchCount = 80, matchThreshold = 0, kindFilter = null, retryCount = 0) {
+export async function searchMovies(query, matchCount = 80, matchThreshold = 0, kindFilter = null, minReleaseYear = null, excludeGenres = null, retryCount = 0) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
 
@@ -48,6 +50,8 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
           matchCount,
           matchThreshold,
           kindFilter,
+          minReleaseYear,
+          excludeGenres,
         }),
         signal: abortController.signal,
       }),
@@ -67,7 +71,7 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
         const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff, max 5s
         console.log(`[API] Retrying search (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
         await sleep(delay);
-        return searchMovies(query, matchCount, matchThreshold, kindFilter, retryCount + 1);
+        return searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
       }
 
       throw error;
@@ -88,7 +92,7 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
         const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
         console.log(`[API] Retrying search after timeout (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
         await sleep(delay);
-        return searchMovies(query, matchCount, matchThreshold, kindFilter, retryCount + 1);
+        return searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
       }
 
       throw timeoutError;

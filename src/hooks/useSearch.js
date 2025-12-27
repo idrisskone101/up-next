@@ -18,6 +18,8 @@ export function useSearch() {
   const [currentMatchCount, setCurrentMatchCount] = useState(80);
   const [currentMatchThreshold, setCurrentMatchThreshold] = useState(0);
   const [currentKindFilter, setCurrentKindFilter] = useState(null);
+  const [currentMinReleaseYear, setCurrentMinReleaseYear] = useState(null);
+  const [currentExcludeGenres, setCurrentExcludeGenres] = useState(null);
 
   // Compute paginated results from allResults
   const totalPages = useMemo(() => Math.ceil(allResults.length / PAGE_SIZE), [allResults.length]);
@@ -27,7 +29,7 @@ export function useSearch() {
     return allResults.slice(start, start + PAGE_SIZE);
   }, [allResults, currentPage]);
 
-  const search = useCallback(async (query, matchCount = 80, matchThreshold = 0, kindFilter = null) => {
+  const search = useCallback(async (query, matchCount = 80, matchThreshold = 0, kindFilter = null, minReleaseYear = null, excludeGenres = null) => {
     if (!query || query.trim().length === 0) {
       setAllResults([]);
       setSearchMetadata(null);
@@ -43,10 +45,12 @@ export function useSearch() {
     setCurrentMatchCount(matchCount);
     setCurrentMatchThreshold(matchThreshold);
     setCurrentKindFilter(kindFilter);
+    setCurrentMinReleaseYear(minReleaseYear);
+    setCurrentExcludeGenres(excludeGenres);
 
     try {
       // Fetch all candidates - backend returns them sorted by reranked_score
-      const data = await searchMovies(query, matchCount, matchThreshold, kindFilter);
+      const data = await searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres);
 
       setAllResults(data.results || []);
       setSearchMetadata({
@@ -106,7 +110,7 @@ export function useSearch() {
 
     try {
       // Fetch all candidates - backend returns them sorted by reranked_score
-      const data = await searchMovies(currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter);
+      const data = await searchMovies(currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, currentMinReleaseYear, currentExcludeGenres);
 
       setAllResults(data.results || []);
       setSearchMetadata({
@@ -129,7 +133,7 @@ export function useSearch() {
     } finally {
       setRefreshing(false);
     }
-  }, [currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, refreshing]);
+  }, [currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, currentMinReleaseYear, currentExcludeGenres, refreshing]);
 
   return {
     results,

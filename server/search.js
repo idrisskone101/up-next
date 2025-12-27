@@ -39,6 +39,8 @@ export async function searchTitles(
   matchCount = config.search.defaultMatchCount,
   matchThreshold = config.search.defaultMatchThreshold,
   kindFilter = null,
+  minReleaseYear = null,
+  excludeGenres = null,
 ) {
   try {
     console.log('[Search] Query: "' + query + '"');
@@ -47,7 +49,7 @@ export async function searchTitles(
 
     // Check full search cache first (instant response for repeated queries)
     if (config.enableSearchCache) {
-      const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter);
+      const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter, minReleaseYear, excludeGenres);
       const cachedResult = searchCache.get(cacheKey);
       if (cachedResult) {
         console.log(`[Search] Full cache HIT - returning in ${Date.now() - searchStartTime}ms`);
@@ -144,6 +146,12 @@ export async function searchTitles(
     if (kindFilter) {
       console.log("[Search] Filtering by kind: " + kindFilter.join(", "));
     }
+    if (minReleaseYear) {
+      console.log("[Search] Filtering by min release year: " + minReleaseYear);
+    }
+    if (excludeGenres) {
+      console.log("[Search] Excluding genres: " + excludeGenres.join(", "));
+    }
     console.log("[Search] Fetching " + dbMatchCount + " candidates for frontend pagination");
 
     const dbStartTime = Date.now();
@@ -159,6 +167,8 @@ export async function searchTitles(
       match_threshold: matchThreshold,
       match_count: dbMatchCount,
       filter_kind: kindFilter,
+      min_release_year: minReleaseYear,
+      exclude_genres: excludeGenres,
     });
 
     if (error) {
@@ -261,7 +271,7 @@ export async function searchTitles(
 
     // Cache the full search result
     if (config.enableSearchCache) {
-      const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter);
+      const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter, minReleaseYear, excludeGenres);
       searchCache.set(cacheKey, result);
     }
 

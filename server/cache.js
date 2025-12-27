@@ -81,10 +81,12 @@ export const structuredQueryCache = new TTLCache(
  * Generate cache key for search results
  * Includes all parameters that affect results
  */
-export function getSearchCacheKey(query, matchThreshold, kindFilter) {
+export function getSearchCacheKey(query, matchThreshold, kindFilter, minReleaseYear = null, excludeGenres = null) {
   const normalizedQuery = query.toLowerCase().trim();
   const filterStr = kindFilter ? kindFilter.sort().join(",") : "all";
-  return `${normalizedQuery}:${matchThreshold}:${filterStr}`;
+  const yearStr = minReleaseYear || "any";
+  const genreStr = excludeGenres ? excludeGenres.sort().join(",") : "none";
+  return `${normalizedQuery}:${matchThreshold}:${filterStr}:${yearStr}:${genreStr}`;
 }
 
 /**

@@ -166,6 +166,8 @@ app.post("/api/search", async (req, res) => {
       matchCount = config.search.defaultMatchCount,
       matchThreshold = config.search.defaultMatchThreshold,
       kindFilter = null,
+      minReleaseYear = null,
+      excludeGenres = null,
     } = req.body;
 
     // Validate request
@@ -210,6 +212,22 @@ app.post("/api/search", async (req, res) => {
       }
     }
 
+    // Validate minReleaseYear if provided
+    if (minReleaseYear !== null && (typeof minReleaseYear !== 'number' || minReleaseYear < 1800 || minReleaseYear > 2100)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "minReleaseYear must be a number between 1800 and 2100",
+      });
+    }
+
+    // Validate excludeGenres if provided
+    if (excludeGenres !== null && !Array.isArray(excludeGenres)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "excludeGenres must be an array of genre strings",
+      });
+    }
+
     // Perform search - returns all 300 candidates sorted by VIBE score
     const startTime = Date.now();
     const results = await searchTitles(
@@ -217,6 +235,8 @@ app.post("/api/search", async (req, res) => {
       matchCount,
       matchThreshold,
       kindFilter,
+      minReleaseYear,
+      excludeGenres,
     );
     const duration = Date.now() - startTime;
 
