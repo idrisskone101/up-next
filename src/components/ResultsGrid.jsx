@@ -1,8 +1,11 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { MovieCard } from "./MovieCard";
-import { MovieModal } from "./MovieModal";
+import { MovieDrawer } from "./MovieDrawer";
+import { MovieBottomSheet } from "./MovieBottomSheet";
 import { FilterBar } from "./FilterBar";
+import { useIsMobile } from "../hooks/useMediaQuery";
 
 import { Button } from "./ui/button";
 import { Spinner } from "./ui/spinner";
@@ -62,40 +65,67 @@ export function ResultsGrid({
   isRefreshing = false,
   totalCount,
   onMoreLikeThis,
+  onVibeSearch,
+  typeFilter = "all",
+  onTypeFilterChange,
 }) {
-  const [selectedMovie, setSelectedMovie] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract movie ID from URL query param
+  const movieIdFromUrl = new URLSearchParams(location.search).get("movie");
+
+  // Find selected movie from URL param
+  const selectedMovie = useMemo(() => {
+    if (!movieIdFromUrl) return null;
+    return results.find((m) => String(m.id) === movieIdFromUrl) || null;
+  }, [movieIdFromUrl, results]);
+
   const [pullDistance, setPullDistance] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
-  const [typeFilter, setTypeFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("match");
   const containerRef = useRef(null);
   const startY = useRef(0);
   const columns = useGridColumns();
 
-  // Filter and sort results
-  const filteredResults = useMemo(() => {
-    let filtered = results;
-
-    // Apply type filter
-    if (typeFilter !== "all") {
-      filtered = filtered.filter((movie) => movie.kind === typeFilter);
+  // Clear URL param if movie not found in results
+  useEffect(() => {
+    if (movieIdFromUrl && !selectedMovie && results.length > 0) {
+      navigate(location.pathname, { replace: true });
     }
+  }, [movieIdFromUrl, selectedMovie, results, navigate, location.pathname]);
 
-    // Apply sort
+  // Open drawer via URL
+  const handleCardClick = useCallback((movie) => {
+    navigate(`?movie=${movie.id}`, { replace: false });
+  }, [navigate]);
+
+  // Close drawer by removing param
+  const handleCloseDrawer = useCallback(() => {
+    navigate(location.pathname, { replace: true });
+  }, [navigate, location.pathname]);
+
+  // More Like This - close drawer first, then trigger search
+  const handleMoreLikeThis = useCallback((movie) => {
+    navigate(location.pathname, { replace: true });
+    onMoreLikeThis?.(movie);
+  }, [navigate, location.pathname, onMoreLikeThis]);
+
+  // Sort results (type filtering is now server-side)
+  const sortedResults = useMemo(() => {
     if (sortOrder === "year") {
-      filtered = [...filtered].sort((a, b) => {
+      return [...results].sort((a, b) => {
         const yearA = a.release_date ? new Date(a.release_date).getFullYear() : 0;
         const yearB = b.release_date ? new Date(b.release_date).getFullYear() : 0;
         return yearB - yearA;
       });
     } else if (sortOrder === "rating") {
-      filtered = [...filtered].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+      return [...results].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
     }
     // Default "match" sort uses original order (already sorted by score)
-
-    return filtered;
-  }, [results, typeFilter, sortOrder]);
+    return results;
+  }, [results, sortOrder]);
 
   // Preload first 6 visible results' backdrops for instant modal display
   useEffect(() => {
@@ -158,6 +188,7 @@ export function ResultsGrid({
 
   const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
   const indicatorRotation = pullProgress * 180 + (isRefreshing ? 360 : 0);
+  const isMobile = useIsMobile();
 
   if (results.length === 0) {
     return null;
@@ -227,7 +258,7 @@ export function ResultsGrid({
             {/* Filter Bar */}
             <FilterBar
               activeType={typeFilter}
-              onTypeChange={setTypeFilter}
+              onTypeChange={onTypeFilterChange}
               activeSort={sortOrder}
               onSortChange={setSortOrder}
             />
@@ -239,26 +270,33 @@ export function ResultsGrid({
               exit="exit"
             >
               <AnimatePresence mode="popLayout">
-                {filteredResults.map((movie, index) => (
-                  <motion.div
-                    key={movie.id}
-                    layout
-                    variants={enhancedGridItemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    transition={{
-                      ...springConfigs.snappy,
-                      delay: getDiagonalDelay(index, columns, 0.03),
-                    }}
-                  >
-                    <MovieCard
-                      movie={movie}
-                      index={index}
-                      onClick={() => setSelectedMovie(movie)}
-                    />
-                  </motion.div>
-                ))}
+                {sortedResults.map((movie, index) => {
+                  const isSelected = selectedMovie?.id === movie.id;
+                  return (
+                    <motion.div
+                      key={movie.id}
+                      layout
+                      variants={enhancedGridItemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      transition={{
+                        ...springConfigs.snappy,
+                        delay: getDiagonalDelay(index, columns, 0.03),
+                      }}
+                      className={isSelected ? "ring-2 ring-amber-500/60 rounded-xl shadow-[0_0_24px_rgba(251,191,36,0.25)]" : ""}
+                    >
+                      <MovieCard
+                        movie={movie}
+                        index={index}
+                        onClick={() => handleCardClick(movie)}
+                        onPlayTrailer={() => handleCardClick(movie)}
+                        isSelected={isSelected}
+                        isDimmed={selectedMovie && !isSelected}
+                      />
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </motion.div>
 
@@ -388,12 +426,22 @@ export function ResultsGrid({
       </div>
       </LayoutGroup>
 
-      {/* Movie Detail Dialog - Outside LayoutGroup to prevent grid re-animation */}
-      <MovieModal
-        movie={selectedMovie}
-        onClose={() => setSelectedMovie(null)}
-        onMoreLikeThis={onMoreLikeThis}
-      />
+      {/* Movie Detail - Outside LayoutGroup to prevent grid re-animation */}
+      {/* Use bottom sheet on mobile, drawer on desktop */}
+      {isMobile ? (
+        <MovieBottomSheet
+          movie={selectedMovie}
+          onClose={handleCloseDrawer}
+          onMoreLikeThis={handleMoreLikeThis}
+          onVibeSearch={onVibeSearch}
+        />
+      ) : (
+        <MovieDrawer
+          movie={selectedMovie}
+          onClose={handleCloseDrawer}
+          onMoreLikeThis={handleMoreLikeThis}
+        />
+      )}
     </>
   );
 }

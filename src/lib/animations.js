@@ -388,3 +388,288 @@ export const listItemVariants = {
   },
   exit: { opacity: 0, x: -8, transition: { duration: 0.15 } },
 };
+
+/**
+ * Drawer animation variants for right-side slide-in panel
+ * Gentle spring for elegant entry, slightly faster exit that doesn't overshoot
+ */
+export const drawerVariants = {
+  hidden: { x: "100%", opacity: 0.9 },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 280,
+      damping: 28,
+      mass: 0.9,
+    },
+  },
+  exit: {
+    x: "100%",
+    opacity: 0.85,
+    transition: {
+      type: "spring",
+      stiffness: 320,
+      damping: 32,
+      mass: 0.8,
+    },
+  },
+};
+
+/**
+ * Drawer content stagger variants
+ * Faster stagger to build anticipation without feeling slow
+ */
+export const drawerContentContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.045,
+      delayChildren: 0.12,
+    },
+  },
+};
+
+export const drawerContentItemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 26,
+      mass: 0.8,
+    },
+  },
+};
+
+/**
+ * Drawer backdrop variants
+ * Slightly faster than drawer to create layered entrance feel
+ */
+export const drawerBackdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.22, ease: "easeOut" } },
+  exit: { opacity: 0, transition: { duration: 0.18, ease: "easeIn" } },
+};
+
+/**
+ * Mobile bottom sheet animation variants
+ * Critically-damped spring for entry (no overshoot), gravity-like exit
+ */
+export const bottomSheetVariants = {
+  hidden: { y: "100%" },
+  partial: {
+    y: 0,
+    height: "60vh",
+    transition: {
+      type: "spring",
+      stiffness: 500,
+      damping: 40,
+      mass: 0.8,
+    },
+  },
+  full: {
+    y: 0,
+    height: "90vh",
+    transition: {
+      type: "spring",
+      stiffness: 500,
+      damping: 40,
+      mass: 0.8,
+    },
+  },
+  exit: {
+    y: "100%",
+    transition: {
+      duration: 0.28,
+      ease: [0.4, 0, 0.6, 1], // Gravity-like ease-in
+    },
+  },
+};
+
+/**
+ * Bottom sheet drag release spring - critically damped for no overshoot
+ */
+export const bottomSheetDragSpring = {
+  type: "spring",
+  stiffness: 500,
+  damping: 40,
+  mass: 0.8,
+};
+
+/**
+ * Bottom sheet backdrop variants - staggered timing for layered feel
+ * Entry: backdrop appears 50ms before sheet
+ * Exit: backdrop fades 50ms after sheet starts
+ */
+export const bottomSheetBackdropVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut",
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      delay: 0.05,
+      duration: 0.22,
+      ease: "easeIn",
+    },
+  },
+};
+
+/**
+ * Vibe/genre chip micro-interaction variants
+ * Subtle hover + definitive tap feedback
+ */
+export const chipVariants = {
+  initial: { scale: 1, opacity: 1 },
+  hover: {
+    scale: 1.02,
+    filter: "brightness(1.1)",
+    transition: { type: "spring", stiffness: 400, damping: 25 },
+  },
+  tap: {
+    scale: 0.96,
+    transition: { duration: 0.1 },
+  },
+};
+
+/**
+ * Play button pulse animation
+ * Subtle scale pulse to draw attention
+ */
+export const playButtonPulse = {
+  scale: [1, 1.05, 1],
+  opacity: [0.9, 1, 0.9],
+  transition: {
+    duration: 2,
+    repeat: Infinity,
+    ease: "easeInOut",
+  },
+};
+
+/**
+ * Cast list stagger variants
+ * Subtle horizontal entrance for cast chips
+ */
+export const castContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+export const castItemVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 28,
+    },
+  },
+};
+
+/**
+ * Bottom sheet gesture thresholds
+ */
+export const bottomSheetThresholds = {
+  dismissVelocity: 500,   // Fast flick down = dismiss
+  expandVelocity: 300,    // Fast flick up = expand
+  dismissPosition: 0.5,   // 50% drag down = dismiss
+  expandPosition: 0.3,    // 30% drag up = expand
+  collapsePosition: 0.35, // 35% drag down from full = collapse
+};
+
+/**
+ * Bottom sheet V2 - single-state (85vh) with critically damped entry
+ */
+export const bottomSheetEntrySpring = {
+  type: "spring",
+  stiffness: 500,
+  damping: 40,
+  mass: 1,
+};
+
+export const bottomSheetExitTransition = {
+  duration: 0.28,
+  ease: [0.32, 0, 0.67, 0], // cubic ease-in (gravity feel)
+};
+
+export const bottomSheetVariantsV2 = {
+  hidden: { y: "100%" },
+  visible: {
+    y: 0,
+    height: "85vh",
+    transition: bottomSheetEntrySpring,
+  },
+  exit: {
+    y: "100%",
+    transition: bottomSheetExitTransition,
+  },
+};
+
+/**
+ * Card info overlay variants - fades in with slight slide up
+ * Graceful exit prevents "pop" effect
+ */
+export const cardOverlayVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 380,
+      damping: 30,
+      delay: 0.08,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: 6,
+    transition: {
+      duration: 0.18,
+      ease: [0.4, 0, 1, 1], // ease-in for exits
+    },
+  },
+};
+
+/**
+ * Card action button variants with staggered entrance
+ * Builds anticipation without feeling slow
+ */
+export const cardButtonVariants = {
+  hidden: { opacity: 0, scale: 0.85, y: 4 },
+  visible: (i) => ({
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 420,
+      damping: 26,
+      delay: 0.12 + i * 0.04,
+    },
+  }),
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: 2,
+    transition: { duration: 0.12, ease: [0.4, 0, 1, 1] },
+  },
+};

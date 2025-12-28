@@ -56,28 +56,6 @@ export function FilterBar({
       initial="hidden"
       animate="visible"
     >
-      {/* Weight pills (visual/info only) */}
-      <motion.div
-        variants={reduceMotion ? undefined : itemVariants}
-        className="flex gap-0.5 p-1 bg-white/[0.04] rounded-full shrink-0 border border-white/[0.06]"
-      >
-        <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/10 text-white/90">
-          content
-        </span>
-        <span className="px-3 py-1.5 rounded-full text-xs font-medium text-white/40">
-          vibe
-        </span>
-        <span className="px-3 py-1.5 rounded-full text-xs font-medium text-white/40">
-          metadata
-        </span>
-      </motion.div>
-
-      {/* Divider */}
-      <motion.div
-        variants={reduceMotion ? undefined : itemVariants}
-        className="w-px h-6 bg-white/10 shrink-0"
-      />
-
       {/* Type filter */}
       <motion.div
         variants={reduceMotion ? undefined : itemVariants}

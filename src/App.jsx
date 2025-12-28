@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { AlertCircle, ArrowUp, X, Menu } from "lucide-react";
 import { Button } from "./components/ui/button";
@@ -133,12 +134,13 @@ const pageTransition = {
   ease: [0.16, 1, 0.3, 1]
 };
 
-function App() {
+function AppContent() {
   const { results, loading, refreshing, error, searchMetadata, hasMore, currentPage, totalPages, search, loadMore, goToPage, refresh, reset } = useSearch();
   const { addSearch } = useRecentSearches();
   const { recommendations, loading: recsLoading, error: recsError } = useRecommendations();
   const [compactQuery, setCompactQuery] = useState("");
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [typeFilter, setTypeFilter] = useState("all");
   const compactInputRef = useRef(null);
   const { scrollY } = useScroll();
 
@@ -158,10 +160,31 @@ function App() {
     }
   }, [searchMetadata?.query]);
 
+  // Convert typeFilter ("all", "movie", "tv") to kindFilter array for API
+  const getKindFilterArray = (filter) => {
+    if (filter === "all") return null;
+    return [filter];
+  };
+
   const handleSearch = (query, kindFilter) => {
     setCompactQuery(query);
     addSearch(query);
-    search(query, 80, 0, kindFilter);
+    // If kindFilter explicitly passed, use it (and update typeFilter state)
+    if (kindFilter) {
+      setTypeFilter(kindFilter === "tv" ? "tv" : "movie");
+      search(query, 80, 0, [kindFilter]);
+    } else {
+      // Use current typeFilter
+      search(query, 80, 0, getKindFilterArray(typeFilter));
+    }
+  };
+
+  // Handle type filter change - re-run current search with new filter
+  const handleTypeFilterChange = (newFilter) => {
+    setTypeFilter(newFilter);
+    if (searchMetadata?.query) {
+      search(searchMetadata.query, 80, 0, getKindFilterArray(newFilter));
+    }
   };
 
   // Sidebar search handler
@@ -183,18 +206,25 @@ function App() {
     e?.preventDefault();
     if (compactQuery.trim()) {
       window.scrollTo({ top: 0, behavior: "smooth" });
-      search(compactQuery.trim(), 80, 0, null);
+      addSearch(compactQuery.trim());
+      search(compactQuery.trim(), 80, 0, getKindFilterArray(typeFilter));
     }
   };
 
   const handleBackToHero = () => {
     reset();
     setCompactQuery("");
+    setTypeFilter("all");
   };
 
   const handleBackToTop = () => {
     haptics.light();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Vibe search - search for a specific vibe term
+  const handleVibeSearch = (vibe) => {
+    handleSearch(vibe, null);
   };
 
   // More Like This - search for similar movies based on vibes/genres
@@ -396,6 +426,9 @@ function App() {
                         isRefreshing={refreshing}
                         totalCount={searchMetadata?.totalCount}
                         onMoreLikeThis={handleMoreLikeThis}
+                        onVibeSearch={handleVibeSearch}
+                        typeFilter={typeFilter}
+                        onTypeFilterChange={handleTypeFilterChange}
                       />
                     </motion.div>
                   )}
@@ -431,6 +464,16 @@ function App() {
       </div>
     </div>
     </AppLayout>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
