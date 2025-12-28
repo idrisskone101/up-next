@@ -36,7 +36,7 @@ const backdropVariants = {
  * - Close button in header
  * - Respects safe areas
  */
-export function MobileDrawer({ isOpen, onClose, children }) {
+export function MobileDrawer({ isOpen, onClose, children, logo }) {
   const drawerRef = useRef(null);
 
   const handleClose = () => {
@@ -123,8 +123,10 @@ export function MobileDrawer({ isOpen, onClose, children }) {
             aria-modal="true"
             aria-label="Navigation menu"
           >
-            {/* Header with Close Button */}
-            <div className="flex items-center justify-end px-4 pt-3 pb-2">
+            {/* Header with Logo and Close Button */}
+            <div className="flex items-center justify-between px-4 h-14 border-b border-amber-500/10">
+              {/* Logo */}
+              {logo}
               <motion.button
                 onClick={handleClose}
                 className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/70 hover:bg-white/[0.1] hover:text-white transition-colors"

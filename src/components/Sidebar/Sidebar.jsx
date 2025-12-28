@@ -422,12 +422,7 @@ export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
   // Mobile: render as slide-in drawer
   if (isMobile) {
     return (
-      <MobileDrawer isOpen={isOpen} onClose={close}>
-        {/* Mobile header */}
-        <div className="flex items-center h-14 px-4 border-b border-amber-500/10">
-          <UpNextLogo size="md" />
-        </div>
-
+      <MobileDrawer isOpen={isOpen} onClose={close} logo={<UpNextLogo size="md" />}>
         <SidebarContent
           onSearch={onSearch}
           onSurpriseMe={onSurpriseMe}

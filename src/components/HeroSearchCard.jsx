@@ -184,7 +184,7 @@ export function HeroSearchCard({ onSearch, loading }) {
               disabled={loading || !query.trim()}
               whileHover={{ scale: 1.08, rotate: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/25 transition-shadow duration-300 hover:shadow-amber-500/40 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-amber-500/25"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] active:bg-amber-500/20 active:border-amber-500/50 active:text-amber-300 disabled:bg-white/[0.03] disabled:border-white/[0.05] disabled:text-white/30 disabled:cursor-not-allowed"
               aria-label="Search"
             >
               {loading ? (

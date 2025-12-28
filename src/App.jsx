@@ -112,7 +112,7 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
                     disabled={loading || !compactQuery.trim()}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_16px_rgba(245,158,11,0.15)] disabled:bg-white/[0.03] disabled:border-white/[0.05] disabled:text-white/30 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <Spinner size={14} className="text-white" ariaLabel="Searching..." />

@@ -204,7 +204,7 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
                 haptics.light();
                 onMoreLikeThis(movie);
               }}
-              className="w-full h-11 flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-semibold shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-shadow"
+              className="w-full h-12 flex items-center justify-center gap-2 rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 font-semibold transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_24px_rgba(245,158,11,0.18)] active:bg-amber-500/20 active:border-amber-500/50 active:text-amber-300"
               whileHover={reducedMotion ? {} : { scale: 1.02, y: -1 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
               transition={reducedMotion ? { duration: 0 } : springConfigs.snappy}

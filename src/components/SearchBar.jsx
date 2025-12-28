@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { Plus, Paperclip, AudioLines, ArrowUp, X } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { haptics } from "../lib/haptics";
@@ -147,11 +148,14 @@ export function SearchBar({ onSearch, loading }) {
               >
                 <AudioLines className="h-4 w-4" />
               </button>
-              <button
+              <motion.button
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading || !query.trim()}
-                className="group flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg shadow-orange-500/20 transition-all duration-300 hover:shadow-orange-500/40 hover:scale-110 hover:-rotate-3 disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none disabled:hover:rotate-0"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] active:bg-amber-500/20 active:border-amber-500/50 active:text-amber-300 active:shadow-[inset_0_0_12px_rgba(245,158,11,0.25)] disabled:bg-white/[0.03] disabled:border-white/[0.05] disabled:text-white/30 disabled:cursor-not-allowed disabled:shadow-none"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 aria-label="Search"
               >
                 {loading ? (
@@ -159,7 +163,7 @@ export function SearchBar({ onSearch, loading }) {
                 ) : (
                   <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
                 )}
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
@@ -171,7 +175,7 @@ export function SearchBar({ onSearch, loading }) {
             onClick={handleToggleMovies}
             className={`h-9 rounded-full border px-4 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
               moviesEnabled
-                ? "border-orange-500/50 bg-orange-500/10 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]"
+                ? "border-amber-500/50 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                 : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/20"
             }`}
           >
@@ -182,7 +186,7 @@ export function SearchBar({ onSearch, loading }) {
             onClick={handleToggleTV}
             className={`h-9 rounded-full border px-4 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
               tvEnabled
-                ? "border-orange-500/50 bg-orange-500/10 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.2)]"
+                ? "border-amber-500/50 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                 : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/20"
             }`}
           >
