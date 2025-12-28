@@ -21,11 +21,7 @@ import {
 import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
 import { prefetchTrailers } from "../lib/trailerCache";
-import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
-
-// Pull-to-refresh constants
-const PULL_THRESHOLD = 80;
-const MAX_PULL = 120;
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
  * Hook to detect current grid column count based on viewport
@@ -81,12 +77,8 @@ export function ResultsGrid({
     return results.find((m) => String(m.id) === movieIdFromUrl) || null;
   }, [movieIdFromUrl, results]);
 
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isPulling, setIsPulling] = useState(false);
-  const [hasTriggered, setHasTriggered] = useState(false);
   const [sortOrder, setSortOrder] = useState("match");
   const containerRef = useRef(null);
-  const startY = useRef(0);
   const columns = useGridColumns();
 
   // Clear URL param if movie not found in results
@@ -144,50 +136,6 @@ export function ResultsGrid({
     }
   }, [results]);
 
-  // Handle touch start
-  const handleTouchStart = useCallback((e) => {
-    if (containerRef.current && window.scrollY <= 0) {
-      startY.current = e.touches[0].clientY;
-      setIsPulling(true);
-      setHasTriggered(false);
-    }
-  }, []);
-
-  // Handle touch move
-  const handleTouchMove = useCallback((e) => {
-    if (!isPulling || isRefreshing) return;
-
-    const currentY = e.touches[0].clientY;
-    const diff = currentY - startY.current;
-
-    if (diff > 0 && window.scrollY <= 0) {
-      const resistance = 1 - Math.min(diff / (MAX_PULL * 2), 0.5);
-      const adjustedPull = Math.min(diff * resistance, MAX_PULL);
-      setPullDistance(adjustedPull);
-
-      if (adjustedPull >= PULL_THRESHOLD && !hasTriggered) {
-        setHasTriggered(true);
-        haptics.success();
-      }
-    }
-  }, [isPulling, isRefreshing, hasTriggered]);
-
-  // Handle touch end
-  const handleTouchEnd = useCallback(() => {
-    if (!isPulling) return;
-
-    setIsPulling(false);
-
-    if (pullDistance >= PULL_THRESHOLD && !isRefreshing && onRefresh) {
-      onRefresh();
-    }
-
-    setPullDistance(0);
-    setHasTriggered(false);
-  }, [isPulling, pullDistance, isRefreshing, onRefresh]);
-
-  const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
-  const indicatorRotation = pullProgress * 180 + (isRefreshing ? 360 : 0);
   const isMobile = useIsMobile();
 
   if (results.length === 0) {
@@ -200,59 +148,7 @@ export function ResultsGrid({
         <div
           ref={containerRef}
           className="space-y-8 relative pb-16"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
-        {/* Pull-to-refresh indicator - Amber themed */}
-        <AnimatePresence>
-          {(pullDistance > 0 || isRefreshing) && (
-            <motion.div
-              className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center"
-              initial={{ opacity: 0, y: -40 }}
-              animate={{
-                opacity: 1,
-                y: isRefreshing ? 16 : Math.min(pullDistance - 40, 20),
-              }}
-              exit={{ opacity: 0, y: -40 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              <motion.div
-                className={`flex items-center justify-center w-10 h-10 rounded-full backdrop-blur-md ${
-                  hasTriggered || isRefreshing
-                    ? "bg-amber-500/20 border border-amber-500/40"
-                    : "bg-white/10 border border-white/20"
-                }`}
-                animate={{
-                  rotate: isRefreshing ? 360 : indicatorRotation,
-                  scale: hasTriggered ? 1.1 : 1,
-                }}
-                transition={{
-                  rotate: isRefreshing
-                    ? { duration: 1, repeat: Infinity, ease: "linear" }
-                    : { type: "spring", stiffness: 200 },
-                  scale: { type: "spring", stiffness: 400 },
-                }}
-              >
-                <RefreshCw
-                  className={`w-5 h-5 ${
-                    hasTriggered || isRefreshing ? "text-amber-400" : "text-white/60"
-                  }`}
-                />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Content offset when pulling */}
-        <motion.div
-          animate={{
-            y: isRefreshing ? 60 : pullDistance > 0 ? pullDistance * 0.5 : 0,
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          {/* Search metadata */}
-
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
             {/* Filter Bar */}
@@ -261,6 +157,8 @@ export function ResultsGrid({
               onTypeChange={onTypeFilterChange}
               activeSort={sortOrder}
               onSortChange={setSortOrder}
+              onRefresh={onRefresh}
+              isRefreshing={isRefreshing}
             />
 
             <motion.div
@@ -422,8 +320,7 @@ export function ResultsGrid({
               </motion.div>
             )}
           </div>
-        </motion.div>
-      </div>
+        </div>
       </LayoutGroup>
 
       {/* Movie Detail - Outside LayoutGroup to prevent grid re-animation */}

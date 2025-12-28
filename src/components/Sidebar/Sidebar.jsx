@@ -52,7 +52,7 @@ const navItemVariants = {
 /**
  * Shared sidebar content used by both desktop and mobile
  */
-function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isExpanded = true }) {
+function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onClose, isExpanded = true }) {
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
   const handleSurpriseMe = () => {
@@ -100,6 +100,7 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isE
                     label="Home"
                     active={false}
                     onClick={() => {
+                      onHome?.();
                       onClose?.();
                     }}
                     collapsed={!isExpanded}
@@ -207,7 +208,7 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onClose, isE
 /**
  * Desktop sidebar - collapsible icon rail / expanded nav
  */
-function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
+function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
   const { isOpen, toggle, close } = useSidebar();
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
@@ -296,7 +297,10 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
                     icon={Home}
                     label="Home"
                     active={false}
-                    onClick={() => {}}
+                    onClick={() => {
+                      onHome?.();
+                      close();
+                    }}
                     collapsed={!isOpen}
                   />
                 </motion.div>
@@ -382,7 +386,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
           {/* Collapsed state icons */}
           {!isOpen && (
             <div className="flex flex-col items-center gap-1">
-              <SidebarNav icon={Home} label="Home" collapsed onClick={() => {}} />
+              <SidebarNav icon={Home} label="Home" collapsed onClick={() => onHome?.()} />
               <SidebarNav icon={Sparkles} label="Surprise Me" collapsed onClick={handleSurpriseMe} />
               <SidebarNav icon={Grid3X3} label="Categories" collapsed onClick={() => toggle()} />
             </div>
@@ -412,7 +416,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
  * Main sidebar component
  * Renders desktop sidebar or mobile drawer based on viewport
  */
-export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
+export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
   const { isOpen, close, isMobile } = useSidebar();
 
   // Mobile: render as slide-in drawer
@@ -428,6 +432,7 @@ export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
           onSearch={onSearch}
           onSurpriseMe={onSurpriseMe}
           onCategorySelect={onCategorySelect}
+          onHome={onHome}
           onClose={close}
           isExpanded={true}
         />
@@ -441,6 +446,7 @@ export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect }) {
       onSearch={onSearch}
       onSurpriseMe={onSurpriseMe}
       onCategorySelect={onCategorySelect}
+      onHome={onHome}
     />
   );
 }

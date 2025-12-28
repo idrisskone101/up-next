@@ -1,7 +1,8 @@
 import { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSwipeGesture } from "../../hooks/useSwipeGesture";
+import { X } from "lucide-react";
 import { springConfigs } from "../../lib/animations";
+import { haptics } from "../../lib/haptics";
 
 // Animation variants for drawer
 const drawerVariants = {
@@ -32,19 +33,16 @@ const backdropVariants = {
  * Features:
  * - Slides from left edge
  * - Dimmed backdrop tap to close
- * - Swipe left to close
- * - Drag handle visual
+ * - Close button in header
  * - Respects safe areas
  */
 export function MobileDrawer({ isOpen, onClose, children }) {
   const drawerRef = useRef(null);
 
-  // Swipe left anywhere on drawer to close
-  useSwipeGesture(drawerRef, {
-    onSwipeLeft: onClose,
-    enabled: isOpen,
-    minSwipeDistance: 40,
-  });
+  const handleClose = () => {
+    haptics.light();
+    onClose();
+  };
 
   // Lock body scroll when open
   useEffect(() => {
@@ -79,13 +77,13 @@ export function MobileDrawer({ isOpen, onClose, children }) {
 
     const handleEscape = (e) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -98,7 +96,7 @@ export function MobileDrawer({ isOpen, onClose, children }) {
             initial="closed"
             animate="open"
             exit="closed"
-            onClick={onClose}
+            onClick={handleClose}
             className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm"
             aria-hidden="true"
           />
@@ -125,14 +123,16 @@ export function MobileDrawer({ isOpen, onClose, children }) {
             aria-modal="true"
             aria-label="Navigation menu"
           >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <motion.div
-                initial={{ opacity: 0, scaleX: 0.5 }}
-                animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ delay: 0.1, ...springConfigs.snappy }}
-                className="h-1 w-10 rounded-full bg-amber-500/30"
-              />
+            {/* Header with Close Button */}
+            <div className="flex items-center justify-end px-4 pt-3 pb-2">
+              <motion.button
+                onClick={handleClose}
+                className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/70 hover:bg-white/[0.1] hover:text-white transition-colors"
+                whileTap={{ scale: 0.95 }}
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </motion.button>
             </div>
 
             {/* Drawer content */}

@@ -3,30 +3,18 @@ import { CommandPaletteProvider } from "../../contexts/CommandPaletteContext";
 import { Sidebar } from "../Sidebar";
 import { MainContent } from "./MainContent";
 import { CommandPalette } from "../CommandPalette";
-import { useEdgeSwipe } from "../../hooks/useSwipeGesture";
-import { useIsMobile } from "../../hooks/useMediaQuery";
 
 /**
  * Inner layout component that has access to sidebar context
  */
-function LayoutContent({ children, onSearch, onSurpriseMe, onCategorySelect }) {
-  const { open, isOpen } = useSidebar();
-  const isMobile = useIsMobile();
-
-  // Enable edge swipe on mobile to open drawer
-  useEdgeSwipe({
-    onSwipeFromLeftEdge: open,
-    enabled: isMobile && !isOpen,
-    edgeThreshold: 20,
-    minSwipeDistance: 50,
-  });
-
+function LayoutContent({ children, onSearch, onSurpriseMe, onCategorySelect, onHome }) {
   return (
     <div className="flex min-h-dvh">
       <Sidebar
         onSearch={onSearch}
         onSurpriseMe={onSurpriseMe}
         onCategorySelect={onCategorySelect}
+        onHome={onHome}
       />
       <MainContent>{children}</MainContent>
     </div>
@@ -37,7 +25,7 @@ function LayoutContent({ children, onSearch, onSurpriseMe, onCategorySelect }) {
  * Root layout component
  * Wraps entire app with sidebar and command palette context
  */
-export function AppLayout({ children, onSearch, onSurpriseMe, onCategorySelect }) {
+export function AppLayout({ children, onSearch, onSurpriseMe, onCategorySelect, onHome }) {
   return (
     <SidebarProvider>
       <CommandPaletteProvider
@@ -49,6 +37,7 @@ export function AppLayout({ children, onSearch, onSurpriseMe, onCategorySelect }
           onSearch={onSearch}
           onSurpriseMe={onSurpriseMe}
           onCategorySelect={onCategorySelect}
+          onHome={onHome}
         >
           {children}
         </LayoutContent>

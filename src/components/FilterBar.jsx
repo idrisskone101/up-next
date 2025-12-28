@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Film, Tv, LayoutGrid } from "lucide-react";
+import { Film, Tv, LayoutGrid, RefreshCw } from "lucide-react";
 import { haptics } from "../lib/haptics";
 import { springConfigs, prefersReducedMotion } from "../lib/animations";
 
@@ -38,14 +38,15 @@ const itemVariants = {
 };
 
 /**
- * Filter bar with type filter and sort controls
- * Weight toggles are visual-only for now
+ * Filter bar with type filter, sort controls, and refresh button
  */
 export function FilterBar({
   activeType = "all",
   onTypeChange,
   activeSort = "match",
   onSortChange,
+  onRefresh,
+  isRefreshing = false,
 }) {
   const reduceMotion = prefersReducedMotion();
 
@@ -113,6 +114,41 @@ export function FilterBar({
           </option>
         ))}
       </motion.select>
+
+      {/* Refresh button */}
+      {onRefresh && (
+        <>
+          <motion.div
+            variants={reduceMotion ? undefined : itemVariants}
+            className="w-px h-6 bg-white/10 shrink-0"
+          />
+          <motion.button
+            variants={reduceMotion ? undefined : itemVariants}
+            onClick={() => {
+              if (!isRefreshing) {
+                haptics.light();
+                onRefresh();
+              }
+            }}
+            disabled={isRefreshing}
+            className="w-10 h-10 flex items-center justify-center rounded-full shrink-0 bg-white/[0.06] border border-white/[0.08] text-white/60 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 transition-all"
+            whileHover={!isRefreshing ? { scale: 1.05 } : undefined}
+            whileTap={!isRefreshing ? { scale: 0.95 } : undefined}
+            aria-label="Refresh results"
+          >
+            <motion.div
+              animate={{ rotate: isRefreshing ? 360 : 0 }}
+              transition={{
+                duration: 1,
+                repeat: isRefreshing ? Infinity : 0,
+                ease: "linear",
+              }}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </motion.div>
+          </motion.button>
+        </>
+      )}
     </motion.div>
   );
 }

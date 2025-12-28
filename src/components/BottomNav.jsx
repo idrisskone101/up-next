@@ -1,21 +1,26 @@
 import { motion } from "framer-motion";
-import { Search, Heart, User } from "lucide-react";
+import { Search, Heart, User, Menu } from "lucide-react";
 import { haptics } from "../lib/haptics";
 
 /**
  * iOS-style bottom navigation bar
- * Shows Search, Watchlist, and Profile tabs
+ * Shows Menu, Search, Watchlist, and Profile tabs
  */
-export function BottomNav({ activeTab = "search", onTabChange, hidden = false }) {
+export function BottomNav({ activeTab = "search", onTabChange, onOpenMenu, hidden = false }) {
   const tabs = [
+    { id: "menu", label: "Menu", icon: Menu, action: "openMenu" },
     { id: "search", label: "Search", icon: Search },
     { id: "watchlist", label: "Watchlist", icon: Heart },
     { id: "profile", label: "Profile", icon: User },
   ];
 
-  const handleTabPress = (tabId) => {
+  const handleTabPress = (tab) => {
     haptics.light();
-    onTabChange?.(tabId);
+    if (tab.action === "openMenu") {
+      onOpenMenu?.();
+    } else {
+      onTabChange?.(tab.id);
+    }
   };
 
   return (
@@ -31,13 +36,13 @@ export function BottomNav({ activeTab = "search", onTabChange, hidden = false })
         <div className="flex items-center justify-around px-6 pt-2 pb-safe">
           {tabs.map((tab) => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            const isDisabled = tab.id !== "search"; // Only search is active for now
+            const isActive = activeTab === tab.id && !tab.action;
+            const isDisabled = tab.id !== "search" && tab.id !== "menu"; // Menu and search active
 
             return (
               <motion.button
                 key={tab.id}
-                onClick={() => !isDisabled && handleTabPress(tab.id)}
+                onClick={() => !isDisabled && handleTabPress(tab)}
                 className={`flex flex-col items-center gap-1 py-2 px-4 min-w-[64px] rounded-xl transition-colors ${
                   isDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
                 }`}

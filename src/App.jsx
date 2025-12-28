@@ -250,6 +250,7 @@ function AppContent() {
       onSearch={handleSidebarSearch}
       onSurpriseMe={handleSurpriseMe}
       onCategorySelect={handleCategorySelect}
+      onHome={handleBackToHero}
     >
     <div className="relative min-h-dvh">
       {/* Sticky Nav - Only render when showing results */}
