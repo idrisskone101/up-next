@@ -208,45 +208,47 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
           }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          {/* Textarea Area */}
+          {/* Input Area - Badge OR Textarea */}
           <div className="px-4 pt-4 pb-3 sm:px-6 sm:pt-5 sm:pb-4">
-            {/* Mention Chip - shown above textarea when selected */}
-            <AnimatePresence mode="wait">
-              {hasMention && mention && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginBottom: 8 }}
-                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 30,
-                    opacity: { duration: 0.15 },
-                  }}
-                  className="overflow-hidden"
-                >
-                  <MentionChip mention={mention} onRemove={clearMention} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="relative flex items-center min-h-[48px]" ref={dropdownAnchorRef}>
+              <AnimatePresence mode="wait">
+                {hasMention && mention ? (
+                  /* Inline mention badge - replaces textarea when title selected */
+                  <MentionChip
+                    key="badge"
+                    mention={mention}
+                    onRemove={clearMention}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        handleSubmit();
+                      }
+                    }}
+                  />
+                ) : (
+                  /* Normal textarea input */
+                  <motion.textarea
+                    key="input"
+                    ref={textareaRef}
+                    value={query}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    placeholder="Describe a vibe or type @title..."
+                    disabled={loading}
+                    rows={1}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="h-12 w-full resize-none bg-transparent text-base sm:text-lg text-white placeholder:text-white/30 focus:outline-none disabled:opacity-50 font-medium leading-tight pr-10"
+                  />
+                )}
+              </AnimatePresence>
 
-            <div className="relative" ref={dropdownAnchorRef}>
-              <textarea
-                ref={textareaRef}
-                value={query}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                placeholder={hasMention ? "Press enter to find similar titles..." : "Describe a vibe or type @title..."}
-                disabled={loading}
-                rows={1}
-                className="h-12 w-full resize-none bg-transparent text-base sm:text-lg text-white placeholder:text-white/30 focus:outline-none disabled:opacity-50 font-medium leading-tight pr-10"
-              />
-
-              {/* Clear button - animated enter/exit */}
+              {/* Clear button - only show for textarea (badge has its own X) */}
               <AnimatePresence>
-                {(query || hasMention) && !loading && (
+                {query && !hasMention && !loading && (
                   <motion.button
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -254,10 +256,10 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
                     transition={{ duration: 0.15 }}
                     type="button"
                     onClick={handleClear}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                    className="absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
                     aria-label="Clear search"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </motion.button>
                 )}
               </AnimatePresence>
