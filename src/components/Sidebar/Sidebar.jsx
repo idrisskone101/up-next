@@ -77,12 +77,12 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onCl
   return (
     <>
       {/* Search input */}
-      <div className="shrink-0 mb-4">
+      <div className="shrink-0 px-4 mb-3">
         <SidebarSearch onSearch={handleSearchSubmit} collapsed={!isExpanded} />
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none px-2.5 space-y-6">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none px-4 space-y-4 pb-4">
         {/* DISCOVER section */}
         <SidebarSection title="Discover" collapsed={!isExpanded}>
           <AnimatePresence mode="wait">
@@ -198,9 +198,6 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onCl
           />
         </SidebarSection>
       </div>
-
-      {/* Bottom spacer */}
-      <div className="h-4 shrink-0" />
     </>
   );
 }

@@ -124,7 +124,7 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             aria-label="Navigation menu"
           >
             {/* Header with Logo and Close Button */}
-            <div className="flex items-center justify-between px-4 h-14 border-b border-amber-500/10">
+            <div className="relative flex items-center justify-between px-4 h-14">
               {/* Logo */}
               {logo}
               <motion.button
@@ -137,8 +137,14 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
               </motion.button>
             </div>
 
+            {/* Soft gradient separator */}
+            <div
+              className="h-px w-full bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"
+              aria-hidden="true"
+            />
+
             {/* Drawer content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none pt-3">
               {children}
             </div>
           </motion.aside>
