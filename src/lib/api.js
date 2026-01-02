@@ -167,3 +167,37 @@ export async function fetchRecommendations() {
     throw error;
   }
 }
+
+/**
+ * Search titles by name for @mention feature
+ * @param {string} query - Search query
+ * @param {number} limit - Max results
+ * @param {AbortSignal} signal - AbortController signal
+ * @returns {Promise<Object>} Title search results
+ */
+export async function searchTitles(query, limit = 6, signal = null) {
+  const response = await fetch(
+    `${API_BASE_URL}/titles/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+    { signal }
+  );
+  if (!response.ok) throw new Error('Title search failed');
+  return response.json();
+}
+
+/**
+ * Find titles similar to a given title
+ * @param {number} titleId - Source title ID
+ * @param {string[]|null} kindFilter - Filter by media type
+ * @param {number|null} minReleaseYear - Minimum release year
+ * @param {string[]|null} excludeGenres - Genres to exclude
+ * @returns {Promise<Object>} Similar titles
+ */
+export async function findSimilar(titleId, kindFilter = null, minReleaseYear = null, excludeGenres = null) {
+  const response = await fetch(`${API_BASE_URL}/similar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ titleId, kindFilter, minReleaseYear, excludeGenres })
+  });
+  if (!response.ok) throw new Error('Similar search failed');
+  return response.json();
+}

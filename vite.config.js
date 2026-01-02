@@ -92,5 +92,6 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: ["tabetha-untyped-premorbidly.ngrok-free.dev"],
   },
 });

@@ -4,7 +4,7 @@ import { config } from "./config.js";
  * Simple in-memory cache with TTL support
  * Stores entries as { value, expiry } pairs
  */
-class TTLCache {
+export class TTLCache {
   constructor(ttlMinutes, name = "cache") {
     this.cache = new Map();
     this.ttlMs = ttlMinutes * 60 * 1000;

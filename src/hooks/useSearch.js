@@ -135,6 +135,40 @@ export function useSearch() {
     }
   }, [currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, currentMinReleaseYear, currentExcludeGenres, refreshing]);
 
+  // Set results directly (for similar search)
+  const setSimilarResults = useCallback((similarData, sourceTitle) => {
+    setAllResults(similarData.results || []);
+    setSearchMetadata({
+      query: `Similar to "${sourceTitle}"`,
+      weights: similarData.weights,
+      count: similarData.count,
+      totalCount: similarData.count,
+      isSimilarSearch: true,
+      sourceId: similarData.sourceId,
+      sourceTitle: similarData.sourceTitle,
+    });
+    setCurrentPage(1);
+    setLoading(false);
+  }, []);
+
+  // Start loading state for similar search
+  const startSimilarLoading = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    setCurrentPage(1);
+  }, []);
+
+  // Set error for similar search
+  const setSimilarError = useCallback((err) => {
+    setError({
+      message: err.message || 'An error occurred',
+      timeout: false,
+    });
+    setAllResults([]);
+    setSearchMetadata(null);
+    setLoading(false);
+  }, []);
+
   return {
     results,
     allResults,
@@ -151,5 +185,8 @@ export function useSearch() {
     goToPage,
     refresh,
     reset,
+    setSimilarResults,
+    startSimilarLoading,
+    setSimilarError,
   };
 }

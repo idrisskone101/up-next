@@ -21,7 +21,7 @@ import {
 import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
 import { haptics } from "../lib/haptics";
 import { prefetchTrailers } from "../lib/trailerCache";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 /**
  * Hook to detect current grid column count based on viewport
@@ -151,6 +151,27 @@ export function ResultsGrid({
         >
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
+            {/* Similar Search Header */}
+            <AnimatePresence>
+              {searchMetadata?.isSimilarSearch && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="mb-4 flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm text-white/60">
+                    Titles similar to{" "}
+                    <span className="font-medium text-amber-300">
+                      {searchMetadata.sourceTitle}
+                    </span>
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Filter Bar */}
             <FilterBar
               activeType={typeFilter}

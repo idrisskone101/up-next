@@ -673,3 +673,289 @@ export const cardButtonVariants = {
     transition: { duration: 0.12, ease: [0.4, 0, 1, 1] },
   },
 };
+
+// ============================================
+// MENTION FEATURE ANIMATIONS
+// ============================================
+
+/**
+ * Mention dropdown container - slides down from above with spring
+ * Exit is quick fade-up to avoid lingering
+ */
+export const mentionDropdownVariants = {
+  hidden: {
+    opacity: 0,
+    y: -10,
+    scale: 0.96,
+    filter: "blur(4px)",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: {
+      type: "spring",
+      stiffness: 420,
+      damping: 28,
+      mass: 0.8,
+      filter: { duration: 0.2 },
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -6,
+    scale: 0.98,
+    filter: "blur(2px)",
+    transition: {
+      duration: 0.15,
+      ease: [0.4, 0, 1, 1],
+    },
+  },
+};
+
+/**
+ * Mention dropdown list container - orchestrates stagger
+ */
+export const mentionListContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03,
+      delayChildren: 0.02,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.015,
+      staggerDirection: -1,
+    },
+  },
+};
+
+/**
+ * Mention dropdown item - subtle slide from left
+ */
+export const mentionItemVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 26,
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -4,
+    transition: { duration: 0.1 },
+  },
+};
+
+/**
+ * Mention chip - satisfying spring pop on insert
+ * Exit scales down and slides left
+ */
+export const mentionChipVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.7,
+    filter: "blur(4px)",
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: {
+      type: "spring",
+      stiffness: 380,
+      damping: 22,
+      mass: 0.9,
+      filter: { duration: 0.2 },
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.85,
+    x: -8,
+    filter: "blur(2px)",
+    transition: {
+      duration: 0.18,
+      ease: [0.4, 0, 1, 1],
+    },
+  },
+};
+
+/**
+ * Mention chip remove button - fades in on hover
+ */
+export const mentionRemoveButtonVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.15, ease: "easeOut" },
+  },
+  tap: {
+    scale: 0.85,
+    transition: { duration: 0.08 },
+  },
+};
+
+/**
+ * Loading skeleton shimmer animation
+ */
+export const skeletonShimmer = {
+  initial: { backgroundPosition: "-200% 0" },
+  animate: {
+    backgroundPosition: "200% 0",
+    transition: {
+      duration: 1.5,
+      repeat: Infinity,
+      ease: "linear",
+    },
+  },
+};
+
+/**
+ * Empty state fade-in
+ */
+export const emptyStateVariants = {
+  hidden: { opacity: 0, y: 4 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.25,
+      ease: "easeOut",
+      delay: 0.1,
+    },
+  },
+};
+
+/**
+ * Poster thumbnail hover scale
+ */
+export const posterThumbnailHover = {
+  initial: { scale: 1 },
+  hover: {
+    scale: 1.05,
+    transition: { type: "spring", stiffness: 400, damping: 25 },
+  },
+};
+
+/**
+ * Type badge shimmer on appearance
+ */
+export const typeBadgeVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 450,
+      damping: 28,
+      delay: 0.05,
+    },
+  },
+};
+
+/**
+ * Submit button pulse when mention selected (ready state)
+ */
+export const submitReadyPulse = {
+  scale: [1, 1.06, 1],
+  boxShadow: [
+    "0 0 0 0 rgba(245,158,11,0)",
+    "0 0 20px 4px rgba(245,158,11,0.3)",
+    "0 0 0 0 rgba(245,158,11,0)",
+  ],
+  transition: {
+    duration: 0.6,
+    ease: "easeInOut",
+  },
+};
+
+// ============================================
+// MOBILE MENTION DROPDOWN ANIMATIONS
+// ============================================
+
+/**
+ * Mobile inline dropdown - slides down with snappy spring
+ * No blur filter on mobile for performance
+ */
+export const mentionDropdownMobileVariants = {
+  hidden: {
+    opacity: 0,
+    y: 8,
+    scale: 0.98,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 500,
+      damping: 35,
+      mass: 0.6,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: 4,
+    transition: {
+      duration: 0.12,
+      ease: [0.4, 0, 1, 1],
+    },
+  },
+};
+
+/**
+ * Mobile bottom sheet for cramped viewports (<400px height)
+ * Slides up from bottom with critically damped spring
+ */
+export const mentionBottomSheetVariants = {
+  hidden: {
+    opacity: 0,
+    y: "100%",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 30,
+      mass: 0.8,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: "50%",
+    transition: {
+      duration: 0.15,
+      ease: [0.4, 0, 0.6, 1],
+    },
+  },
+};
+
+/**
+ * Mobile backdrop overlay - quick fade
+ */
+export const mentionBackdropVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.15, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.12, ease: "easeIn" },
+  },
+};

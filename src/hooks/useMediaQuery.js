@@ -1,19 +1,25 @@
 import { useState, useEffect } from "react";
 
 /**
+ * Get initial match value synchronously to prevent flash
+ */
+function getInitialMatch(query) {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(query).matches;
+}
+
+/**
  * SSR-safe media query hook
  * Returns true if the media query matches
+ * Initializes with actual value to prevent layout flash
  */
 export function useMediaQuery(query) {
-  const [matches, setMatches] = useState(false);
+  const [matches, setMatches] = useState(() => getInitialMatch(query));
 
   useEffect(() => {
     const media = window.matchMedia(query);
-
-    // Set initial value
     setMatches(media.matches);
 
-    // Listen for changes
     const listener = (e) => setMatches(e.matches);
     media.addEventListener("change", listener);
 

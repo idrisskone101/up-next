@@ -9,8 +9,8 @@
     --sidebar-expanded: 280px;
 
     /* Surface colors - elevated and card */
-    --surface-elevated: #121218;
-    --surface-card: #1a1a22;
+    --surface-elevated: #121214;
+    --surface-card: #1a1a1e;
 
     /* Sidebar-specific surfaces */
     --sidebar-bg: #0a0a0f;
@@ -26,7 +26,7 @@
     --card: 240 10% 4%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 6%;
+    --popover: 240 5% 7%;
     --popover-foreground: 0 0% 98%;
 
     /* Primary Brand Colors - Warm Amber/Gold */

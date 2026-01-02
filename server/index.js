@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { config } from "./config.js";
 import { searchTitles, checkConnection } from "./search.js";
 import { fetchTrailer } from "./tmdb.js";
+import { findSimilarTitles } from "./similar.js";
 
 // ESM module path resolution
 const __filename = fileURLToPath(import.meta.url);
@@ -83,6 +84,55 @@ function selectDiverseTitles(titles, count = 8) {
 
   return selected.slice(0, count);
 }
+
+/**
+ * Title autocomplete endpoint
+ * GET /api/titles/search?q=inception&limit=6
+ * Returns titles matching search text for @mention feature
+ */
+app.get("/api/titles/search", async (req, res) => {
+  try {
+    const { q, limit = 6 } = req.query;
+
+    if (!q || typeof q !== "string" || q.trim().length === 0) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "Query parameter 'q' is required",
+      });
+    }
+
+    const searchLimit = Math.min(Math.max(parseInt(limit, 10) || 6, 1), 20);
+    const searchTerm = `%${q.trim()}%`;
+
+    console.log(`[TitleSearch] Searching for "${q}" (limit: ${searchLimit})`);
+
+    const { data, error } = await supabase
+      .from("titles")
+      .select("id, title, poster_path, kind, release_date")
+      .ilike("title", searchTerm)
+      .not("poster_path", "is", null)
+      .order("vote_average", { ascending: false })
+      .limit(searchLimit);
+
+    if (error) {
+      console.error("[TitleSearch] Database error:", error);
+      return res.status(500).json({
+        error: "Database query failed",
+        message: error.message,
+      });
+    }
+
+    console.log(`[TitleSearch] Found ${data?.length || 0} results`);
+
+    res.json({ results: data || [] });
+  } catch (error) {
+    console.error("[TitleSearch] Error:", error);
+    res.status(500).json({
+      error: "Failed to search titles",
+      message: error.message,
+    });
+  }
+});
 
 /**
  * Health check endpoint
@@ -267,6 +317,73 @@ app.post("/api/search", async (req, res) => {
       message: error.message,
       fallbackUsed: true,
       weights: { content: 0.4, vibe: 0.35, metadata: 0.25 },
+    });
+  }
+});
+
+/**
+ * Similar titles endpoint
+ * POST /api/similar
+ * Body: { titleId, kindFilter?, minReleaseYear?, excludeGenres? }
+ * Returns titles similar to the given title using vibe-heavy embedding search
+ */
+app.post("/api/similar", async (req, res) => {
+  try {
+    const { titleId, kindFilter = null, minReleaseYear = null, excludeGenres = null } = req.body;
+
+    // Validate titleId (required, positive integer)
+    const id = parseInt(titleId, 10);
+    if (!titleId || isNaN(id) || id <= 0) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "titleId must be a positive integer",
+      });
+    }
+
+    // Validate kindFilter if provided
+    if (kindFilter !== null && !Array.isArray(kindFilter)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "kindFilter must be an array or null",
+      });
+    }
+
+    // Validate minReleaseYear if provided
+    if (minReleaseYear !== null && (typeof minReleaseYear !== "number" || minReleaseYear < 1800 || minReleaseYear > 2100)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "minReleaseYear must be a number between 1800 and 2100",
+      });
+    }
+
+    // Validate excludeGenres if provided
+    if (excludeGenres !== null && !Array.isArray(excludeGenres)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "excludeGenres must be an array of genre strings",
+      });
+    }
+
+    const startTime = Date.now();
+    const result = await findSimilarTitles(id, kindFilter, minReleaseYear, excludeGenres);
+    const duration = Date.now() - startTime;
+
+    console.log(`[Similar] Completed in ${duration}ms`);
+
+    res.json(result);
+  } catch (error) {
+    console.error("[API] Similar error:", error);
+
+    if (error.message.includes("not found")) {
+      return res.status(404).json({
+        error: "Not found",
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      error: "Similar search failed",
+      message: error.message,
     });
   }
 });

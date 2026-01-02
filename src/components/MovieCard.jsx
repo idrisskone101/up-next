@@ -3,17 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "./ui/badge";
 import { Film, Star, Info, Play } from "lucide-react";
 import {
-  springConfigs,
-  cardVariants,
   use3DTilt,
   cardOverlayVariants,
   cardButtonVariants,
   prefersReducedMotion,
 } from "../lib/animations";
 import { haptics } from "../lib/haptics";
-
-// Detect touch device to skip hover overlay
-const isTouchDevice = typeof window !== "undefined" && "ontouchstart" in window;
+import { useIsMobile } from "../hooks/useMediaQuery";
 
 /**
  * Individual movie/TV show card component with bouncy animations, 3D tilt effect,
@@ -38,9 +34,13 @@ export function MovieCard({
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef(null);
   const { handleMouseMove, handleMouseLeave } = use3DTilt(cardRef, 5);
+  const isMobile = useIsMobile();
 
   // Check reduced motion preference
   const reducedMotion = prefersReducedMotion();
+
+  // Disable hover effects on mobile
+  const disableHover = reducedMotion || isMobile;
 
   const posterUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
@@ -68,21 +68,19 @@ export function MovieCard({
         zIndex: isHovered ? 50 : 10,
         isolation: "isolate",
       }}
-      onHoverStart={() => setIsHovered(true)}
+      onHoverStart={() => !isMobile && setIsHovered(true)}
       onHoverEnd={() => {
-        setIsHovered(false);
-        handleMouseLeave();
+        if (!isMobile) {
+          setIsHovered(false);
+          handleMouseLeave();
+        }
       }}
     >
       <motion.button
         type="button"
         onClick={handleClick}
-        variants={reducedMotion ? {} : cardVariants}
-        initial={reducedMotion ? { opacity: 1 } : "hidden"}
-        animate={reducedMotion ? { opacity: 1 } : "visible"}
-        exit={reducedMotion ? { opacity: 0 } : "exit"}
         whileHover={
-          reducedMotion
+          disableHover
             ? {}
             : {
                 scale: 1.04,
@@ -95,8 +93,7 @@ export function MovieCard({
                 },
               }
         }
-        whileTap={reducedMotion ? {} : { scale: 0.97, transition: { duration: 0.08 } }}
-        custom={index}
+        whileTap={disableHover ? {} : { scale: 0.97, transition: { duration: 0.08 } }}
         className="group relative flex w-full flex-col gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background perspective-1000"
         style={{
           opacity: isDimmed ? 0.5 : 1,
@@ -114,14 +111,14 @@ export function MovieCard({
           {/* Poster */}
           <div className="relative h-full w-full">
             {posterUrl ? (
-              <motion.img
+              <img
                 src={posterUrl}
                 alt={title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover transition-transform duration-200"
                 loading="lazy"
-                initial={{ scale: 1 }}
-                animate={reducedMotion ? { scale: 1 } : { scale: isHovered ? 1.04 : 1 }}
-                transition={reducedMotion ? { duration: 0 } : springConfigs.snappy}
+                style={{
+                  transform: !disableHover && isHovered ? "scale(1.04)" : "scale(1)",
+                }}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-muted-foreground/40 bg-muted/20">
@@ -130,35 +127,30 @@ export function MovieCard({
             )}
           </div>
 
-          {/* Gradient overlay - always present on hover for info overlay */}
+          {/* Gradient overlay - desktop hover only */}
           <motion.div
             className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"
             initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={reducedMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
+            animate={{ opacity: !disableHover && isHovered ? 1 : 0 }}
+            transition={disableHover ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
           />
 
           {/* Subtle border */}
           <div className="absolute inset-0 rounded-xl pointer-events-none border border-white/10" />
 
           {/* Kind Badge */}
-          <motion.div
-            className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 hidden xs:block z-20"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ ...springConfigs.bouncy, delay: index * 0.05 + 0.2 }}
-          >
+          <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 hidden xs:block z-20">
             <Badge
               variant="outline"
               className="bg-black/50 backdrop-blur-md border-white/10 text-white/90 uppercase tracking-wider text-[8px] px-1.5 py-0.5 sm:text-[10px] sm:px-2.5 sm:py-1"
             >
               {kind === "tv" ? "TV" : "Movie"}
             </Badge>
-          </motion.div>
+          </div>
 
           {/* Info Overlay - Desktop only, appears on hover */}
           <AnimatePresence mode="wait">
-            {!isTouchDevice && isHovered && (
+            {!isMobile && isHovered && (
               <motion.div
                 className="absolute inset-x-0 bottom-0 p-3 z-30"
                 variants={reducedMotion ? {} : cardOverlayVariants}
@@ -225,12 +217,7 @@ export function MovieCard({
         </div>
 
         {/* Content below card */}
-        <motion.div
-          className="space-y-1 px-0.5"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...springConfigs.bouncy, delay: index * 0.05 + 0.1 }}
-        >
+        <div className="space-y-1 px-0.5">
           <h3 className="text-sm font-bold leading-tight text-foreground line-clamp-1 sm:text-base">
             {title}
           </h3>
@@ -245,7 +232,7 @@ export function MovieCard({
               </span>
             )}
           </div>
-        </motion.div>
+        </div>
       </motion.button>
     </motion.div>
   );

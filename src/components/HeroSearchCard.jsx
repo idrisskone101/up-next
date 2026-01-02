@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
 import { ArrowUp, X, Sparkles, Heart, Skull, Brain, Popcorn, Moon, Flame, Clock } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { QUERY_CATEGORIES } from "../lib/categories";
+import { useMentions } from "../hooks/useMentions";
+import { MentionDropdown } from "./MentionDropdown";
+import { MentionChip } from "./MentionChip";
+import { submitReadyPulse, prefersReducedMotion } from "../lib/animations";
 
 // Icon map for dynamic icon lookup
 const ICON_MAP = {
@@ -16,7 +20,7 @@ const ICON_MAP = {
   Clock
 };
 
-export function HeroSearchCard({ onSearch, loading }) {
+export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
   const [query, setQuery] = useState("");
   const [moviesEnabled, setMoviesEnabled] = useState(false);
   const [tvEnabled, setTvEnabled] = useState(false);
@@ -25,6 +29,25 @@ export function HeroSearchCard({ onSearch, loading }) {
   const textareaRef = useRef(null);
   const categoryScrollRef = useRef(null);
   const queryScrollRef = useRef(null);
+  const dropdownAnchorRef = useRef(null);
+  const submitButtonControls = useAnimationControls();
+  const reducedMotion = prefersReducedMotion();
+
+  // Mention state
+  const {
+    mention,
+    triggerInfo,
+    hasMention,
+    detectTrigger,
+    setMention,
+    clearMention,
+    closeTrigger,
+    resetMentions,
+  } = useMentions();
+
+  // Dropdown keyboard navigation state (lifted from MentionDropdown)
+  const [dropdownSelectedIndex, setDropdownSelectedIndex] = useState(0);
+  const [dropdownResults, setDropdownResults] = useState([]);
 
   useEffect(() => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -33,13 +56,28 @@ export function HeroSearchCard({ onSearch, loading }) {
     }
   }, []);
 
-  // Auto-resize textarea
+  // Pulse submit button when mention is selected (ready state)
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+    if (hasMention && !reducedMotion) {
+      submitButtonControls.start(submitReadyPulse);
     }
-  }, [query]);
+  }, [hasMention, submitButtonControls, reducedMotion]);
+
+  // Reset dropdown selection when dropdown opens or results change
+  const prevActiveRef = useRef(false);
+  useEffect(() => {
+    if (triggerInfo.active && !prevActiveRef.current) {
+      setDropdownSelectedIndex(0);
+    }
+    prevActiveRef.current = triggerInfo.active;
+  }, [triggerInfo.active]);
+
+  // Always select first result when results update (prevents flickering)
+  useEffect(() => {
+    if (dropdownResults.length > 0) {
+      setDropdownSelectedIndex(0);
+    }
+  }, [dropdownResults]);
 
   const getKindFilter = () => {
     if (moviesEnabled && !tvEnabled) return ["movie"];
@@ -49,17 +87,76 @@ export function HeroSearchCard({ onSearch, loading }) {
 
   const handleSubmit = (event) => {
     event?.preventDefault();
+    textareaRef.current?.blur();
+
+    // If mention exists, use similar search
+    if (hasMention && mention) {
+      onSimilarSearch?.(mention.id, getKindFilter());
+      return;
+    }
+
+    // Regular search
     if (query.trim()) {
-      textareaRef.current?.blur();
       onSearch(query.trim(), getKindFilter());
     }
   };
 
   const handleKeyDown = (event) => {
+    // Handle dropdown navigation when active
+    if (triggerInfo.active && triggerInfo.searchText.length >= 1) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setDropdownSelectedIndex(prev => Math.min(prev + 1, dropdownResults.length - 1));
+        return;
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+      if (event.key === 'Enter' && dropdownResults.length > 0) {
+        event.preventDefault();
+        handleMentionSelect(dropdownResults[dropdownSelectedIndex]);
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        resetMentions();
+        return;
+      }
+      return;
+    }
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSubmit();
     }
+  };
+
+  // Handle text input change with mention detection
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setQuery(newValue);
+    detectTrigger(newValue, e.target.selectionStart);
+  };
+
+  // Handle mention selection from dropdown
+  const handleMentionSelect = (title) => {
+    setMention({
+      id: title.id,
+      title: title.title,
+      poster_path: title.poster_path,
+      kind: title.kind,
+    });
+    // Clear the @query text from the input
+    const beforeAt = query.slice(0, triggerInfo.startIndex);
+    const afterQuery = query.slice(triggerInfo.startIndex + 1 + triggerInfo.searchText.length);
+    setQuery(beforeAt + afterQuery);
+    textareaRef.current?.focus();
+  };
+
+  // Close dropdown (keep text and input focused)
+  const handleDropdownClose = () => {
+    closeTrigger();
   };
 
   const handleToggleMovies = () => {
@@ -91,6 +188,7 @@ export function HeroSearchCard({ onSearch, loading }) {
 
   const handleClear = () => {
     setQuery("");
+    resetMentions();
     textareaRef.current?.focus();
   };
 
@@ -111,25 +209,44 @@ export function HeroSearchCard({ onSearch, loading }) {
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           {/* Textarea Area */}
-          <div className="px-5 pt-5 pb-3 sm:px-7 sm:pt-7 sm:pb-4">
-            <div className="relative">
+          <div className="px-4 pt-4 pb-3 sm:px-6 sm:pt-5 sm:pb-4">
+            {/* Mention Chip - shown above textarea when selected */}
+            <AnimatePresence mode="wait">
+              {hasMention && mention && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 8 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 30,
+                    opacity: { duration: 0.15 },
+                  }}
+                  className="overflow-hidden"
+                >
+                  <MentionChip mention={mention} onRemove={clearMention} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="relative" ref={dropdownAnchorRef}>
               <textarea
                 ref={textareaRef}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder="I want something cozy but not corny, like Before Sunrise vibes..."
+                placeholder={hasMention ? "Press enter to find similar titles..." : "Describe a vibe or type @title..."}
                 disabled={loading}
                 rows={1}
-                className="w-full resize-none bg-transparent text-lg sm:text-xl text-white placeholder:text-white/25 focus:outline-none disabled:opacity-50 font-medium leading-relaxed pr-10"
-                style={{ minHeight: "56px", maxHeight: "150px" }}
+                className="h-12 w-full resize-none bg-transparent text-base sm:text-lg text-white placeholder:text-white/30 focus:outline-none disabled:opacity-50 font-medium leading-tight pr-10"
               />
 
               {/* Clear button - animated enter/exit */}
               <AnimatePresence>
-                {query && !loading && (
+                {(query || hasMention) && !loading && (
                   <motion.button
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -137,13 +254,23 @@ export function HeroSearchCard({ onSearch, loading }) {
                     transition={{ duration: 0.15 }}
                     type="button"
                     onClick={handleClear}
-                    className="absolute right-0 top-1 flex h-8 w-8 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
                     aria-label="Clear search"
                   >
                     <X className="h-4 w-4" />
                   </motion.button>
                 )}
               </AnimatePresence>
+
+              {/* Dropdown anchor */}
+              <MentionDropdown
+                anchorRef={dropdownAnchorRef}
+                triggerInfo={triggerInfo}
+                onSelect={handleMentionSelect}
+                onClose={handleDropdownClose}
+                selectedIndex={dropdownSelectedIndex}
+                onResultsChange={setDropdownResults}
+              />
             </div>
           </div>
 
@@ -181,16 +308,26 @@ export function HeroSearchCard({ onSearch, loading }) {
             <motion.button
               type="button"
               onClick={handleSubmit}
-              disabled={loading || !query.trim()}
+              disabled={loading || (!query.trim() && !hasMention)}
+              animate={submitButtonControls}
               whileHover={{ scale: 1.08, rotate: -2 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] active:bg-amber-500/20 active:border-amber-500/50 active:text-amber-300 disabled:bg-white/[0.03] disabled:border-white/[0.05] disabled:text-white/30 disabled:cursor-not-allowed"
-              aria-label="Search"
+              className={`flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 ${
+                hasMention
+                  ? "bg-amber-500/15 border border-amber-500/40 text-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.2)]"
+                  : "bg-white/[0.06] border border-amber-500/25 text-white/85"
+              } hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] active:bg-amber-500/20 active:border-amber-500/50 active:text-amber-300 disabled:bg-white/[0.03] disabled:border-white/[0.05] disabled:text-white/30 disabled:cursor-not-allowed disabled:shadow-none`}
+              aria-label={hasMention ? "Find similar" : "Search"}
             >
               {loading ? (
                 <Spinner size={20} className="text-white" ariaLabel="Searching..." />
               ) : (
-                <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+                <motion.div
+                  animate={hasMention ? { rotate: [0, -10, 10, 0] } : {}}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                >
+                  <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+                </motion.div>
               )}
             </motion.button>
           </div>
@@ -250,20 +387,16 @@ export function HeroSearchCard({ onSearch, loading }) {
               className="flex gap-2 overflow-x-auto scrollbar-none px-1 pb-2 -mx-1 scroll-smooth"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              {QUERY_CATEGORIES.find(c => c.id === activeCategory)?.queries.map((q, idx) => (
-                <motion.button
+              {QUERY_CATEGORIES.find(c => c.id === activeCategory)?.queries.map((q) => (
+                <button
                   key={q}
                   type="button"
                   onClick={() => handleExampleClick(q)}
                   disabled={loading}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: idx * 0.02, duration: 0.15 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0 bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] text-white/60 hover:text-white/90 hover:border-white/15 hover:from-white/[0.1] hover:to-white/[0.04] hover:shadow-lg hover:shadow-black/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap transition-all duration-200 shrink-0 bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] text-white/60 hover:text-white/90 hover:border-white/15 hover:from-white/[0.1] hover:to-white/[0.04] hover:shadow-lg hover:shadow-black/20 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {q}
-                </motion.button>
+                </button>
               ))}
             </motion.div>
           </AnimatePresence>

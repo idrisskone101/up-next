@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Film, Tv, LayoutGrid, RefreshCw } from "lucide-react";
 import { haptics } from "../lib/haptics";
-import { springConfigs, prefersReducedMotion } from "../lib/animations";
+import { springConfigs } from "../lib/animations";
 
 const typeOptions = [
   { value: "all", label: "All", icon: LayoutGrid },
@@ -15,28 +15,6 @@ const sortOptions = [
   { value: "rating", label: "Rating" },
 ];
 
-// Container animation for stagger effect
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 8, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: springConfigs.snappy,
-  },
-};
-
 /**
  * Filter bar with type filter, sort controls, and refresh button
  */
@@ -48,20 +26,10 @@ export function FilterBar({
   onRefresh,
   isRefreshing = false,
 }) {
-  const reduceMotion = prefersReducedMotion();
-
   return (
-    <motion.div
-      className="flex items-center gap-3 mb-6 overflow-x-auto scrollbar-none py-1"
-      variants={reduceMotion ? undefined : containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <div className="flex items-center gap-3 mb-6 overflow-x-auto scrollbar-none py-1">
       {/* Type filter */}
-      <motion.div
-        variants={reduceMotion ? undefined : itemVariants}
-        className="flex gap-1 shrink-0"
-      >
+      <div className="flex gap-1 shrink-0">
         {typeOptions.map(({ value, label, icon: Icon }) => {
           const isActive = activeType === value;
           return (
@@ -85,17 +53,13 @@ export function FilterBar({
             </motion.button>
           );
         })}
-      </motion.div>
+      </div>
 
       {/* Divider */}
-      <motion.div
-        variants={reduceMotion ? undefined : itemVariants}
-        className="w-px h-6 bg-white/10 shrink-0"
-      />
+      <div className="w-px h-6 bg-white/10 shrink-0" />
 
       {/* Sort dropdown */}
-      <motion.select
-        variants={reduceMotion ? undefined : itemVariants}
+      <select
         value={activeSort}
         onChange={(e) => {
           haptics.light();
@@ -113,17 +77,13 @@ export function FilterBar({
             Sort: {label}
           </option>
         ))}
-      </motion.select>
+      </select>
 
       {/* Refresh button */}
       {onRefresh && (
         <>
-          <motion.div
-            variants={reduceMotion ? undefined : itemVariants}
-            className="w-px h-6 bg-white/10 shrink-0"
-          />
+          <div className="w-px h-6 bg-white/10 shrink-0" />
           <motion.button
-            variants={reduceMotion ? undefined : itemVariants}
             onClick={() => {
               if (!isRefreshing) {
                 haptics.light();
@@ -149,6 +109,6 @@ export function FilterBar({
           </motion.button>
         </>
       )}
-    </motion.div>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import { AlertCircle, ArrowUp, X, Menu } from "lucide-react";
+import { AlertCircle, ArrowUp, X, Menu, Sparkles } from "lucide-react";
 import { Button } from "./components/ui/button";
 import {
   Card,
@@ -24,6 +24,7 @@ import { useRecommendations } from "./hooks/useRecommendations";
 import { useSidebar } from "./contexts/SidebarContext";
 import { springConfigs } from "./lib/animations";
 import { haptics } from "./lib/haptics";
+import { findSimilar } from "./lib/api";
 
 /**
  * Mobile hamburger menu button
@@ -135,7 +136,7 @@ const pageTransition = {
 };
 
 function AppContent() {
-  const { results, loading, refreshing, error, searchMetadata, hasMore, currentPage, totalPages, search, loadMore, goToPage, refresh, reset } = useSearch();
+  const { results, loading, refreshing, error, searchMetadata, hasMore, currentPage, totalPages, search, loadMore, goToPage, refresh, reset, setSimilarResults, startSimilarLoading, setSimilarError } = useSearch();
   const { addSearch } = useRecentSearches();
   const { recommendations, loading: recsLoading, error: recsError } = useRecommendations();
   const [compactQuery, setCompactQuery] = useState("");
@@ -167,6 +168,7 @@ function AppContent() {
   };
 
   const handleSearch = (query, kindFilter) => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setCompactQuery(query);
     addSearch(query);
     // If kindFilter explicitly passed, use it (and update typeFilter state)
@@ -179,8 +181,23 @@ function AppContent() {
     }
   };
 
+  // Handle @mention similar search
+  const handleSimilarSearch = async (titleId, kindFilter) => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    startSimilarLoading();
+    setCompactQuery(""); // Clear compact query for similar search
+
+    try {
+      const data = await findSimilar(titleId, kindFilter);
+      setSimilarResults(data, data.sourceTitle);
+    } catch (err) {
+      setSimilarError(err);
+    }
+  };
+
   // Handle type filter change - re-run current search with new filter
   const handleTypeFilterChange = (newFilter) => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setTypeFilter(newFilter);
     if (searchMetadata?.query) {
       search(searchMetadata.query, 80, 0, getKindFilterArray(newFilter));
@@ -229,6 +246,7 @@ function AppContent() {
 
   // More Like This - search for similar movies based on vibes/genres
   const handleMoreLikeThis = (movie) => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
     const vibes = movie.vibes || [];
     const genres = movie.genres || [];
 
@@ -314,7 +332,7 @@ function AppContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
                   >
-                    <HeroSearchCard onSearch={handleSearch} loading={loading} />
+                    <HeroSearchCard onSearch={handleSearch} onSimilarSearch={handleSimilarSearch} loading={loading} />
                   </motion.div>
                 </div>
               </div>

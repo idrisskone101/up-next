@@ -236,7 +236,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
       className="fixed top-0 left-0 h-dvh z-[60] flex flex-col border-r border-white/[0.06] overflow-hidden will-change-[width] bg-[#0a0a0f]"
       style={{
         backgroundImage: `
-          linear-gradient(180deg, rgba(12, 12, 14, 0.95) 0%, rgba(10, 10, 12, 1) 100%),
+          linear-gradient(180deg, rgba(18, 18, 20, 0.95) 0%, rgba(10, 10, 12, 1) 100%),
           radial-gradient(ellipse at 30% 10%, rgba(245, 158, 11, 0.03) 0%, transparent 60%)
         `
       }}
