@@ -4,7 +4,7 @@ export function Card({ className, ...props }) {
   return (
     <div
       className={cn(
-        "surface rounded-2xl border border-border/60 bg-card/85 text-card-foreground shadow-soft",
+        "surface rounded-2xl border border-brand-cream/40 bg-[#FFFCF5] text-gray-900 shadow-lg",
         className,
       )}
       {...props}
@@ -36,7 +36,7 @@ export function CardTitle({ className, ...props }) {
 export function CardDescription({ className, ...props }) {
   return (
     <p
-      className={cn("text-sm text-muted-foreground leading-relaxed", className)}
+      className={cn("text-sm text-gray-500 leading-relaxed", className)}
       {...props}
     />
   );

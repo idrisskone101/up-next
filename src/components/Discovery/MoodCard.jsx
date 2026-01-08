@@ -1,27 +1,32 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { springConfigs } from "../../lib/animations";
 import { haptics } from "../../lib/haptics";
 
 /**
- * Mood gradients - warm cinema aesthetics with amber accents
+ * Mood gradients - warm light mode aesthetics with brand golden accents
  */
 const MOOD_GRADIENTS = {
-  vibes: "from-purple-600/80 to-pink-500/80",
-  moods: "from-rose-600/80 to-red-500/80",
-  chaos: "from-orange-600/80 to-amber-500/80",
-  brainy: "from-cyan-600/80 to-blue-500/80",
-  dark: "from-slate-800/90 to-gray-900/90",
-  comfort: "from-amber-500/80 to-yellow-400/80",
-  late: "from-indigo-700/80 to-violet-600/80",
-  specific: "from-emerald-600/80 to-teal-500/80"
+  vibes: "from-purple-500/90 to-pink-500/90",
+  moods: "from-rose-500/90 to-red-500/90",
+  chaos: "from-brand-orange/90 to-brand-golden/90",
+  brainy: "from-cyan-500/90 to-blue-500/90",
+  dark: "from-slate-700/95 to-gray-800/95",
+  comfort: "from-brand-golden/90 to-yellow-400/90",
+  late: "from-indigo-600/90 to-violet-500/90",
+  specific: "from-emerald-500/90 to-teal-500/90"
 };
 
 /**
  * Large category/mood card for "Browse by Mood" grid
- * Aspect ratio 16:9 with gradient background
+ * Aspect ratio 16:9 with gradient background and playful micro-interactions
  */
 export function MoodCard({ id, label, icon: Icon, onClick }) {
   const gradient = MOOD_GRADIENTS[id] || MOOD_GRADIENTS.vibes;
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Random rotation for playful hover effect (-2 to 2 degrees)
+  const hoverRotation = useMemo(() => (Math.random() - 0.5) * 4, []);
 
   const handleClick = () => {
     haptics.light();
@@ -35,7 +40,7 @@ export function MoodCard({ id, label, icon: Icon, onClick }) {
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       transition={springConfigs.snappy}
-      className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0f] group"
+      className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-golden/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white group"
     >
       {/* Gradient background */}
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
@@ -49,7 +54,7 @@ export function MoodCard({ id, label, icon: Icon, onClick }) {
       />
 
       {/* Border */}
-      <div className="absolute inset-0 rounded-2xl border border-white/10 group-hover:border-white/20 transition-colors duration-200" />
+      <div className="absolute inset-0 rounded-2xl border border-white/20 group-hover:border-white/30 transition-colors duration-200" />
 
       {/* Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -58,7 +63,7 @@ export function MoodCard({ id, label, icon: Icon, onClick }) {
           whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
           transition={{ duration: 0.3 }}
         >
-          <Icon className="w-10 h-10 text-white/90 mb-2 drop-shadow-lg" />
+          <Icon className="w-10 h-10 text-white mb-2 drop-shadow-lg" />
         </motion.div>
         <span className="text-xl font-heading font-bold text-white drop-shadow-lg">
           {label}
@@ -68,8 +73,8 @@ export function MoodCard({ id, label, icon: Icon, onClick }) {
       {/* Shadow lift */}
       <motion.div
         className="absolute inset-0 rounded-2xl pointer-events-none"
-        initial={{ boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
-        whileHover={{ boxShadow: "0 16px 40px rgba(0,0,0,0.4)" }}
+        initial={{ boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+        whileHover={{ boxShadow: "0 16px 40px rgba(0,0,0,0.2)" }}
         transition={{ duration: 0.2 }}
       />
     </motion.button>

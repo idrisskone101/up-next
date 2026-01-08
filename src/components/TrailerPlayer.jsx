@@ -80,23 +80,19 @@ export function TrailerPlayer({ tmdbId, mediaType = "movie", title }) {
 
   if (error || !trailer) {
     return (
-      <div className="w-full aspect-video bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg flex items-center justify-center border border-white/10">
-        <div className="flex flex-col items-center gap-2 px-4 text-center">
-          <svg
-            className="w-12 h-12 text-white/20"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
-          <p className="text-sm text-white/60">
-            {error || "No trailer available"}
+      <div className="w-full aspect-video bg-gradient-to-br from-[#1a1714] via-[#0d0b09] to-[#1a1714] rounded-lg flex items-center justify-center border border-brand-golden/20 relative overflow-hidden">
+        {/* Subtle decorative corners */}
+        <div className="absolute top-3 left-3 w-8 h-8 border-l-2 border-t-2 border-brand-golden/20 rounded-tl-lg" />
+        <div className="absolute bottom-3 right-3 w-8 h-8 border-r-2 border-b-2 border-brand-golden/20 rounded-br-lg" />
+
+        <div className="flex flex-col items-center gap-3 px-6 text-center">
+          {/* Playful emoji with subtle animation */}
+          <span className="text-4xl animate-pulse">🎬</span>
+          <p className="text-base font-medium text-white/70">
+            No trailer yet
+          </p>
+          <p className="text-xs text-white/40 max-w-[200px]">
+            Check streaming services for this one!
           </p>
         </div>
       </div>

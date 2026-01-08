@@ -2,27 +2,27 @@
 
 **Apply this system to ALL frontend changes. No exceptions.**
 
-**Inspiration:** Arc browser (minimal chrome, command palette, clean sidebar) + Spotify (discovery feeds, rich cards, smooth transitions)
+**Brand Archetype:** Jester - Playful, warm, optimistic, relatable
 
 ---
 
-## Foundation: Cinematic Command Center
+## Foundation: Warm & Inviting Light Mode
 
-Discovery-first dark interface with warm amber accents. Think "Arc browser meets private screening room" - minimal, spatial, and inviting exploration.
+Discovery-first light interface with warm accent colors. Think "friendly movie companion" - approachable, playful, and inviting.
 
 ### Core Principles
 
-1. **Discovery over search** - Content surfaces before you ask
-2. **Spatial organization** - Sidebar provides persistent context
-3. **Progressive disclosure** - Collapsed states reveal depth on demand
-4. **Warm darkness** - Amber accents prevent cold/sterile feeling
-5. **Fluid transitions** - Every state change is animated and purposeful
+1. **Delightful interactions** - Subtle animations, playful micro-interactions
+2. **Warm and inviting** - Cream/golden accents prevent cold/sterile feeling
+3. **Simple and intuitive** - Ease of use, clear navigation
+4. **Touch-first** - Minimum 44px targets
+5. **Paired animations** - Every enter has matching exit
 
 ---
 
 ## Layout System
 
-### Sidebar Pattern (Arc-inspired)
+### Sidebar Pattern
 
 ```
 +--------+------------------------------------------------+
@@ -45,13 +45,13 @@ Discovery-first dark interface with warm amber accents. Think "Arc browser meets
 ```css
 --sidebar-collapsed: 64px;
 --sidebar-expanded: 280px;
---surface-elevated: #121218;
---surface-card: #1a1a22;
+--surface-elevated: #FFFCF5;  /* cream-white */
+--surface-card: #FFFCF5;
+--sidebar-bg: #F8F6EE;         /* warm cream undertone */
 ```
 
 ### Command Palette (Cmd+K)
 
-Arc-inspired overlay for power users:
 - Instant open (no delay)
 - Recent searches + suggestions + actions
 - Keyboard navigation (arrows + Enter)
@@ -61,54 +61,62 @@ Arc-inspired overlay for power users:
 
 ## Color System
 
-### Core Palette
+### Brand Palette
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| Cream | `#F0ECAC` | Soft accents, hover fills, subtle highlights |
+| Golden | `#EEC745` | Primary buttons, CTAs, excellent match badges |
+| Orange-red | `#E04A28` | Hover states, secondary emphasis, good badges |
+| Deep red | `#B01110` | Logo accent, links, strong emphasis |
+
+### Core Surfaces (Warm Cream System)
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--bg-base` | `#0a0a0f` | Primary background |
-| `--bg-elevated` | `#121218` | Sidebar, elevated surfaces |
-| `--bg-surface` | `#1a1a22` | Cards, modals |
-| `--bg-overlay` | `rgba(10,10,15,0.8)` | Modal/palette backdrops |
+| `--bg-base` | `#FAF8F0` | Primary background (cream-tinted) |
+| `--bg-elevated` | `#FFFCF5` | Sidebar, elevated surfaces (cream-white) |
+| `--bg-surface` | `#FFFCF5` | Cards, modals, popovers |
+| `--bg-overlay` | `rgba(0,0,0,0.5)` | Modal/palette backdrops |
 
-### Surface Opacity Scale
+### Surface Scale (Brand-Tinted)
 
 | Element | Value | Usage |
 |---------|-------|-------|
-| Surface low | `bg-white/[0.03]` | Subtle backgrounds |
-| Surface mid | `bg-white/[0.06]` | Hover states, cards |
-| Surface high | `bg-white/[0.10]` | Active/pressed states |
-| Border subtle | `border-white/[0.06]` | Dividers, sidebar border |
-| Border normal | `border-white/[0.08]` | Card borders |
-| Border hover | `border-white/[0.15]` | Hover state borders |
+| Surface low | `bg-brand-cream/20` | Subtle backgrounds, inactive buttons |
+| Surface mid | `bg-brand-cream/30` | Hover states, pills |
+| Surface high | `bg-brand-cream/40` | Active/pressed states |
+| Border subtle | `border-brand-cream/40` | Dividers, card borders |
+| Border hover | `border-brand-cream/50` | Hover state borders |
+| Border active | `border-brand-golden/40` | Focus/active borders |
 
 ### Text Hierarchy
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| Primary | `text-white/90` | Headings, important text |
-| Secondary | `text-white/65` | Body text, descriptions |
-| Muted | `text-white/40` | Placeholders, hints, section labels |
-| Accent | `text-amber-300` | Links, active items |
+| Primary | `text-gray-900` | Headings, important text |
+| Secondary | `text-gray-600` | Body text, descriptions |
+| Muted | `text-gray-400` | Placeholders, hints, section labels |
+| Accent | `text-brand-red` | Links, active items |
 
-### Amber Accent System (ONLY amber - no cyan)
+### Accent Colors (Tailwind)
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `amber-300` | `#FCD34D` | Active text |
-| `amber-400` | `#FBBF24` | Primary buttons |
-| `amber-500` | `#F59E0B` | Hover accents |
-| `amber-600` | `#D97706` | Pressed states |
-| Glow | `rgba(245,158,11,0.15)` | Focus rings, active glows |
+```js
+brand: {
+  cream: '#F0ECAC',
+  golden: '#EEC745',
+  orange: '#E04A28',
+  red: '#B01110',
+}
+```
 
-### Match Badge Colors (Unified Amber)
+### Match Badge Colors
 
 | Tier | Range | Style |
 |------|-------|-------|
-| Excellent | 70%+ | `bg-amber-500/90 text-black font-bold` + sparkle icon |
-| Good | 50-69% | `bg-amber-600/80 text-white` |
-| Fair | <50% | `bg-white/20 text-white/70` |
-
-**IMPORTANT:** Never use cyan/teal for badges. All match indicators use amber scale.
+| Excellent | 70%+ | `bg-brand-golden text-[#481B13] font-bold` + sparkle icon |
+| Good | 50-69% | `bg-brand-orange/80 text-white` |
+| Fair | <50% | `bg-gray-200 text-gray-600` |
 
 ---
 
@@ -117,8 +125,8 @@ Arc-inspired overlay for power users:
 | Role | Font | Weights | Tailwind |
 |------|------|---------|----------|
 | Logo/Brand | Pacifico | 400 | `font-display` |
-| Headings | Outfit | 500, 600, 700 | `font-heading` |
-| Body | Nunito | 400, 500, 600 | `font-sans` |
+| Headings | Rubik | 500, 600, 700 | `font-heading` |
+| Body | Rubik | 400, 500, 600 | `font-sans` |
 
 ### Type Scale
 
@@ -161,31 +169,30 @@ rounded-lg
 ```jsx
 // Expanded state
 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-  text-white/70 hover:text-white/90 hover:bg-white/[0.04]
+  text-gray-600 hover:text-gray-900 hover:bg-gray-100
   transition-colors duration-200"
 
 // Active state
-className="bg-amber-500/15 text-amber-300 border-l-2 border-amber-400"
+className="bg-brand-cream/30 text-brand-red border-l-2 border-brand-red"
 
 // Collapsed state (icon only)
 className="w-11 h-11 flex items-center justify-center rounded-xl
-  text-white/50 hover:text-white/90 hover:bg-white/[0.08]"
+  text-gray-500 hover:text-gray-900 hover:bg-gray-100"
 ```
 
 ### Section Label (Sidebar)
 
 ```jsx
-className="text-xs font-semibold text-white/40 tracking-wider uppercase px-3 mb-2"
+className="text-xs font-semibold text-gray-400 tracking-wider uppercase px-3 mb-2"
 ```
 
 ### Pills/Chips (Inactive)
 
 ```jsx
 className="px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap
-  bg-gradient-to-br from-white/[0.06] to-white/[0.02]
-  border border-white/[0.08] text-white/60
-  hover:text-white/90 hover:border-white/15
-  hover:from-white/[0.1] hover:to-white/[0.04]
+  bg-gray-100 border border-gray-200 text-gray-600
+  hover:text-gray-900 hover:border-gray-300
+  hover:bg-gray-200
   transition-all duration-200"
 ```
 
@@ -193,19 +200,19 @@ className="px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap
 
 ```jsx
 className="px-4 py-2.5 rounded-2xl text-sm font-medium
-  bg-amber-500/20 text-amber-300
-  border border-amber-500/30
-  shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+  bg-brand-golden/20 text-brand-orange
+  border border-brand-golden/30
+  shadow-[0_0_12px_rgba(238,199,69,0.15)]"
 ```
 
 ### Primary Button
 
 ```jsx
 className="h-11 px-6 rounded-full
-  bg-gradient-to-br from-amber-400 to-amber-600
+  bg-gradient-to-br from-brand-golden to-brand-orange
   text-white font-semibold
-  shadow-lg shadow-amber-500/25
-  hover:shadow-amber-500/40
+  shadow-lg shadow-brand-golden/25
+  hover:shadow-brand-golden/40
   transition-all duration-200"
 ```
 
@@ -213,9 +220,9 @@ className="h-11 px-6 rounded-full
 
 ```jsx
 className="h-11 px-5 rounded-full
-  bg-white/[0.06] border border-white/10
-  text-white/80 font-medium
-  hover:bg-white/[0.1] hover:text-white
+  bg-gray-100 border border-gray-200
+  text-gray-700 font-medium
+  hover:bg-gray-200 hover:text-gray-900
   transition-colors"
 ```
 
@@ -223,9 +230,9 @@ className="h-11 px-5 rounded-full
 
 ```jsx
 className="w-11 h-11 rounded-xl
-  bg-white/[0.04] border border-white/[0.06]
+  bg-gray-100 border border-gray-200
   flex items-center justify-center
-  text-white/70 hover:bg-white/[0.08] hover:text-white
+  text-gray-600 hover:bg-gray-200 hover:text-gray-900
   transition-colors"
 ```
 
@@ -233,10 +240,10 @@ className="w-11 h-11 rounded-xl
 
 ```jsx
 className="h-14 px-5 rounded-2xl w-full
-  bg-white/[0.04] border border-white/[0.08]
-  text-lg text-white placeholder:text-white/35
-  focus:bg-white/[0.06] focus:border-amber-500/40
-  focus:shadow-[0_0_20px_rgba(245,158,11,0.1)]
+  bg-white border border-gray-200
+  text-lg text-gray-900 placeholder:text-gray-400
+  focus:bg-white focus:border-brand-golden/50
+  focus:shadow-[0_0_20px_rgba(238,199,69,0.15)]
   transition-all outline-none"
 ```
 
@@ -244,18 +251,18 @@ className="h-14 px-5 rounded-2xl w-full
 
 ```jsx
 className="h-10 pl-9 pr-4 rounded-xl w-full
-  bg-white/[0.06] border border-transparent
-  text-sm text-white placeholder:text-white/40
-  focus:border-white/15 focus:bg-white/[0.08]
+  bg-gray-100 border border-transparent
+  text-sm text-gray-900 placeholder:text-gray-400
+  focus:border-gray-300 focus:bg-white
   transition-colors outline-none"
 ```
 
 ### Glass Card (Main containers)
 
 ```jsx
-className="rounded-[1.75rem] bg-black/50 backdrop-blur-2xl
-  border border-white/[0.08]
-  shadow-2xl shadow-black/50"
+className="rounded-[1.75rem] bg-white
+  border border-gray-200
+  shadow-xl shadow-gray-200/50"
 ```
 
 ### Discovery Card (Horizontal scroll)
@@ -264,7 +271,7 @@ className="rounded-[1.75rem] bg-black/50 backdrop-blur-2xl
 className="w-[180px] shrink-0 scroll-snap-align-start"
 
 // Image container
-className="aspect-[2/3] rounded-xl overflow-hidden bg-white/[0.04]"
+className="aspect-[2/3] rounded-xl overflow-hidden bg-gray-100"
 
 // Hover
 whileHover={{ scale: 1.03, y: -2 }}
@@ -277,14 +284,14 @@ className="aspect-video rounded-2xl overflow-hidden relative cursor-pointer"
 
 // Gradient backgrounds per category
 const MOOD_GRADIENTS = {
-  vibes: "from-purple-600/80 to-pink-500/80",
-  moods: "from-rose-600/80 to-red-500/80",
-  chaos: "from-orange-600/80 to-amber-500/80",
-  brainy: "from-cyan-600/80 to-blue-500/80",
-  dark: "from-slate-800/90 to-gray-900/90",
-  comfort: "from-amber-500/80 to-yellow-400/80",
-  late: "from-indigo-700/80 to-violet-600/80",
-  specific: "from-emerald-600/80 to-teal-500/80"
+  vibes: "from-purple-500/80 to-pink-400/80",
+  moods: "from-rose-500/80 to-red-400/80",
+  chaos: "from-orange-500/80 to-amber-400/80",
+  brainy: "from-cyan-500/80 to-blue-400/80",
+  dark: "from-slate-700/90 to-gray-800/90",
+  comfort: "from-brand-golden/80 to-yellow-300/80",
+  late: "from-indigo-600/80 to-violet-500/80",
+  specific: "from-emerald-500/80 to-teal-400/80"
 };
 ```
 
@@ -292,23 +299,23 @@ const MOOD_GRADIENTS = {
 
 ```jsx
 // Backdrop
-className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm"
+className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm"
 
 // Modal
 className="w-[90%] max-w-[600px] max-h-[480px]
-  bg-[#121218] border border-white/10
+  bg-white border border-gray-200
   rounded-2xl shadow-2xl overflow-hidden"
 
 // Input
-className="h-14 px-5 text-lg bg-transparent border-b border-white/[0.06]
-  text-white placeholder:text-white/40 outline-none w-full"
+className="h-14 px-5 text-lg bg-transparent border-b border-gray-200
+  text-gray-900 placeholder:text-gray-400 outline-none w-full"
 
 // Item (default)
 className="px-4 py-3 flex items-center gap-3 cursor-pointer
-  text-white/70 hover:bg-white/[0.04] transition-colors"
+  text-gray-600 hover:bg-gray-100 transition-colors"
 
 // Item (selected)
-className="bg-white/[0.08] text-white"
+className="bg-gray-100 text-gray-900"
 ```
 
 ### Filter Bar
@@ -318,13 +325,13 @@ className="bg-white/[0.08] text-white"
 className="flex items-center gap-3 mb-6 overflow-x-auto scrollbar-none py-1"
 
 // Weight pills group
-className="flex gap-1 p-1 bg-white/[0.04] rounded-full shrink-0"
+className="flex gap-1 p-1 bg-gray-100 rounded-full shrink-0"
 
 // Type filter pills
 className="flex gap-1 shrink-0"
 
 // Sort dropdown
-className="bg-white/[0.06] border border-white/10 rounded-lg px-3 py-1.5 text-sm"
+className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 text-sm"
 ```
 
 ---
@@ -380,6 +387,7 @@ className="py-2.5 ..." // ~44px with text
 - **Mobile-first**: 60fps on low-end devices
 - **Spring physics**: Natural feel over duration-based
 - **Paired**: Every enter has matching exit
+- **Playful**: Subtle bounce adds personality
 
 ### Spring Configurations
 
@@ -473,10 +481,10 @@ if (prefersReducedMotion()) {
 ```jsx
 // Drawer container
 className="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] z-[100]
-  bg-[--surface-elevated]"
+  bg-white shadow-2xl"
 
 // Backdrop
-className="fixed inset-0 bg-black/60 z-[99]"
+className="fixed inset-0 bg-black/40 z-[99]"
 
 // Open via: hamburger tap OR swipe-right from left edge (20px)
 // Close via: swipe-left OR tap backdrop OR Escape
@@ -508,7 +516,7 @@ padding-left: env(safe-area-inset-left);
 
 ## Copy Voice
 
-Write like a friend texting movie recs at 2am:
+Write like a friend texting movie recs:
 
 **Do:**
 - Internet-native vernacular ("hot girl summer energy")
@@ -533,14 +541,14 @@ Write like a friend texting movie recs at 2am:
 | CommandPalette | `src/components/CommandPalette/` | Overlay, keyboard nav, sections |
 | DiscoverySection | `src/components/Discovery/` | Horizontal scroll, mood grid |
 | FilterBar | `src/components/FilterBar.jsx` | Pill toggles, sort dropdown |
-| MovieCard | `src/components/MovieCard.jsx` | Hover lift, amber badges, 3D tilt |
+| MovieCard | `src/components/MovieCard.jsx` | Hover lift, brand badges, 3D tilt |
 | MovieModal | `src/components/MovieModal.jsx` | "More Like This", trailer embed |
 
 ---
 
 ## Checklist for New Components
 
-- [ ] Uses amber accent system (no cyan)
+- [ ] Uses brand accent system (golden, orange, red)
 - [ ] Minimum 44px touch targets
 - [ ] Has hover + tap states with spring physics
 - [ ] Wrapped in AnimatePresence if conditional

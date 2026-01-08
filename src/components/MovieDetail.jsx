@@ -58,12 +58,12 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
       variants={reducedMotion ? {} : drawerContentContainerVariants}
       initial={reducedMotion ? { opacity: 1 } : "hidden"}
       animate={reducedMotion ? { opacity: 1 } : "visible"}
-      className="flex flex-col h-full"
+      className="flex flex-col h-full bg-transparent"
     >
-      {/* Hero Image Zone */}
+      {/* Hero Image Zone - Enhanced with warm glow */}
       <motion.div
         variants={drawerContentItemVariants}
-        className="relative h-52 lg:h-60 shrink-0 overflow-hidden"
+        className="relative h-56 lg:h-64 shrink-0 overflow-hidden"
       >
         {backdropUrl && (
           <img
@@ -72,91 +72,108 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
             className="h-full w-full object-cover"
           />
         )}
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121218] via-[#121218]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#121218]/40 to-transparent" />
+        {/* Warm gradient overlay - golden tint at top, dark at bottom */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0b09] via-[#1a1714]/70 to-brand-golden/10" />
+        {/* Decorative golden corner accents */}
+        <div className="absolute top-3 left-3 w-10 h-10 border-l-2 border-t-2 border-brand-golden/30 rounded-tl-lg pointer-events-none" />
+        <div className="absolute top-3 right-3 w-10 h-10 border-r-2 border-t-2 border-brand-golden/30 rounded-tr-lg pointer-events-none" />
 
         {/* Title overlay at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
-          <h1 className="text-xl lg:text-2xl font-semibold text-white mb-2 drop-shadow-lg tracking-tight font-heading">
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-5">
+          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3 drop-shadow-2xl tracking-tight font-heading">
             {title}
           </h1>
 
-          {/* Metadata row */}
-          <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
+          {/* Metadata row - high contrast */}
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="flex items-center gap-1.5 text-white/90 font-medium">
+              <Calendar className="h-4 w-4 text-brand-red" /> {year}
             </span>
             {runtime_minutes && (
               <>
-                <span className="text-white/30">|</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-white/60" /> {formatRuntime(runtime_minutes)}
+                <span className="text-white/30">•</span>
+                <span className="flex items-center gap-1.5 text-white/90 font-medium">
+                  <Clock className="h-4 w-4 text-brand-red" /> {formatRuntime(runtime_minutes)}
                 </span>
               </>
             )}
             {vote_average && (
               <>
-                <span className="text-white/30">|</span>
-                <span className="flex items-center gap-1 text-amber-400">
-                  <Star className="h-3.5 w-3.5 fill-current" /> {vote_average.toFixed(1)}
+                <span className="text-white/30">•</span>
+                <span className="flex items-center gap-1.5 text-brand-golden font-bold">
+                  <Star className="h-4 w-4 fill-brand-golden" /> {vote_average.toFixed(1)}
                 </span>
               </>
             )}
             {certification && (
-              <>
-                <span className="text-white/30">|</span>
-                <Badge variant="outline" className="border-white/20 text-white/70 text-xs py-0 h-5 bg-black/20">
-                  {certification}
-                </Badge>
-              </>
+              <Badge variant="outline" className="border-white/30 text-white text-xs py-0.5 px-2 h-6 bg-white/10 font-semibold">
+                {certification}
+              </Badge>
             )}
-            <Badge className="bg-amber-500/90 text-amber-950 text-xs py-0 h-5 ml-1 font-medium">
-              {kind === "tv" ? "TV" : "Movie"}
+            <Badge className="bg-brand-red text-white text-xs py-0.5 px-3 h-6 font-bold uppercase tracking-wide">
+              {kind === "tv" ? "TV" : "Film"}
             </Badge>
           </div>
         </div>
       </motion.div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {/* Overview */}
         <motion.section variants={drawerContentItemVariants}>
-          <h3 className="text-xs font-medium text-white/40 mb-2 uppercase tracking-wider">
-            Overview
+          <h3 className="text-xs font-bold text-brand-golden mb-3 uppercase tracking-widest">
+            Synopsis
           </h3>
-          <p className="text-sm leading-relaxed text-white/80">
+          <p className="text-sm leading-relaxed text-white/85">
             {overview || "No overview available."}
           </p>
         </motion.section>
 
-        {/* Genres */}
+        {/* Genres - Colorful tags */}
         {safeGenres.length > 0 && (
           <motion.section variants={drawerContentItemVariants}>
-            <h3 className="text-xs font-medium text-white/40 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
-              <Tag className="h-3 w-3 text-amber-400" /> Genres
+            <h3 className="text-xs font-bold text-brand-golden mb-3 flex items-center gap-2 uppercase tracking-widest">
+              <Tag className="h-3.5 w-3.5" /> Genres
             </h3>
-            <div className="flex flex-wrap gap-1.5">
-              {safeGenres.map((g) => (
-                <Badge
-                  key={g}
-                  variant="outline"
-                  className="border-amber-500/20 text-amber-400/90 text-[10px] bg-amber-500/10"
-                >
-                  {g}
-                </Badge>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              {safeGenres.map((g, i) => {
+                // Colorful gradients for each genre
+                const colors = [
+                  "from-purple-500 to-pink-500",
+                  "from-brand-golden to-brand-orange",
+                  "from-cyan-500 to-blue-500",
+                  "from-emerald-500 to-teal-400",
+                  "from-rose-500 to-red-400",
+                  "from-indigo-500 to-violet-500",
+                  "from-amber-400 to-yellow-300",
+                ];
+                const colorClass = colors[i % colors.length];
+                return (
+                  <motion.div
+                    key={g}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  >
+                    <Badge
+                      className={`bg-gradient-to-r ${colorClass} text-white text-xs font-semibold px-3 py-1.5 border-0 shadow-lg cursor-pointer`}
+                    >
+                      {g}
+                    </Badge>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.section>
         )}
 
-        {/* Trailer */}
+        {/* Trailer - Enhanced with golden accent */}
         {id && (
           <motion.section variants={drawerContentItemVariants}>
-            <h3 className="text-xs font-medium text-white/40 mb-2 flex items-center gap-1.5 uppercase tracking-wider">
-              <PlayCircle className="h-3 w-3 text-amber-400" /> Trailer
+            <h3 className="text-xs font-bold text-brand-golden mb-3 flex items-center gap-2 uppercase tracking-widest">
+              <PlayCircle className="h-3.5 w-3.5" /> Trailer
             </h3>
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-black/50">
+            <div className="overflow-hidden rounded-xl border-2 border-brand-golden/30 bg-black shadow-[0_0_20px_rgba(238,199,69,0.1)]">
               <TrailerPlayer
                 tmdbId={id}
                 mediaType={kind === "tv" ? "tv" : "movie"}
@@ -167,17 +184,17 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
         )}
 
         {/* Two Column Layout for Cast & Director */}
-        <motion.div variants={drawerContentItemVariants} className="grid grid-cols-2 gap-4">
+        <motion.div variants={drawerContentItemVariants} className="grid grid-cols-2 gap-6">
           {/* Cast */}
           {topCast.length > 0 && (
             <section>
-              <h3 className="text-xs font-medium text-white/40 mb-2 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-brand-golden mb-3 uppercase tracking-widest">
                 Cast
               </h3>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {topCast.map((actor, i) => (
-                  <li key={i} className="flex items-center gap-2 text-xs text-white/70">
-                    <User className="h-3 w-3 text-white/40 shrink-0" />
+                  <li key={i} className="flex items-center gap-2 text-sm text-white/85">
+                    <User className="h-4 w-4 text-brand-golden/60 shrink-0" />
                     <span className="truncate">{actor.name || actor}</span>
                   </li>
                 ))}
@@ -188,29 +205,31 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
           {/* Director */}
           {director && (
             <section>
-              <h3 className="text-xs font-medium text-white/40 mb-2 uppercase tracking-wider">
+              <h3 className="text-xs font-bold text-brand-golden mb-3 uppercase tracking-widest">
                 Director
               </h3>
-              <p className="text-xs text-white/80">{director}</p>
+              <p className="text-sm text-white/85">{director}</p>
             </section>
           )}
         </motion.div>
 
-        {/* More Like This Button */}
+        {/* More Like This Button - Enhanced with warm gradient */}
         {onMoreLikeThis && (
-          <motion.div variants={reducedMotion ? {} : drawerContentItemVariants} className="pt-2 pb-4">
+          <motion.div variants={reducedMotion ? {} : drawerContentItemVariants} className="pt-4 pb-6">
             <motion.button
               onClick={() => {
                 haptics.light();
                 onMoreLikeThis(movie);
               }}
-              className="w-full h-12 flex items-center justify-center gap-2 rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 font-semibold transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_24px_rgba(245,158,11,0.18)] active:bg-amber-500/20 active:border-amber-500/50 active:text-amber-300"
-              whileHover={reducedMotion ? {} : { scale: 1.02, y: -1 }}
-              whileTap={reducedMotion ? {} : { scale: 0.98 }}
+              className="group relative w-full h-14 flex items-center justify-center gap-3 rounded-full overflow-hidden bg-gradient-to-r from-brand-golden via-brand-orange to-brand-red text-white font-bold text-base uppercase tracking-wide shadow-lg shadow-brand-orange/30 transition-all duration-200 hover:shadow-[0_0_40px_rgba(238,199,69,0.4)]"
+              whileHover={reducedMotion ? {} : { scale: 1.03, y: -3 }}
+              whileTap={reducedMotion ? {} : { scale: 0.97 }}
               transition={reducedMotion ? { duration: 0 } : springConfigs.snappy}
             >
-              <Sparkles className="w-4 h-4" />
-              More Like This
+              {/* Shimmer effect on hover */}
+              <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <Sparkles className="w-5 h-5 relative" />
+              <span className="relative">More Like This</span>
             </motion.button>
           </motion.div>
         )}

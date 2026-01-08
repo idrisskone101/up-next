@@ -23,13 +23,18 @@ export function UpNextLogo({
   size = "md",
   animated = false,
   gradient = true,
+  variant = "light", // "light" for dark bg, "dark" for light bg
   className = ""
 }) {
   const baseClasses = `font-display whitespace-nowrap ${SIZE_CLASSES[size]}`;
   const paddingClasses = PADDING_CLASSES[size] || "py-2 px-1";
-  const colorClasses = gradient
-    ? `bg-gradient-to-r from-white via-white via-70% to-amber-200/80 bg-clip-text text-transparent inline-block ${paddingClasses}`
-    : "text-white/90 hover:text-white/80 transition-colors";
+
+  // Color based on variant
+  const colorClasses = variant === "light"
+    ? `text-brand-cream inline-block ${paddingClasses}` // Cream text for dark/red backgrounds
+    : gradient
+      ? `text-gray-800 inline-block ${paddingClasses}`
+      : "text-gray-600 hover:text-gray-800 transition-colors";
 
   if (animated) {
     return (

@@ -117,7 +117,7 @@ export function CommandList({ items, query, onSelect }) {
           >
             <motion.div
               variants={headerVariants}
-              className="px-4 py-2 text-xs uppercase tracking-wider text-white/40 font-medium"
+              className="px-4 py-2 text-xs uppercase tracking-wider text-gray-400 font-medium"
             >
               {sectionName}
             </motion.div>
@@ -140,7 +140,7 @@ export function CommandList({ items, query, onSelect }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="px-4 py-8 text-center text-white/40"
+          className="px-4 py-8 text-center text-gray-400"
         >
           No matches found
         </motion.div>

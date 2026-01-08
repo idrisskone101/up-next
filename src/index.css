@@ -8,47 +8,47 @@
     --sidebar-collapsed: 64px;
     --sidebar-expanded: 280px;
 
-    /* Surface colors - elevated and card */
-    --surface-elevated: #121214;
-    --surface-card: #1a1a1e;
+    /* Surface colors - cream-tinted for warmth */
+    --surface-elevated: #FFFCF5;
+    --surface-card: #FFFCF5;
 
-    /* Sidebar-specific surfaces */
-    --sidebar-bg: #0a0a0f;
-    --sidebar-glow: rgba(245, 158, 11, 0.03);
-    --sidebar-hover: rgba(245, 158, 11, 0.06);
-    --sidebar-active: rgba(245, 158, 11, 0.10);
+    /* Sidebar-specific surfaces - warm cream undertones */
+    --sidebar-bg: #F8F6EE;
+    --sidebar-glow: rgba(240, 236, 172, 0.15);
+    --sidebar-hover: rgba(240, 236, 172, 0.25);
+    --sidebar-active: rgba(238, 199, 69, 0.20);
 
-    /* Background & Surface - Deep Space Black with warm undertone */
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
+    /* Background & Surface - Light warm off-white */
+    --background: 0 0% 98%;
+    --foreground: 240 10% 10%;
 
-    /* Card: Dark translucent with warmth */
-    --card: 240 10% 4%;
-    --card-foreground: 0 0% 98%;
+    /* Card: White with subtle shadow */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
 
-    --popover: 240 5% 7%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
 
-    /* Primary Brand Colors - Warm Amber/Gold */
-    --primary: 38 92% 50%;
-    --primary-foreground: 0 0% 98%;
-    --primary-warm: 28 85% 52%;
+    /* Primary Brand Colors - Golden */
+    --primary: 46 86% 60%;
+    --primary-foreground: 14 83% 18%;
+    --primary-warm: 14 79% 52%;
 
-    /* Accent - Bright Cyan/Teal (kept for good matches) */
-    --accent: 240 10% 10%;
-    --accent-foreground: 0 0% 98%;
+    /* Accent - Cream */
+    --accent: 54 76% 81%;
+    --accent-foreground: 14 83% 18%;
 
     /* Match Tier Colors */
-    --match-excellent: 43 96% 56%;
-    --match-good: 38 92% 50%;
-    --match-fair: 220 10% 50%;
+    --match-excellent: 46 86% 60%;
+    --match-good: 14 79% 52%;
+    --match-fair: 0 0% 90%;
 
     /* Secondary & Muted */
-    --secondary: 240 10% 10%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 240 10% 20%;
 
-    --muted: 240 10% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 240 5% 45%;
 
     /* Semantic Colors */
     --destructive: 0 84.2% 60.2%;
@@ -61,9 +61,9 @@
     --warning-foreground: 0 0% 5%;
 
     /* Borders & Inputs */
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 38 92% 50%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 46 86% 60%;
 
     /* Shadows */
     --shadow: 0 0% 0%;
@@ -98,21 +98,16 @@
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
 
-    /* Elevated cinema: Deep dark with warm amber/gold glows */
-    background-color: #0a0a0f; /* Rich dark base with warmth */
-    background-image:
-      radial-gradient(ellipse at 15% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 50%), /* Amber glow top-left */
-      radial-gradient(ellipse at 80% 25%, rgba(217, 119, 6, 0.04) 0%, transparent 45%), /* Warm amber top-right */
-      radial-gradient(ellipse at 50% 100%, rgba(14, 165, 233, 0.03) 0%, transparent 40%); /* Subtle cyan bottom */
-    background-attachment: fixed;
+    /* Clean white background */
+    background-color: #FFFFFF;
     min-height: 100vh;
 
     -webkit-overflow-scrolling: touch;
   }
 
   ::selection {
-    background: hsla(var(--primary), 0.5);
-    color: white;
+    background: rgba(238, 199, 69, 0.3);
+    color: #481B13;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -127,31 +122,31 @@
 
 @layer utilities {
   .glass {
-    @apply bg-black/40 backdrop-blur-xl border border-white/5 shadow-2xl;
+    @apply bg-[#FFFCF5]/90 backdrop-blur-xl border border-brand-cream/40 shadow-xl;
   }
 
   .glass-card {
-    @apply bg-card/80 backdrop-blur-md border border-white/5 shadow-xl;
+    @apply bg-[#FFFCF5]/95 backdrop-blur-md border border-brand-cream/40 shadow-lg;
   }
 
   .glass-frosted {
-    @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.06];
+    @apply bg-[#F8F6EE] backdrop-blur-2xl border border-brand-cream/40;
   }
 
   .text-glow {
-    text-shadow: 0 0 30px hsla(38, 92%, 50%, 0.5), 0 0 60px hsla(38, 92%, 50%, 0.3);
+    text-shadow: 0 0 30px rgba(238, 199, 69, 0.5), 0 0 60px rgba(238, 199, 69, 0.3);
   }
 
   .text-glow-gold {
-    text-shadow: 0 0 20px hsla(43, 96%, 56%, 0.6), 0 0 40px hsla(43, 96%, 56%, 0.3);
+    text-shadow: 0 0 20px rgba(238, 199, 69, 0.6), 0 0 40px rgba(238, 199, 69, 0.3);
   }
 
   .lovable-card {
-    @apply bg-black/40 backdrop-blur-2xl rounded-[2rem] border border-white/[0.08] shadow-2xl shadow-black/50;
+    @apply bg-[#FFFCF5] shadow-xl rounded-[2rem] border border-brand-cream/40;
   }
 
   .hero-glow {
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.2), 0 0 60px rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 30px rgba(238, 199, 69, 0.15), 0 0 60px rgba(238, 199, 69, 0.08);
   }
 
   .pb-safe {
@@ -173,42 +168,42 @@
     transition: transform 0.15s ease-out;
   }
 
-  /* Glow Effects - Amber/Gold */
+  /* Glow Effects - Golden */
   .glow-amber {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3),
-                0 0 40px rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 20px rgba(238, 199, 69, 0.25),
+                0 0 40px rgba(238, 199, 69, 0.1);
   }
 
   .glow-amber-intense {
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.5),
-                0 0 60px rgba(245, 158, 11, 0.2),
-                0 0 80px rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 30px rgba(238, 199, 69, 0.4),
+                0 0 60px rgba(238, 199, 69, 0.2),
+                0 0 80px rgba(238, 199, 69, 0.1);
   }
 
   .glow-gold {
-    box-shadow: 0 0 25px rgba(251, 191, 36, 0.4),
-                0 0 50px rgba(251, 191, 36, 0.15);
+    box-shadow: 0 0 25px rgba(238, 199, 69, 0.35),
+                0 0 50px rgba(238, 199, 69, 0.15);
   }
 
   /* Match Tier Glow Effects */
   .glow-match-excellent {
-    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3),
-                0 0 20px rgba(251, 191, 36, 0.25),
-                0 0 40px rgba(251, 191, 36, 0.1);
+    box-shadow: 0 0 0 2px rgba(238, 199, 69, 0.3),
+                0 0 20px rgba(238, 199, 69, 0.2),
+                0 0 40px rgba(238, 199, 69, 0.1);
   }
 
   .glow-match-good {
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2),
-                0 0 15px rgba(245, 158, 11, 0.15);
+    box-shadow: 0 0 0 1px rgba(224, 74, 40, 0.2),
+                0 0 15px rgba(224, 74, 40, 0.12);
   }
 
   /* Shimmer animation for skeletons */
   .shimmer {
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      rgba(255, 255, 255, 0) 100%
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.04) 50%,
+      rgba(0, 0, 0, 0) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
@@ -221,7 +216,7 @@
 
   /* Drag Handle */
   .drag-handle {
-    @apply w-10 h-1 rounded-full bg-white/30 mx-auto;
+    @apply w-10 h-1 rounded-full bg-brand-golden/40 mx-auto;
   }
 
   /* Scroll fade edges */
@@ -265,12 +260,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsla(0, 0%, 30%, 0.5);
+  background: rgba(238, 199, 69, 0.25);
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsla(0, 0%, 50%, 0.7);
+  background: rgba(238, 199, 69, 0.4);
 }
 
 /* Hide scrollbar for horizontal scroll areas */
@@ -313,10 +308,10 @@
     from var(--orbit-angle),
     transparent 0deg,
     transparent 260deg,
-    rgba(251, 191, 36, 0.15) 290deg,
-    rgba(245, 158, 11, 0.6) 330deg,
-    rgba(251, 191, 36, 0.9) 350deg,
-    rgba(245, 158, 11, 0.6) 355deg,
+    rgba(238, 199, 69, 0.15) 290deg,
+    rgba(238, 199, 69, 0.5) 330deg,
+    rgba(238, 199, 69, 0.8) 350deg,
+    rgba(238, 199, 69, 0.5) 355deg,
     transparent 360deg
   );
   -webkit-mask:
@@ -345,10 +340,10 @@
     from var(--orbit-angle),
     transparent 0deg,
     transparent 270deg,
-    rgba(251, 191, 36, 0.08) 310deg,
-    rgba(245, 158, 11, 0.25) 345deg,
-    rgba(251, 191, 36, 0.4) 350deg,
-    rgba(245, 158, 11, 0.25) 355deg,
+    rgba(238, 199, 69, 0.08) 310deg,
+    rgba(238, 199, 69, 0.2) 345deg,
+    rgba(238, 199, 69, 0.35) 350deg,
+    rgba(238, 199, 69, 0.2) 355deg,
     transparent 360deg
   );
   -webkit-mask:
@@ -376,8 +371,7 @@
   .orbit-border::before,
   .orbit-border::after {
     animation: none;
-    background: rgba(245, 158, 11, 0.15);
+    background: rgba(238, 199, 69, 0.15);
     filter: none;
   }
 }
-

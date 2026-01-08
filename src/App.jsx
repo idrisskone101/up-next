@@ -13,6 +13,7 @@ import {
 import { Spinner } from "./components/ui/spinner";
 import { UpNextLogo } from "./components/ui/UpNextLogo";
 import { SkeletonCard } from "./components/SkeletonCard";
+import { MobileTopNav } from "./components/Sidebar/MobileTopNav";
 import { EmptyState } from "./components/EmptyState";
 import { ResultsGrid } from "./components/ResultsGrid";
 import { HeroSearchCard } from "./components/HeroSearchCard";
@@ -41,7 +42,7 @@ function MobileMenuButton() {
       onClick={toggle}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors md:hidden"
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors md:hidden"
       aria-label="Open menu"
     >
       <Menu className="h-4 w-4" />
@@ -51,7 +52,7 @@ function MobileMenuButton() {
 
 /**
  * Sticky results header with sidebar-aware positioning
- * Uses useSidebar internally so it must be rendered inside SidebarProvider
+ * Red gradient background matching mobile top nav
  */
 function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit, onBackToHero, compactInputRef }) {
   const { isOpen, isMobile } = useSidebar();
@@ -61,7 +62,10 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
 
   return (
     <motion.header
-      className="fixed top-0 right-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]"
+      className="fixed top-0 right-0 z-50 border-b border-brand-red/20 shadow-[0_4px_20px_rgba(0,0,0,0.15)] pt-[env(safe-area-inset-top)]"
+      style={{
+        background: `linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(156, 14, 14, 1) 100%)`,
+      }}
       initial={false}
       animate={{ left: headerLeft }}
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
@@ -77,10 +81,10 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
               onClick={onBackToHero}
               className="hidden sm:block shrink-0"
             >
-              <UpNextLogo size="lg" />
+              <UpNextLogo size="lg" variant="light" />
             </button>
 
-            {/* Compact Search */}
+            {/* Compact Search - Transparent input on red background */}
             <form onSubmit={onSubmit} className="flex-1 max-w-xl">
               <div className="relative flex items-center">
                 <input
@@ -90,9 +94,9 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
                   onChange={(e) => setCompactQuery(e.target.value)}
                   placeholder="Search for a vibe..."
                   disabled={loading}
-                  className="w-full h-10 rounded-full bg-white/5 border border-white/10 px-4 pr-20 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.07] transition-all disabled:opacity-50"
+                  className="w-full h-11 rounded-full bg-white/10 border-2 border-white/20 px-5 pr-24 text-sm text-white font-medium placeholder:text-white/60 focus:outline-none focus:border-brand-golden focus:bg-white/15 focus:shadow-[0_0_0_4px_rgba(238,199,69,0.2)] transition-all disabled:opacity-50"
                 />
-                <div className="absolute right-1 flex items-center gap-1">
+                <div className="absolute right-1.5 flex items-center gap-1">
                   <AnimatePresence>
                     {compactQuery && !loading && (
                       <motion.button
@@ -102,9 +106,9 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
                         transition={{ duration: 0.15 }}
                         type="button"
                         onClick={() => setCompactQuery("")}
-                        className="flex h-7 w-7 items-center justify-center rounded-full text-white/40 hover:text-white/70 hover:bg-white/10 transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-white/60 hover:text-white hover:bg-white/10 transition-colors"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                       </motion.button>
                     )}
                   </AnimatePresence>
@@ -113,10 +117,10 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
                     disabled={loading || !compactQuery.trim()}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] border border-amber-500/25 text-white/85 transition-all duration-200 hover:bg-amber-500/12 hover:border-amber-500/40 hover:text-amber-400 hover:shadow-[0_0_16px_rgba(245,158,11,0.15)] disabled:bg-white/[0.03] disabled:border-white/[0.05] disabled:text-white/30 disabled:cursor-not-allowed"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-golden text-[#481B13] shadow-md transition-all duration-200 hover:bg-brand-golden/90 hover:shadow-lg disabled:bg-white/10 disabled:text-white/30 disabled:shadow-none disabled:cursor-not-allowed"
                   >
                     {loading ? (
-                      <Spinner size={14} className="text-white" ariaLabel="Searching..." />
+                      <Spinner size={14} className="text-[#481B13]" ariaLabel="Searching..." />
                     ) : (
                       <ArrowUp className="h-4 w-4" strokeWidth={2.5} />
                     )}
@@ -294,8 +298,11 @@ function AppContent() {
               transition={pageTransition}
               className="flex flex-1 flex-col"
             >
+              {/* Mobile Top Nav - Only on hero, only on mobile */}
+              <MobileTopNav onSurpriseMe={handleSurpriseMe} />
+
               {/* Hero Content - Centered search area */}
-              <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-12">
+              <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-12 pt-[calc(6rem+env(safe-area-inset-top))] md:pt-12">
                 <div className="w-full max-w-2xl space-y-10">
                   {/* Logo/Wordmark */}
                   <motion.div
@@ -314,10 +321,10 @@ function AppContent() {
                         delay: 0.15
                       }}
                     >
-                      <UpNextLogo size="hero" />
+                      <UpNextLogo size="hero" variant="dark" />
                     </motion.h1>
                     <motion.p
-                      className="mt-4 text-base sm:text-lg text-white/50 font-medium"
+                      className="mt-4 text-base sm:text-lg text-gray-500 font-medium"
                       initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
                       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                       transition={{ delay: 0.35, duration: 0.4, ease: "easeOut" }}
@@ -473,7 +480,7 @@ function AppContent() {
 
               {/* Footer */}
               <footer className="pb-safe pb-8 pt-4">
-                <div className="container flex flex-col items-center gap-2 text-center text-xs text-white/30">
+                <div className="container flex flex-col items-center gap-2 text-center text-xs text-gray-400">
                   <p>Powered by multi-embedding semantic search</p>
                 </div>
               </footer>

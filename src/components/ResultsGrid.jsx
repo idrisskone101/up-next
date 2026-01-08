@@ -139,7 +139,30 @@ export function ResultsGrid({
   const isMobile = useIsMobile();
 
   if (results.length === 0) {
-    return null;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className="flex flex-col items-center justify-center py-20 px-6"
+      >
+        <motion.span
+          className="text-5xl mb-4"
+          initial={{ scale: 0.8, rotate: -5 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+        >
+          🎬
+        </motion.span>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+          No matches found
+        </h3>
+        <p className="text-gray-500 text-sm text-center max-w-sm">
+          Try a different vibe or mood — we've got tons of hidden gems waiting for you!
+        </p>
+      </motion.div>
+    );
   }
 
   return (
@@ -161,10 +184,10 @@ export function ResultsGrid({
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   className="mb-4 flex items-center gap-2"
                 >
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm text-white/60">
+                  <Sparkles className="w-4 h-4 text-brand-golden" />
+                  <span className="text-sm text-gray-500">
                     Titles similar to{" "}
-                    <span className="font-medium text-amber-300">
+                    <span className="font-medium text-brand-orange">
                       {searchMetadata.sourceTitle}
                     </span>
                   </span>
@@ -203,7 +226,7 @@ export function ResultsGrid({
                         ...springConfigs.snappy,
                         delay: getDiagonalDelay(index, columns, 0.03),
                       }}
-                      className={isSelected ? "ring-2 ring-amber-500/60 rounded-xl shadow-[0_0_24px_rgba(251,191,36,0.25)]" : ""}
+                      className={isSelected ? "ring-2 ring-brand-golden/60 rounded-xl shadow-[0_0_24px_rgba(238,199,69,0.25)]" : ""}
                     >
                       <MovieCard
                         movie={movie}
@@ -228,7 +251,7 @@ export function ResultsGrid({
                 transition={{ ...springConfigs.gentle, delay: 0.3 }}
               >
                 {/* Page info */}
-                <p className="text-sm text-white/40">
+                <p className="text-sm text-gray-500">
                   Page {currentPage} of {totalPages} · {totalCount} results
                 </p>
 
@@ -244,7 +267,7 @@ export function ResultsGrid({
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                         disabled={currentPage === 1}
-                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all"
+                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-gray-500 hover:text-brand-red hover:bg-brand-red/10 disabled:opacity-30 disabled:pointer-events-none transition-all"
                       >
                         <ChevronLeft className="h-4 w-4" />
                         <span className="hidden sm:inline">Previous</span>
@@ -292,7 +315,7 @@ export function ResultsGrid({
                         if (page === "ellipsis-start" || page === "ellipsis-end") {
                           return (
                             <PaginationItem key={page}>
-                              <span className="flex h-10 w-10 items-center justify-center text-white/40">
+                              <span className="flex h-10 w-10 items-center justify-center text-gray-400">
                                 ...
                               </span>
                             </PaginationItem>
@@ -310,8 +333,8 @@ export function ResultsGrid({
                               }}
                               className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-all ${
                                 isActive
-                                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
-                                  : "text-white/60 hover:text-white hover:bg-white/[0.08]"
+                                  ? "bg-brand-red text-white shadow-[0_0_12px_rgba(176,17,16,0.25)]"
+                                  : "text-gray-500 hover:text-brand-red hover:bg-brand-red/10"
                               }`}
                             >
                               {page}
@@ -330,7 +353,7 @@ export function ResultsGrid({
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                         disabled={currentPage === totalPages}
-                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.08] disabled:opacity-30 disabled:pointer-events-none transition-all"
+                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-gray-500 hover:text-brand-red hover:bg-brand-red/10 disabled:opacity-30 disabled:pointer-events-none transition-all"
                       >
                         <span className="hidden sm:inline">Next</span>
                         <ChevronRight className="h-4 w-4" />

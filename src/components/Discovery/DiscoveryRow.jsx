@@ -18,7 +18,7 @@ export function DiscoveryRow({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-xl font-heading font-semibold text-white/90">
+        <h2 className="text-xl font-heading font-semibold text-gray-900">
           {title}
         </h2>
         {onActionClick && (
@@ -27,7 +27,7 @@ export function DiscoveryRow({
             onClick={onActionClick}
             whileHover={{ x: 2 }}
             whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-1 text-sm text-amber-400 hover:text-amber-300 transition-colors"
+            className="flex items-center gap-1 text-sm text-brand-orange hover:text-brand-red transition-colors"
           >
             {actionLabel}
             <ChevronRight size={16} />
@@ -38,10 +38,10 @@ export function DiscoveryRow({
       {/* Scroll container with fade edges */}
       <div className="relative">
         {/* Left fade */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#FAF8F0] to-transparent z-10 pointer-events-none" />
 
         {/* Right fade */}
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#FAF8F0] to-transparent z-10 pointer-events-none" />
 
         {/* Scrollable content */}
         <div

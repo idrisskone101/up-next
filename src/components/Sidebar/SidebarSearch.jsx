@@ -30,7 +30,7 @@ export function SidebarSearch({ onSearch, collapsed }) {
         transition={{ delay: 0.1 }}
         className="relative"
       >
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
         <input
           type="text"
           value={query}
@@ -38,9 +38,9 @@ export function SidebarSearch({ onSearch, collapsed }) {
           placeholder="Quick search..."
           className="
             w-full h-10 pl-9 pr-3 rounded-xl
-            bg-white/[0.03] border border-white/[0.05]
-            text-sm text-white placeholder:text-white/25
-            focus:outline-none focus:border-amber-500/30 focus:bg-white/[0.05] focus:shadow-[0_0_16px_rgba(245,158,11,0.08)]
+            bg-white/10 border border-white/20
+            text-sm text-white placeholder:text-white/50
+            focus:outline-none focus:border-brand-golden/60 focus:bg-white/15 focus:shadow-[0_0_16px_rgba(238,199,69,0.15)]
             transition-all duration-200
           "
         />

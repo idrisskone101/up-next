@@ -97,7 +97,7 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             animate="open"
             exit="closed"
             onClick={handleClose}
-            className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[99] bg-brand-red/40 backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -109,11 +109,11 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-white/[0.06] bg-[#0a0a0f]"
+            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-brand-red/30 bg-brand-red"
             style={{
               backgroundImage: `
-                linear-gradient(180deg, rgba(18, 18, 20, 0.95) 0%, rgba(10, 10, 12, 1) 100%),
-                radial-gradient(ellipse at 30% 5%, rgba(245, 158, 11, 0.04) 0%, transparent 60%)
+                linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 12, 12, 1) 100%),
+                radial-gradient(ellipse at 30% 5%, rgba(238, 199, 69, 0.08) 0%, transparent 60%)
               `,
               paddingTop: "env(safe-area-inset-top)",
               paddingLeft: "env(safe-area-inset-left)",
@@ -129,7 +129,7 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
               {logo}
               <motion.button
                 onClick={handleClose}
-                className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/70 hover:bg-white/[0.1] hover:text-white transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/10 border border-white/20 text-white/70 hover:bg-white/20 hover:text-brand-golden transition-colors"
                 whileTap={{ scale: 0.95 }}
                 aria-label="Close menu"
               >
@@ -139,7 +139,7 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
 
             {/* Soft gradient separator */}
             <div
-              className="h-px w-full bg-gradient-to-r from-transparent via-white/[0.06] to-transparent"
+              className="h-px w-full bg-gradient-to-r from-transparent via-brand-golden/30 to-transparent"
               aria-hidden="true"
             />
 

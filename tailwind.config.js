@@ -65,6 +65,12 @@ export default {
   				good: 'hsl(var(--match-good))',
   				fair: 'hsl(var(--match-fair))'
   			},
+  			brand: {
+  				cream: '#F0ECAC',
+  				golden: '#EEC745',
+  				orange: '#E04A28',
+  				red: '#B01110'
+  			},
   			amber: {
   				'50': '#FFFBEB',
   				'100': '#FEF3C7',
@@ -99,11 +105,11 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Nunito',
+  				'Rubik',
   				'sans-serif'
   			],
   			heading: [
-  				'Outfit',
+  				'Rubik',
   				'sans-serif'
   			],
   			display: [
@@ -115,7 +121,7 @@ export default {
   				'cursive'
   			],
   			playful: [
-  				'Outfit',
+  				'Rubik',
   				'sans-serif'
   			]
   		},
@@ -213,18 +219,18 @@ export default {
   			},
   			pulseGlow: {
   				'0%, 100%': {
-  					boxShadow: '0 0 20px rgba(245, 158, 11, 0.2)'
+  					boxShadow: '0 0 20px rgba(238, 199, 69, 0.2)'
   				},
   				'50%': {
-  					boxShadow: '0 0 35px rgba(245, 158, 11, 0.45)'
+  					boxShadow: '0 0 35px rgba(238, 199, 69, 0.45)'
   				}
   			},
   			pulseGlowGold: {
   				'0%, 100%': {
-  					boxShadow: '0 0 15px rgba(251, 191, 36, 0.2)'
+  					boxShadow: '0 0 15px rgba(238, 199, 69, 0.2)'
   				},
   				'50%': {
-  					boxShadow: '0 0 30px rgba(251, 191, 36, 0.5)'
+  					boxShadow: '0 0 30px rgba(238, 199, 69, 0.5)'
   				}
   			},
   			countUp: {

@@ -46,29 +46,28 @@ See `ARCHITECTURE.md` for full technical details.
 
 **All UI changes MUST follow `DESIGN_SYSTEM.md`.** No exceptions. Read it before any frontend work.
 
-#### Design Language: Arc Browser + Spotify
+#### Brand: Jester Archetype
 
-This app uses a "Cinematic Command Center" aesthetic inspired by:
-- **Arc browser**: Minimal chrome, collapsible sidebar, command palette (Cmd+K), spatial organization
-- **Spotify**: Discovery feeds, rich cards, smooth transitions, progressive disclosure
+Playful, Warm, Optimistic, Relatable. The app uses delightful interactions and warm colors.
 
 #### Core Principles
-1. **Discovery over search** - Content surfaces before you ask
-2. **Warm darkness** - Amber accents only (NEVER cyan/teal)
-3. **Fluid motion** - Spring physics via Framer Motion
+1. **Delightful Interactions** - Subtle animations and playful micro-interactions
+2. **Warm and Inviting** - Approachable, comforting color palette
+3. **Simple and Intuitive** - Ease of use, clear navigation
 4. **Touch-first** - Minimum 44px targets
 5. **Paired animations** - Every enter has matching exit
 
 #### Key Patterns
 - Sidebar: 64px collapsed / 280px expanded / drawer on mobile
 - Command palette: Cmd+K overlay with keyboard nav
-- Cards: Rounded corners (min `rounded-lg`), hover lift + glow
-- Match badges: Amber scale only (`amber-500` excellent, `amber-600` good, `white/20` fair)
+- Cards: Rounded corners (min `rounded-lg`), hover lift, playful bounce
+- Light/Dark theme toggle supported
 
 #### Quick Reference
 ```
-Colors:     bg-[#0a0a0f] base, bg-[#121218] elevated, amber-400 accent
-Typography: Pacifico (logo), Outfit (headings), Nunito (body)
+Colors:     #FAFAFA (bg), #FFFFFF (surface), brand-golden (#EEC745), brand-orange (#E04A28), brand-red (#B01110)
+Dark Mode:  #1a1a1e (bg), #2a2a30 (surface), same brand accents
+Typography: Pacifico (logo), Rubik (headings + body)
 Animation:  spring(300, 24) for UI, spring(400, 30) for hover
 Touch:      h-11 (44px) minimum for all interactive elements
 ```

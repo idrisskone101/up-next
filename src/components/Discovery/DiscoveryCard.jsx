@@ -36,10 +36,10 @@ export function DiscoveryCard({
       whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={springConfigs.snappy}
-      className="w-[180px] flex-shrink-0 scroll-snap-align-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0f] group"
+      className="w-[180px] flex-shrink-0 scroll-snap-align-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-golden/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white group"
     >
       {/* Poster */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-white/[0.04] border border-white/[0.08] group-hover:border-white/15 transition-colors duration-200">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-200 shadow-md shadow-gray-300/50 group-hover:shadow-lg transition-all duration-200">
         {posterUrl && !imageError ? (
           <>
             <motion.img
@@ -55,18 +55,18 @@ export function DiscoveryCard({
             />
             {/* Shimmer placeholder */}
             {!imageLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] via-white/[0.05] to-white/[0.02] animate-shimmer" />
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 animate-shimmer" />
             )}
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-white/20">
+          <div className="flex h-full w-full items-center justify-center text-gray-300">
             <Film className="h-10 w-10" />
           </div>
         )}
 
         {/* Hover gradient overlay */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"
+          className="absolute inset-0 bg-gradient-to-t from-brand-red/65 via-brand-red/20 to-transparent pointer-events-none"
           initial={{ opacity: 0 }}
           whileHover={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
@@ -74,7 +74,7 @@ export function DiscoveryCard({
 
         {/* Kind badge (TV only) */}
         {kind === "tv" && (
-          <div className="absolute left-2 top-2 px-1.5 py-0.5 rounded bg-black/50 backdrop-blur-sm border border-white/10 text-[9px] font-medium text-white/80 uppercase tracking-wider">
+          <div className="absolute left-2 top-2 px-1.5 py-0.5 rounded bg-white/90 backdrop-blur-sm border border-gray-200 text-[9px] font-medium text-gray-700 uppercase tracking-wider">
             TV
           </div>
         )}
@@ -82,22 +82,22 @@ export function DiscoveryCard({
         {/* Shadow lift on hover */}
         <motion.div
           className="absolute inset-0 rounded-xl pointer-events-none"
-          initial={{ boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-          whileHover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.4)" }}
+          initial={{ boxShadow: "0 4px 12px rgba(176,17,16,0.05)" }}
+          whileHover={{ boxShadow: "0 12px 32px rgba(176,17,16,0.12)" }}
           transition={{ duration: 0.2 }}
         />
       </div>
 
       {/* Title & Meta */}
       <div className="mt-2 px-0.5">
-        <h3 className="text-sm font-medium text-white/90 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug group-hover:text-gray-700 transition-colors">
           {title}
         </h3>
-        <div className="flex items-center gap-1.5 mt-1 text-xs text-white/50">
-          {release_year && <span>{release_year}</span>}
+        <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-600">
+          {release_year && <span className="font-medium">{release_year}</span>}
           {release_year && displayRating && <span>·</span>}
           {displayRating && (
-            <span className="flex items-center gap-0.5 text-amber-400/80">
+            <span className="flex items-center gap-0.5 text-brand-orange font-semibold">
               <Star className="h-2.5 w-2.5 fill-current" />
               {displayRating}
             </span>

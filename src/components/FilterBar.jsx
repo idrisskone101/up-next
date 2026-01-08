@@ -42,10 +42,10 @@ export function FilterBar({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
               transition={springConfigs.snappy}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 isActive
-                  ? "bg-white/10 text-white/90 border border-white/10"
-                  : "text-white/50 hover:text-white/70 hover:bg-white/[0.04]"
+                  ? "bg-brand-golden text-[#481B13] border border-brand-golden shadow-[0_0_10px_rgba(238,199,69,0.35)]"
+                  : "bg-white/80 text-gray-700 border border-gray-300 hover:text-brand-red hover:bg-white hover:border-brand-red/40"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -56,7 +56,7 @@ export function FilterBar({
       </div>
 
       {/* Divider */}
-      <div className="w-px h-6 bg-white/10 shrink-0" />
+      <div className="w-px h-6 bg-gray-300 shrink-0" />
 
       {/* Sort dropdown */}
       <select
@@ -65,15 +65,15 @@ export function FilterBar({
           haptics.light();
           onSortChange?.(e.target.value);
         }}
-        className="bg-white/[0.06] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 cursor-pointer hover:bg-white/[0.08] focus:outline-none focus:border-amber-500/40 transition-colors appearance-none pr-7 shrink-0"
+        className="bg-white/80 border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-700 font-medium cursor-pointer hover:bg-white hover:border-brand-golden hover:text-brand-orange focus:outline-none focus:border-brand-golden focus:bg-white transition-all appearance-none pr-7 shrink-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 8px center",
         }}
       >
         {sortOptions.map(({ value, label }) => (
-          <option key={value} value={value} className="bg-[#1a1a22] text-white">
+          <option key={value} value={value} className="bg-white text-gray-900">
             Sort: {label}
           </option>
         ))}
@@ -82,7 +82,7 @@ export function FilterBar({
       {/* Refresh button */}
       {onRefresh && (
         <>
-          <div className="w-px h-6 bg-white/10 shrink-0" />
+          <div className="w-px h-6 bg-gray-300 shrink-0" />
           <motion.button
             onClick={() => {
               if (!isRefreshing) {
@@ -91,7 +91,7 @@ export function FilterBar({
               }
             }}
             disabled={isRefreshing}
-            className="w-10 h-10 flex items-center justify-center rounded-full shrink-0 bg-white/[0.06] border border-white/[0.08] text-white/60 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 transition-all"
+            className="w-10 h-10 flex items-center justify-center rounded-full shrink-0 bg-white/80 border border-gray-300 text-gray-600 hover:text-brand-red hover:bg-white hover:border-brand-red/40 disabled:opacity-40 transition-all"
             whileHover={!isRefreshing ? { scale: 1.05 } : undefined}
             whileTap={!isRefreshing ? { scale: 0.95 } : undefined}
             aria-label="Refresh results"

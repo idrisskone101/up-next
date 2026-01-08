@@ -17,16 +17,22 @@ const ICON_MAP = {
   Clock
 };
 
-// Skeleton card for loading state
+// Skeleton card for loading state - warm cream shimmer
 function SkeletonDiscoveryCard() {
   return (
     <div className="w-[180px] flex-shrink-0">
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-white/[0.04] border border-white/[0.08] animate-pulse">
-        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] via-white/[0.05] to-white/[0.02] animate-shimmer" />
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-brand-cream/20 border border-brand-cream/30 animate-pulse">
+        <div
+          className="absolute inset-0 animate-shimmer"
+          style={{
+            background: "linear-gradient(90deg, transparent 0%, rgba(238,199,69,0.15) 50%, transparent 100%)",
+            backgroundSize: "200% 100%",
+          }}
+        />
       </div>
       <div className="mt-2 space-y-2">
-        <div className="h-4 w-3/4 rounded bg-white/[0.04]" />
-        <div className="h-3 w-1/2 rounded bg-white/[0.04]" />
+        <div className="h-4 w-3/4 rounded-lg bg-brand-cream/30" />
+        <div className="h-3 w-1/2 rounded-lg bg-brand-cream/20" />
       </div>
     </div>
   );
@@ -85,7 +91,7 @@ export function DiscoverySection({
               exit={{ opacity: 0 }}
               className="flex items-center justify-center w-full py-8"
             >
-              <p className="text-white/40 text-sm">Could not load recommendations</p>
+              <p className="text-gray-400 text-sm">Could not load recommendations</p>
             </motion.div>
           ) : displayRecommendations.length === 0 ? (
             // Empty state
@@ -96,7 +102,7 @@ export function DiscoverySection({
               exit={{ opacity: 0 }}
               className="flex items-center justify-center w-full py-8"
             >
-              <p className="text-white/40 text-sm">No recommendations available</p>
+              <p className="text-gray-400 text-sm">No recommendations available</p>
             </motion.div>
           ) : (
             // Recommendations - wrapped in single container for AnimatePresence
@@ -140,7 +146,7 @@ export function DiscoverySection({
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.55, duration: 0.3 }}
-          className="text-xl font-heading font-semibold text-white/90 px-1"
+          className="text-xl font-heading font-semibold text-gray-900 px-1"
         >
           Browse by Mood
         </motion.h2>

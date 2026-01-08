@@ -871,9 +871,9 @@ export const typeBadgeVariants = {
 export const submitReadyPulse = {
   scale: [1, 1.06, 1],
   boxShadow: [
-    "0 0 0 0 rgba(245,158,11,0)",
-    "0 0 20px 4px rgba(245,158,11,0.3)",
-    "0 0 0 0 rgba(245,158,11,0)",
+    "0 0 0 0 rgba(238,199,69,0)",
+    "0 0 20px 4px rgba(238,199,69,0.3)",
+    "0 0 0 0 rgba(238,199,69,0)",
   ],
   transition: {
     duration: 0.6,

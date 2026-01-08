@@ -25,10 +25,10 @@ const paletteVariants = {
 };
 
 const SUGGESTED_QUERIES = [
-  "Sunday morning coffee vibes",
-  "Mind-bending sci-fi",
-  "Cozy autumn comfort",
-  "Dark but beautiful",
+  { query: "Sunday morning coffee vibes", emoji: "☕" },
+  { query: "Mind-bending sci-fi", emoji: "🧠" },
+  { query: "Cozy autumn comfort", emoji: "🍂" },
+  { query: "Dark but beautiful", emoji: "🌙" },
 ];
 
 /**
@@ -149,7 +149,7 @@ export function CommandPalette() {
         <motion.div
           className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]"
           style={{
-            background: "rgba(10, 10, 15, 0.8)",
+            background: "rgba(0, 0, 0, 0.5)",
             backdropFilter: "blur(4px)",
           }}
           variants={backdropVariants}
@@ -160,8 +160,7 @@ export function CommandPalette() {
         >
           <motion.div
             ref={paletteRef}
-            className="w-[90%] max-w-[600px] max-h-[480px] overflow-hidden rounded-2xl border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)]"
-            style={{ background: "#121218" }}
+            className="w-[90%] max-w-[600px] max-h-[480px] overflow-hidden rounded-2xl border border-gray-200 shadow-2xl bg-white"
             variants={paletteVariants}
             initial="hidden"
             animate="visible"
