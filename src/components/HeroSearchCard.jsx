@@ -224,15 +224,15 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
           className="relative overflow-hidden rounded-[2rem]"
           animate={{
             boxShadow: isFocused
-              ? "0 0 60px rgba(238,199,69,0.25), 0 0 120px rgba(224,74,40,0.1), 0 25px 50px -12px rgba(0,0,0,0.15)"
+              ? "0 0 0 3px rgba(238,199,69,0.2), 0 8px 40px -8px rgba(238,199,69,0.25), 0 20px 50px -15px rgba(0,0,0,0.1)"
               : isReady
-                ? "0 0 40px rgba(238,199,69,0.15), 0 20px 40px -12px rgba(0,0,0,0.1)"
-                : "0 20px 40px -12px rgba(0,0,0,0.08)"
+                ? "0 0 30px rgba(238,199,69,0.15), 0 8px 40px -8px rgba(0,0,0,0.1)"
+                : "0 8px 40px -8px rgba(0,0,0,0.08)"
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
-          {/* Warm gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#FFFCF5] via-white to-[#FFF8E7]" />
+          {/* Clean white background - Cinema Spotlight */}
+          <div className="absolute inset-0 bg-white" />
 
           {/* Subtle noise texture overlay */}
           <div
@@ -242,15 +242,15 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
             }}
           />
 
-          {/* Golden accent border */}
+          {/* Border - subtle gray idle, golden on focus */}
           <motion.div
             className="absolute inset-0 rounded-[2rem] pointer-events-none"
             animate={{
               boxShadow: isFocused
                 ? "inset 0 0 0 2px rgba(238,199,69,0.5)"
                 : isReady
-                  ? "inset 0 0 0 1.5px rgba(238,199,69,0.3)"
-                  : "inset 0 0 0 1px rgba(238,199,69,0.15)"
+                  ? "inset 0 0 0 1.5px rgba(238,199,69,0.35)"
+                  : "inset 0 0 0 1px rgba(0,0,0,0.06)"
             }}
             transition={{ duration: 0.3 }}
           />
@@ -361,64 +361,24 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
               </motion.button>
             </div>
 
-            {/* Submit Button - Hero element with glow */}
+            {/* Submit Button - Golden */}
             <motion.button
               type="button"
               onClick={handleSubmit}
               disabled={loading || (!query.trim() && !hasMention)}
-              animate={
-                isReady && !loading
-                  ? {
-                      boxShadow: [
-                        "0 0 20px rgba(238,199,69,0.3), 0 4px 20px rgba(224,74,40,0.2)",
-                        "0 0 30px rgba(238,199,69,0.5), 0 4px 30px rgba(224,74,40,0.3)",
-                        "0 0 20px rgba(238,199,69,0.3), 0 4px 20px rgba(224,74,40,0.2)",
-                      ],
-                    }
-                  : {}
-              }
-              transition={
-                isReady && !loading
-                  ? { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                  : { duration: 0.2 }
-              }
-              whileHover={{ scale: 1.1, rotate: -3 }}
-              whileTap={{ scale: 0.92 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`relative flex h-12 w-12 items-center justify-center rounded-full transition-all duration-200 ${
                 isReady && !loading
-                  ? "bg-gradient-to-br from-brand-red to-brand-red/90 text-white shadow-xl"
-                  : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-400 cursor-not-allowed"
+                  ? "bg-brand-golden text-gray-900 shadow-lg"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
               aria-label={hasMention ? "Find similar" : "Search"}
             >
-              {/* Inner glow ring */}
-              {isReady && !loading && (
-                <motion.div
-                  className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 to-transparent"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
-              )}
               {loading ? (
-                <Spinner size={22} className="text-white" ariaLabel="Searching..." />
+                <Spinner size={22} className="text-gray-900" ariaLabel="Searching..." />
               ) : (
-                <motion.div
-                  animate={
-                    hasMention
-                      ? { rotate: [0, -10, 10, 0], scale: [1, 1.1, 1] }
-                      : isReady
-                        ? { y: [0, -2, 0] }
-                        : {}
-                  }
-                  transition={{
-                    duration: hasMention ? 0.5 : 1.5,
-                    repeat: isReady ? Infinity : 0,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
-                </motion.div>
+                <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
               )}
             </motion.button>
           </div>

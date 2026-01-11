@@ -26,15 +26,30 @@ const formatRuntime = (minutes) => {
  */
 export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const cachedMovie = useRef(null);
+  const scrollRef = useRef(null);
 
   // Update cached movie and open state when movie changes
   useEffect(() => {
     if (movie) {
       cachedMovie.current = movie;
+      setScrollY(0);
       setIsOpen(true);
     }
   }, [movie]);
+
+  // Handle scroll to shrink backdrop
+  const handleScroll = useCallback((e) => {
+    setScrollY(e.target.scrollTop);
+  }, []);
+
+  // Calculate backdrop height: 220px -> 80px over 140px of scroll
+  const maxHeight = 220;
+  const minHeight = 80;
+  const scrollRange = 140;
+  const clampedScroll = Math.max(0, scrollY); // Prevent negative scroll from overscroll bounce
+  const backdropHeight = Math.max(minHeight, maxHeight - (clampedScroll / scrollRange) * (maxHeight - minHeight));
 
   // Handle close
   const handleClose = useCallback(() => {
@@ -102,7 +117,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
   const reducedMotion = prefersReducedMotion();
 
   return (
-    <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+    <Drawer open={isOpen} onOpenChange={handleOpenChange} snapPoints={[1]}>
       <DrawerContent
         className="h-[85vh] rounded-t-[28px] overflow-hidden bg-black border-t border-white/20 shadow-[0_-20px_80px_rgba(0,0,0,0.8)] focus:outline-none"
       >
@@ -127,57 +142,66 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
           <DrawerDescription>Movie information and trailer</DrawerDescription>
         </DrawerHeader>
 
-        {/* Hero Image Zone */}
-        <div className="relative overflow-hidden h-[220px] shrink-0">
-          {backdropUrl && (
-            <img
-              src={backdropUrl}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover object-top"
-            />
-          )}
-          {!backdropUrl && (
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
-          )}
-          {/* Gradient overlays - pure black */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+        {/* Scrollable Content Area - hero scrolls with content */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto overscroll-none"
+        >
+          {/* Hero Image Zone - scrolls away */}
+          <div
+            className="relative overflow-hidden"
+            style={{ height: backdropHeight }}
+          >
+            {backdropUrl && (
+              <img
+                src={backdropUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover object-top"
+              />
+            )}
+            {!backdropUrl && (
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            )}
+            {/* Gradient overlays - pure black */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
-          {/* Title overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
-            <h1 className="text-xl font-bold text-white mb-2 drop-shadow-2xl tracking-tight font-heading line-clamp-2">
-              {title}
-            </h1>
+            {/* Title overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+              <h1 className="text-xl font-bold text-white mb-2 drop-shadow-2xl tracking-tight font-heading line-clamp-2">
+                {title}
+              </h1>
 
-            {/* Metadata row - high contrast */}
-            <div className="flex flex-wrap items-center gap-2.5 text-sm">
-              <span className="flex items-center gap-1 text-white/90 font-medium">
-                <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
-              </span>
-              {runtime_minutes && (
-                <>
-                  <span className="text-white/30">•</span>
-                  <span className="flex items-center gap-1 text-white/90 font-medium">
-                    <Clock className="h-3.5 w-3.5 text-white/60" /> {formatRuntime(runtime_minutes)}
-                  </span>
-                </>
-              )}
-              {vote_average && (
-                <>
-                  <span className="text-white/30">•</span>
-                  <span className="flex items-center gap-1 text-brand-golden font-bold">
-                    <Star className="h-3.5 w-3.5 fill-brand-golden" /> {vote_average.toFixed(1)}
-                  </span>
-                </>
-              )}
-              <Badge className="bg-brand-golden text-black text-xs py-0.5 px-2.5 h-6 font-bold uppercase">
-                {kind === "tv" ? "TV" : "Film"}
-              </Badge>
+              {/* Metadata row - high contrast */}
+              <div className="flex flex-wrap items-center gap-2.5 text-sm">
+                <span className="flex items-center gap-1 text-white/90 font-medium">
+                  <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
+                </span>
+                {runtime_minutes && (
+                  <>
+                    <span className="text-white/30">•</span>
+                    <span className="flex items-center gap-1 text-white/90 font-medium">
+                      <Clock className="h-3.5 w-3.5 text-white/60" /> {formatRuntime(runtime_minutes)}
+                    </span>
+                  </>
+                )}
+                {vote_average && (
+                  <>
+                    <span className="text-white/30">•</span>
+                    <span className="flex items-center gap-1 text-brand-golden font-bold">
+                      <Star className="h-3.5 w-3.5 fill-brand-golden" /> {vote_average.toFixed(1)}
+                    </span>
+                  </>
+                )}
+                <Badge className="bg-brand-golden text-black text-xs py-0.5 px-2.5 h-6 font-bold uppercase">
+                  {kind === "tv" ? "TV" : "Film"}
+                </Badge>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+          {/* Content sections */}
+          <div className="px-5 py-5 space-y-5">
           {/* Overview */}
           <section>
             <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
@@ -251,22 +275,23 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
               <p className="text-sm text-white/90">{director}</p>
             </section>
           )}
+          </div>
         </div>
 
         {/* Sticky "More Like This" Button */}
         {onMoreLikeThis && (
-          <div className="shrink-0 px-5 pb-8 pt-4 bg-gradient-to-t from-black via-black to-transparent">
+          <div className="shrink-0 px-5 pb-5 pt-3 bg-gradient-to-t from-black via-black to-transparent">
             <motion.button
               onClick={() => {
                 haptics.light();
                 handleMoreLikeThis(displayMovie);
               }}
-              className="w-full h-14 flex items-center justify-center gap-2 rounded-full bg-brand-golden text-black font-bold uppercase tracking-wide transition-all duration-200 hover:bg-brand-golden/90 hover:shadow-[0_0_30px_rgba(238,199,69,0.4)] active:scale-[0.98]"
+              className="w-full h-11 flex items-center justify-center gap-1.5 rounded-full bg-brand-golden text-black text-sm font-bold uppercase tracking-wide transition-all duration-200 hover:bg-brand-golden/90 hover:shadow-[0_0_30px_rgba(238,199,69,0.4)] active:scale-[0.98]"
               whileHover={reducedMotion ? {} : { scale: 1.02, y: -1 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
               More Like This
             </motion.button>
           </div>

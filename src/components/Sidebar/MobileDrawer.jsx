@@ -109,12 +109,9 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-brand-red/30 bg-brand-red"
+            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-brand-red/30"
             style={{
-              backgroundImage: `
-                linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%),
-                radial-gradient(ellipse at 30% 5%, rgba(238, 199, 69, 0.08) 0%, transparent 60%)
-              `,
+              background: `linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%)`,
               paddingTop: "env(safe-area-inset-top)",
               paddingLeft: "env(safe-area-inset-left)",
               paddingBottom: "env(safe-area-inset-bottom)",
