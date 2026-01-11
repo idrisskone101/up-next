@@ -171,9 +171,9 @@ export function MovieCard({
             )}
           </div>
 
-          {/* Gradient overlay - warm golden to red on hover */}
+          {/* Gradient overlay - warm golden on hover */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-t from-brand-red/90 via-brand-orange/40 to-brand-golden/10 pointer-events-none"
+            className="absolute inset-0 bg-gradient-to-t from-brand-red/80 via-brand-orange/40 to-brand-golden/10 pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: !disableHover && isHovered ? 1 : 0 }}
             transition={disableHover ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}

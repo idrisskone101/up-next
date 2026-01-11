@@ -47,7 +47,7 @@ export function MobileTopNav({ onSurpriseMe }) {
       <div
         className="flex items-center justify-between h-14 px-4 border-b border-brand-red/20"
         style={{
-          background: `linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(156, 14, 14, 1) 100%)`,
+          background: `linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%)`,
         }}
       >
         {/* Left: Menu button */}
@@ -56,10 +56,10 @@ export function MobileTopNav({ onSurpriseMe }) {
           onClick={handleOpenMenu}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.92 }}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors"
           aria-label="Open menu"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" />
         </motion.button>
 
         {/* Center: Empty space */}
@@ -73,10 +73,10 @@ export function MobileTopNav({ onSurpriseMe }) {
             onClick={handleSurpriseMe}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.92 }}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-golden/20 text-brand-golden hover:bg-brand-golden/30 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-golden/20 text-brand-golden hover:bg-brand-golden/30 transition-colors"
             aria-label="Surprise me"
           >
-            <Sparkles className="h-5 w-5" />
+            <Sparkles className="h-4 w-4" />
           </motion.button>
 
           {/* Search */}
@@ -85,10 +85,10 @@ export function MobileTopNav({ onSurpriseMe }) {
             onClick={handleOpenSearch}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.92 }}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors"
             aria-label="Open search"
           >
-            <Search className="h-5 w-5" />
+            <Search className="h-4 w-4" />
           </motion.button>
         </div>
       </div>

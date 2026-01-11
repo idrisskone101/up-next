@@ -36,6 +36,7 @@ export function RecentSearches({ onSearchClick, collapsed }) {
             <button
               type="button"
               onClick={() => onSearchClick?.(search.query)}
+              title={search.query}
               className="
                 w-full text-left px-3 py-2 rounded-lg
                 text-sm text-white/70 truncate

@@ -94,7 +94,7 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
                   onChange={(e) => setCompactQuery(e.target.value)}
                   placeholder="Search for a vibe..."
                   disabled={loading}
-                  className="w-full h-11 rounded-full bg-white/10 border-2 border-white/20 px-5 pr-24 text-sm text-white font-medium placeholder:text-white/60 focus:outline-none focus:border-brand-golden focus:bg-white/15 focus:shadow-[0_0_0_4px_rgba(238,199,69,0.2)] transition-all disabled:opacity-50"
+                  className="w-full h-11 rounded-full bg-white/5 border border-white/15 px-5 pr-24 text-sm text-white font-medium placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:bg-white/10 transition-all disabled:opacity-50"
                 />
                 <div className="absolute right-1.5 flex items-center gap-1">
                   <AnimatePresence>

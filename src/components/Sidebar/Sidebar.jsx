@@ -233,7 +233,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
       className="fixed top-0 left-0 h-dvh z-[60] flex flex-col border-r border-brand-red/30 overflow-hidden will-change-[width] bg-brand-red"
       style={{
         backgroundImage: `
-          linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 12, 12, 1) 100%),
+          linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%),
           radial-gradient(ellipse at 30% 10%, rgba(238, 199, 69, 0.08) 0%, transparent 60%)
         `
       }}
@@ -251,7 +251,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
           onClick={toggle}
           whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
           whileTap={{ scale: 0.95 }}
-          className="flex-none flex items-center justify-center w-11 h-11 rounded-xl text-white/70 hover:text-brand-golden transition-colors duration-200"
+          className="flex-none flex items-center justify-center w-10 h-10 rounded-full text-white/70 hover:text-brand-golden transition-colors duration-200"
           aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
         >
           <motion.span
@@ -259,7 +259,7 @@ function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
             animate={{ rotate: isOpen ? 0 : 180 }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </motion.span>
         </motion.button>
 

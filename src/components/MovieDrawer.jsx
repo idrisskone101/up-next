@@ -134,18 +134,18 @@ export function MovieDrawer({ movie, onClose, onMoreLikeThis }) {
     <AnimatePresence onExitComplete={handleExitComplete}>
       {isOpen && (
         <>
-          {/* Backdrop - Warm tinted dark */}
+          {/* Backdrop */}
           <motion.div
             variants={reducedMotion ? {} : drawerBackdropVariants}
             initial={reducedMotion ? { opacity: 0 } : "hidden"}
             animate={reducedMotion ? { opacity: 1 } : "visible"}
             exit={reducedMotion ? { opacity: 0 } : "exit"}
-            className="fixed inset-0 z-50 bg-gradient-to-r from-black/85 to-brand-red/20 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
             onClick={handleClose}
             aria-hidden="true"
           />
 
-          {/* Drawer Panel - Warm dark with golden accents */}
+          {/* Drawer Panel */}
           <motion.div
             ref={drawerRef}
             variants={reducedMotion ? {} : drawerVariants}
@@ -155,22 +155,19 @@ export function MovieDrawer({ movie, onClose, onMoreLikeThis }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="drawer-title"
-            className="fixed top-0 right-0 bottom-0 w-[400px] md:w-[400px] lg:w-[440px] xl:w-[480px] flex flex-col bg-gradient-to-b from-[#1a1714] to-[#0d0b09] shadow-[-24px_0_80px_rgba(0,0,0,0.7)]"
+            className="fixed top-0 right-0 bottom-0 w-[400px] md:w-[400px] lg:w-[440px] xl:w-[480px] flex flex-col bg-black border-l border-white/20 shadow-[-24px_0_80px_rgba(0,0,0,0.8)]"
             style={{ zIndex: 60 }}
           >
-            {/* Golden accent border on left edge */}
-            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-brand-golden/60 via-brand-orange/40 to-brand-red/30" />
-
-            {/* Close Button - Golden glow on hover */}
+            {/* Close Button */}
             <motion.button
               onClick={handleClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-white hover:text-brand-golden hover:bg-brand-golden/20 hover:border-brand-golden/50 hover:shadow-[0_0_20px_rgba(238,199,69,0.3)] transition-all duration-200"
+              className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-all duration-200"
               aria-label="Close drawer"
-              whileHover={reducedMotion ? {} : { scale: 1.1, rotate: 90 }}
+              whileHover={reducedMotion ? {} : { scale: 1.05 }}
               whileTap={reducedMotion ? {} : { scale: 0.95 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </motion.button>
 
             {/* Screen reader title */}

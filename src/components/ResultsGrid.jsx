@@ -257,21 +257,23 @@ export function ResultsGrid({
 
                 {/* Pagination controls */}
                 <Pagination>
-                  <PaginationContent className="gap-1">
+                  <PaginationContent className="gap-2 bg-white/60 backdrop-blur-sm rounded-full px-2 py-1.5 border border-gray-200/80 shadow-sm">
                     {/* Previous button */}
                     <PaginationItem>
-                      <button
+                      <motion.button
                         onClick={() => {
                           haptics.light();
                           onPageChange(currentPage - 1);
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                         disabled={currentPage === 1}
-                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-gray-500 hover:text-brand-red hover:bg-brand-red/10 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                        whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+                        whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+                        className="flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium text-gray-600 hover:text-brand-red hover:bg-brand-red/10 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                       >
                         <ChevronLeft className="h-4 w-4" />
                         <span className="hidden sm:inline">Previous</span>
-                      </button>
+                      </motion.button>
                     </PaginationItem>
 
                     {/* Page numbers */}
@@ -315,7 +317,7 @@ export function ResultsGrid({
                         if (page === "ellipsis-start" || page === "ellipsis-end") {
                           return (
                             <PaginationItem key={page}>
-                              <span className="flex h-10 w-10 items-center justify-center text-gray-400">
+                              <span className="flex h-9 w-6 items-center justify-center text-gray-400 text-sm">
                                 ...
                               </span>
                             </PaginationItem>
@@ -325,20 +327,22 @@ export function ResultsGrid({
                         const isActive = page === currentPage;
                         return (
                           <PaginationItem key={page}>
-                            <button
+                            <motion.button
                               onClick={() => {
                                 haptics.light();
                                 onPageChange(page);
                                 window.scrollTo({ top: 0, behavior: "smooth" });
                               }}
-                              className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-all ${
+                              whileHover={{ scale: isActive ? 1 : 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all ${
                                 isActive
-                                  ? "bg-brand-red text-white shadow-[0_0_12px_rgba(176,17,16,0.25)]"
-                                  : "text-gray-500 hover:text-brand-red hover:bg-brand-red/10"
+                                  ? "bg-brand-golden text-[#481B13] shadow-md"
+                                  : "text-gray-600 hover:text-brand-orange hover:bg-brand-golden/10"
                               }`}
                             >
                               {page}
-                            </button>
+                            </motion.button>
                           </PaginationItem>
                         );
                       });
@@ -346,18 +350,20 @@ export function ResultsGrid({
 
                     {/* Next button */}
                     <PaginationItem>
-                      <button
+                      <motion.button
                         onClick={() => {
                           haptics.light();
                           onPageChange(currentPage + 1);
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                         disabled={currentPage === totalPages}
-                        className="flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-gray-500 hover:text-brand-red hover:bg-brand-red/10 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                        whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+                        whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+                        className="flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium text-gray-600 hover:text-brand-red hover:bg-brand-red/10 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                       >
                         <span className="hidden sm:inline">Next</span>
                         <ChevronRight className="h-4 w-4" />
-                      </button>
+                      </motion.button>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>

@@ -69,7 +69,8 @@ export default {
   				cream: '#F0ECAC',
   				golden: '#EEC745',
   				orange: '#E04A28',
-  				red: '#B01110'
+  				red: '#B01110',
+  				burgundy: '#8B2635'
   			},
   			amber: {
   				'50': '#FFFBEB',

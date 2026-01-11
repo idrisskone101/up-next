@@ -112,7 +112,7 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-brand-red/30 bg-brand-red"
             style={{
               backgroundImage: `
-                linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 12, 12, 1) 100%),
+                linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%),
                 radial-gradient(ellipse at 30% 5%, rgba(238, 199, 69, 0.08) 0%, transparent 60%)
               `,
               paddingTop: "env(safe-area-inset-top)",
@@ -129,11 +129,11 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
               {logo}
               <motion.button
                 onClick={handleClose}
-                className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/10 border border-white/20 text-white/70 hover:bg-white/20 hover:text-brand-golden transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 text-white/70 hover:bg-white/20 hover:text-brand-golden transition-colors"
                 whileTap={{ scale: 0.95 }}
                 aria-label="Close menu"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </motion.button>
             </div>
 

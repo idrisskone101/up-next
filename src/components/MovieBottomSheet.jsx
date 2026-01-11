@@ -109,16 +109,16 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
         {/* Drawer handle - high contrast */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/40 rounded-full z-10" />
 
-        {/* Close button - bold red hover */}
+        {/* Close button */}
         <motion.button
           onClick={handleClose}
-          className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-brand-red hover:border-brand-red transition-all duration-200"
+          className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:border-white/30 transition-all duration-200"
           whileHover={reducedMotion ? {} : { scale: 1.05 }}
           whileTap={reducedMotion ? {} : { scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
           aria-label="Close"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </motion.button>
 
         {/* Screen reader title */}
@@ -151,13 +151,13 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
             {/* Metadata row - high contrast */}
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
               <span className="flex items-center gap-1 text-white/90 font-medium">
-                <Calendar className="h-3.5 w-3.5 text-brand-red" /> {year}
+                <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
               </span>
               {runtime_minutes && (
                 <>
                   <span className="text-white/30">•</span>
                   <span className="flex items-center gap-1 text-white/90 font-medium">
-                    <Clock className="h-3.5 w-3.5 text-brand-red" /> {formatRuntime(runtime_minutes)}
+                    <Clock className="h-3.5 w-3.5 text-white/60" /> {formatRuntime(runtime_minutes)}
                   </span>
                 </>
               )}
@@ -169,7 +169,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
                   </span>
                 </>
               )}
-              <Badge className="bg-brand-red text-white text-xs py-0.5 px-2.5 h-6 font-bold uppercase">
+              <Badge className="bg-brand-golden text-black text-xs py-0.5 px-2.5 h-6 font-bold uppercase">
                 {kind === "tv" ? "TV" : "Film"}
               </Badge>
             </div>
@@ -180,7 +180,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Overview */}
           <section>
-            <h3 className="text-xs font-bold text-brand-red mb-2 uppercase tracking-widest">
+            <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
               Synopsis
             </h3>
             <p className="text-sm leading-relaxed text-white/90">
@@ -191,7 +191,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
           {/* Genres */}
           {safeGenres.length > 0 && (
             <section>
-              <h3 className="text-xs font-bold text-brand-red mb-2 flex items-center gap-1.5 uppercase tracking-widest">
+              <h3 className="text-xs font-bold text-brand-golden mb-2 flex items-center gap-1.5 uppercase tracking-widest">
                 <Tag className="h-3 w-3" /> Genres
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -207,7 +207,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
           {/* Trailer */}
           {id && (
             <section>
-              <h3 className="text-xs font-bold text-brand-red mb-2 flex items-center gap-1.5 uppercase tracking-widest">
+              <h3 className="text-xs font-bold text-brand-golden mb-2 flex items-center gap-1.5 uppercase tracking-widest">
                 <PlayCircle className="h-3 w-3" /> Trailer
               </h3>
               <div className="overflow-hidden rounded-xl border-2 border-white/20 bg-black">
@@ -223,7 +223,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
           {/* Cast - horizontal scroll */}
           {topCast.length > 0 && (
             <section>
-              <h3 className="text-xs font-bold text-brand-red mb-2 uppercase tracking-widest">
+              <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
                 Cast
               </h3>
               <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-5 px-5">
@@ -245,7 +245,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
           {/* Director */}
           {director && (
             <section>
-              <h3 className="text-xs font-bold text-brand-red mb-2 uppercase tracking-widest">
+              <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
                 Director
               </h3>
               <p className="text-sm text-white/90">{director}</p>
@@ -261,7 +261,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
                 haptics.light();
                 handleMoreLikeThis(displayMovie);
               }}
-              className="w-full h-14 flex items-center justify-center gap-2 rounded-full bg-brand-red text-white font-bold uppercase tracking-wide transition-all duration-200 hover:bg-brand-red/90 hover:shadow-[0_0_30px_rgba(176,17,16,0.4)] active:scale-[0.98]"
+              className="w-full h-14 flex items-center justify-center gap-2 rounded-full bg-brand-golden text-black font-bold uppercase tracking-wide transition-all duration-200 hover:bg-brand-golden/90 hover:shadow-[0_0_30px_rgba(238,199,69,0.4)] active:scale-[0.98]"
               whileHover={reducedMotion ? {} : { scale: 1.02, y: -1 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}

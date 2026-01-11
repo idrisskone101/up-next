@@ -49,7 +49,7 @@ export function FilterBar({
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="text-[11px] sm:text-xs">{label}</span>
             </motion.button>
           );
         })}

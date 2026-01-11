@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Film, Star } from "lucide-react";
 import { springConfigs } from "../../lib/animations";
 import { haptics } from "../../lib/haptics";
+import { useIsMobile } from "../../hooks/useMediaQuery";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w342";
 
@@ -20,6 +21,7 @@ export function DiscoveryCard({
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const isMobile = useIsMobile();
 
   const posterUrl = poster_path ? `${TMDB_IMAGE_BASE}${poster_path}` : null;
   const displayRating = tmdb_rating ? tmdb_rating.toFixed(1) : null;
@@ -33,7 +35,7 @@ export function DiscoveryCard({
     <motion.button
       type="button"
       onClick={handleClick}
-      whileHover={{ scale: 1.03, y: -2 }}
+      whileHover={isMobile ? {} : { scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={springConfigs.snappy}
       className="w-[180px] flex-shrink-0 scroll-snap-align-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-golden/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white group"
@@ -64,13 +66,15 @@ export function DiscoveryCard({
           </div>
         )}
 
-        {/* Hover gradient overlay */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-brand-red/65 via-brand-red/20 to-transparent pointer-events-none"
-          initial={{ opacity: 0 }}
-          whileHover={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-        />
+        {/* Hover gradient overlay - desktop only */}
+        {!isMobile && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-brand-red/60 via-brand-red/20 to-transparent pointer-events-none"
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
 
         {/* Kind badge (TV only) */}
         {kind === "tv" && (
@@ -79,13 +83,15 @@ export function DiscoveryCard({
           </div>
         )}
 
-        {/* Shadow lift on hover */}
-        <motion.div
-          className="absolute inset-0 rounded-xl pointer-events-none"
-          initial={{ boxShadow: "0 4px 12px rgba(176,17,16,0.05)" }}
-          whileHover={{ boxShadow: "0 12px 32px rgba(176,17,16,0.12)" }}
-          transition={{ duration: 0.2 }}
-        />
+        {/* Shadow lift on hover - desktop only */}
+        {!isMobile && (
+          <motion.div
+            className="absolute inset-0 rounded-xl pointer-events-none"
+            initial={{ boxShadow: "0 4px 12px rgba(139,38,53,0.05)" }}
+            whileHover={{ boxShadow: "0 12px 32px rgba(139,38,53,0.15)" }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
       </div>
 
       {/* Title & Meta */}
