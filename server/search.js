@@ -26,10 +26,10 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
  * Uses single embedding with match_titles_multi RPC for efficient weighted search
  * Supports both fixed weights (fast) and dynamic LLM-based weights (slower but adaptive)
  * Includes re-ranking to enhance results with quality signals
- * Returns all 300 candidates sorted by VIBE score - frontend handles pagination
+ * Returns all 150 candidates sorted by VIBE score - frontend handles pagination
  *
  * @param {string} query - The user's search query
- * @param {number} matchCount - Ignored, always fetches 300 candidates
+ * @param {number} matchCount - Ignored, always fetches 150 candidates
  * @param {number} matchThreshold - Minimum similarity score (default: from config)
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
  * @returns {Promise<Object>} All search results sorted by vibe_score descending
@@ -139,8 +139,8 @@ export async function searchTitles(
     }
 
     // Step 3: Call match_titles_multi RPC with three structured embeddings
-    // Always fetch 300 candidates for frontend pagination (no re-fetching on page change)
-    const dbMatchCount = 300;
+    // Fetch 150 candidates — SQL caps at 150/embedding, post-processing caps at 150 results
+    const dbMatchCount = 150;
 
     console.log("[Search] Calling match_titles_multi RPC with 3 embeddings...");
     if (kindFilter) {
@@ -276,7 +276,7 @@ export async function searchTitles(
     const searchEndTime = Date.now();
     console.log("[Search] Total search time: " + (searchEndTime - searchStartTime) + "ms");
 
-    // Return all 300 candidates - frontend handles pagination
+    // Return all 150 candidates - frontend handles pagination
     const totalResults = finalResults.length;
     console.log("[Search] Returning all " + totalResults + " candidates for frontend pagination");
 

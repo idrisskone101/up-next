@@ -474,28 +474,31 @@ if (process.env.NODE_ENV === "production") {
 
 /**
  * Pre-warm vector indexes on startup
- * Loads all vector indexes into RAM to eliminate cold-start latency
+ * Runs a lightweight dummy search to traverse HNSW graphs and pull nodes into OS page cache
  */
 async function prewarmVectorIndexes() {
   try {
     console.log('🔥 Pre-warming vector indexes...');
     const startTime = Date.now();
-    
-    const { data, error } = await supabase.rpc('prewarm_vector_indexes');
-    
+
+    // Zero vector triggers HNSW traversal on all 3 indexes without needing real embeddings
+    const zeroVector = new Array(1536).fill(0);
+
+    const { error } = await supabase.rpc('match_titles_multi', {
+      query_content_embedding: zeroVector,
+      query_vibe_embedding: zeroVector,
+      query_metadata_embedding: zeroVector,
+      match_count: 10,
+      match_threshold: 0.0,
+    });
+
     if (error) {
       console.warn('⚠️  Pre-warming failed (non-critical):', error.message);
       return;
     }
-    
+
     const duration = Date.now() - startTime;
-    const totalMB = data.reduce((sum, idx) => sum + parseFloat(idx.size_mb), 0);
-    
-    console.log(`✅ Vector indexes pre-warmed in ${duration}ms`);
-    console.log(`   Loaded ${totalMB.toFixed(1)} MB into RAM:`);
-    data.forEach(idx => {
-      console.log(`   - ${idx.index_name}: ${idx.blocks_loaded} blocks (${idx.size_mb} MB)`);
-    });
+    console.log(`✅ Vector indexes pre-warmed in ${duration}ms (dummy search on 3 HNSW indexes)`);
   } catch (error) {
     console.warn('⚠️  Pre-warming failed (non-critical):', error.message);
   }
