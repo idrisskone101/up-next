@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
@@ -22,8 +23,20 @@ const PORT = config.port;
 const SERVER_TIMEOUT = 60000; // 60 seconds
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3001'],
+  methods: ['GET', 'POST'],
+}));
+app.use(express.json({ limit: '10kb' }));
+
+// Rate limiting for search/similar endpoints (OpenAI embedding calls = $$$)
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Timeout middleware for long-running requests
 app.use((req, res, next) => {
@@ -111,6 +124,9 @@ app.get("/api/titles/search", async (req, res) => {
       .select("id, title, poster_path, kind, release_date")
       .ilike("title", searchTerm)
       .not("poster_path", "is", null)
+      .not("content_embedding", "is", null)
+      .not("vibe_embedding", "is", null)
+      .not("metadata_embedding", "is", null)
       .order("vote_average", { ascending: false })
       .limit(searchLimit);
 
@@ -209,7 +225,7 @@ app.get("/api/recommendations", async (req, res) => {
     });
   }
 });
-app.post("/api/search", async (req, res) => {
+app.post("/api/search", searchLimiter, async (req, res) => {
   try {
     const {
       query,
@@ -217,7 +233,7 @@ app.post("/api/search", async (req, res) => {
       matchThreshold = config.search.defaultMatchThreshold,
       kindFilter = null,
       minReleaseYear = null,
-      excludeGenres = null,
+      excludeGenres = ['documentary', 'reality'],
     } = req.body;
 
     // Validate request
@@ -327,9 +343,9 @@ app.post("/api/search", async (req, res) => {
  * Body: { titleId, kindFilter?, minReleaseYear?, excludeGenres? }
  * Returns titles similar to the given title using vibe-heavy embedding search
  */
-app.post("/api/similar", async (req, res) => {
+app.post("/api/similar", searchLimiter, async (req, res) => {
   try {
-    const { titleId, kindFilter = null, minReleaseYear = null, excludeGenres = null } = req.body;
+    const { titleId, kindFilter = null, minReleaseYear = null, excludeGenres = ['documentary', 'reality'] } = req.body;
 
     // Validate titleId (required, positive integer)
     const id = parseInt(titleId, 10);

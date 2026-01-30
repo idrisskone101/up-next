@@ -84,6 +84,16 @@ const INTENT_CLUSTERS = {
     ],
     // No exclusions - emotional films span all tones (sad horror exists, sad comedy exists)
     excludeVibes: {}
+  },
+  family: {
+    keywords: [
+      'with parents', 'with family', 'family friendly', 'family movie night',
+      'with kids', 'with grandparents', 'family night', 'movie night with parents',
+      'all ages', 'with mom', 'with dad', 'with my parents'
+    ],
+    excludeVibes: { dark: 0.7, gritty: 0.7, provocative: 0.6 },
+    excludeGenres: ['horror', 'thriller'],
+    excludeCertifications: ['R', 'NC-17', 'TV-MA', '18', 'X']
   }
 };
 
@@ -165,6 +175,14 @@ export function hasVibeConflict(title, intent) {
       if (titleGenres.includes(excludedGenre.toLowerCase())) {
         return true; // Genre conflict found - exclude this title
       }
+    }
+  }
+
+  // Check certification exclusions (e.g., R-rated for family context)
+  if (cluster.excludeCertifications && cluster.excludeCertifications.length > 0 && title.certification) {
+    const cert = title.certification.toUpperCase();
+    if (cluster.excludeCertifications.some(c => c.toUpperCase() === cert)) {
+      return true; // Certification conflict found - exclude this title
     }
   }
 

@@ -1,11 +1,8 @@
 import { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "./ui/badge";
-import { Film, Star, Info, Play, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { Film, Star, Sparkles, Tv, Clapperboard } from "lucide-react";
 import {
   use3DTilt,
-  cardOverlayVariants,
-  cardButtonVariants,
   prefersReducedMotion,
 } from "../lib/animations";
 import { haptics } from "../lib/haptics";
@@ -120,18 +117,15 @@ export function MovieCard({
           disableHover
             ? {}
             : {
-                scale: 1.05,
-                y: -6,
-                rotate: -1,
+                y: -4,
                 transition: {
                   type: "spring",
                   stiffness: 400,
-                  damping: 25,
-                  mass: 0.5,
+                  damping: 30,
                 },
               }
         }
-        whileTap={disableHover ? {} : { scale: 0.97, transition: { duration: 0.08 } }}
+        whileTap={disableHover ? {} : { scale: 0.98, transition: { duration: 0.1 } }}
         className="group relative flex w-full flex-col gap-2 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-golden focus-visible:ring-offset-2 focus-visible:ring-offset-background perspective-1000"
         style={{
           opacity: isDimmed ? 0.5 : 1,
@@ -140,20 +134,18 @@ export function MovieCard({
         }}
       >
         {/* Poster Container with 3D Tilt + Warm Glow */}
-        <motion.div
+        <div
           ref={cardRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gradient-to-br from-brand-cream/30 to-gray-200 tilt-card"
-          animate={{
-            boxShadow: isHovered && !disableHover
-              ? "0 20px 40px -12px rgba(238,199,69,0.3), 0 12px 24px -8px rgba(224,74,40,0.2), 0 0 0 1px rgba(238,199,69,0.2)"
-              : "0 10px 30px -10px rgba(0,0,0,0.15), 0 4px 12px -4px rgba(0,0,0,0.1)",
-          }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
+          className={`relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gradient-to-br from-brand-cream/30 to-gray-200 tilt-card transition-shadow duration-200 ease-out ${
+            isHovered && !disableHover
+              ? "shadow-[0_12px_24px_-8px_rgba(0,0,0,0.2)]"
+              : "shadow-[0_4px_12px_-4px_rgba(0,0,0,0.1)]"
+          }`}
         >
           {/* Poster */}
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full rounded-xl overflow-hidden">
             {posterUrl ? (
               <img
                 src={posterUrl}
@@ -161,7 +153,7 @@ export function MovieCard({
                 className="h-full w-full object-cover transition-transform duration-200"
                 loading="lazy"
                 style={{
-                  transform: !disableHover && isHovered ? "scale(1.04)" : "scale(1)",
+                  transform: !disableHover && isHovered ? "scale(1.02)" : "scale(1)",
                 }}
               />
             ) : (
@@ -171,33 +163,25 @@ export function MovieCard({
             )}
           </div>
 
-          {/* Gradient overlay - warm golden on hover */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-t from-brand-red/80 via-brand-orange/40 to-brand-golden/10 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: !disableHover && isHovered ? 1 : 0 }}
-            transition={disableHover ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
-          />
+          {/* Subtle border */}
+          <div className="absolute inset-0 rounded-xl pointer-events-none ring-1 ring-black/5" />
 
-          {/* Warm border accent */}
-          <motion.div
-            className="absolute inset-0 rounded-xl pointer-events-none"
-            animate={{
-              boxShadow: isHovered && !disableHover
-                ? "inset 0 0 0 2px rgba(238,199,69,0.4)"
-                : "inset 0 0 0 1px rgba(238,199,69,0.1)",
-            }}
-            transition={{ duration: 0.2 }}
-          />
-
-          {/* Kind Badge - Top Left */}
-          <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 hidden xs:block z-20">
-            <Badge
-              variant="outline"
-              className="bg-white/95 backdrop-blur-md border-brand-cream/50 text-gray-700 uppercase tracking-wider text-[8px] px-1.5 py-0.5 sm:text-[10px] sm:px-2.5 sm:py-1 font-semibold shadow-sm"
+          {/* Type Badge - Top Left */}
+          <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 z-20">
+            <div
+              className={`flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm shadow-sm ${
+                kind === "tv"
+                  ? "bg-brand-orange/90 text-white"
+                  : "bg-brand-golden text-amber-900"
+              }`}
             >
-              {kind === "tv" ? "📺 TV" : "🎬 Film"}
-            </Badge>
+              {kind === "tv" ? (
+                <Tv className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              ) : (
+                <Clapperboard className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+              )}
+              <span>{kind === "tv" ? "TV" : "Film"}</span>
+            </div>
           </div>
 
           {/* Match Score Badge - Top Right */}
@@ -208,82 +192,16 @@ export function MovieCard({
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
             >
-              <Badge
-                className={`${matchTier.bg} ${matchTier.text} ${matchTier.glow} text-[9px] px-2 py-0.5 sm:text-[11px] sm:px-2.5 sm:py-1 font-bold flex items-center gap-1 border-0`}
+              <div
+                className={`${matchTier.bg} ${matchTier.text} ${matchTier.glow} text-[9px] px-2 py-0.5 sm:text-[11px] sm:px-2.5 sm:py-1 font-bold flex items-center gap-1 rounded-md`}
               >
                 {matchTier.icon && <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
                 {match_score}%
-              </Badge>
+              </div>
             </motion.div>
           )}
 
-          {/* Info Overlay - Desktop only, appears on hover */}
-          <AnimatePresence mode="wait">
-            {!isMobile && isHovered && (
-              <motion.div
-                className="absolute inset-x-0 bottom-0 p-3 z-30"
-                variants={reducedMotion ? {} : cardOverlayVariants}
-                initial={reducedMotion ? { opacity: 0 } : "hidden"}
-                animate={reducedMotion ? { opacity: 1 } : "visible"}
-                exit={reducedMotion ? { opacity: 0 } : "exit"}
-              >
-                {/* Content */}
-                <div className="relative">
-                  {/* Title - 1 line, truncate */}
-                  <h3 className="text-[15px] font-semibold text-white truncate">
-                    {title}
-                  </h3>
-
-                  {/* Metadata row */}
-                  <div className="flex items-center gap-1.5 mt-1 text-xs text-white/70">
-                    <span>{year}</span>
-                  </div>
-
-                  {/* Action buttons - Enhanced with golden glow */}
-                  <div className="flex gap-2 mt-2.5">
-                    <motion.button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        haptics.light();
-                        onClick?.();
-                      }}
-                      className="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-golden to-brand-orange text-white flex items-center justify-center backdrop-blur-sm shadow-lg shadow-brand-golden/30 hover:shadow-brand-golden/50 transition-shadow"
-                      variants={reducedMotion ? {} : cardButtonVariants}
-                      custom={0}
-                      initial={reducedMotion ? { opacity: 1 } : "hidden"}
-                      animate={reducedMotion ? { opacity: 1 } : "visible"}
-                      exit={reducedMotion ? { opacity: 0 } : "exit"}
-                      whileHover={reducedMotion ? {} : { scale: 1.1, rotate: -5 }}
-                      whileTap={reducedMotion ? {} : { scale: 0.95 }}
-                    >
-                      <Info className="h-4 w-4" />
-                    </motion.button>
-
-                    <motion.button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        haptics.light();
-                        onPlayTrailer?.();
-                      }}
-                      className="h-9 w-9 rounded-xl bg-white/20 border border-white/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-white hover:text-brand-red hover:border-white transition-all"
-                      variants={reducedMotion ? {} : cardButtonVariants}
-                      custom={1}
-                      initial={reducedMotion ? { opacity: 1 } : "hidden"}
-                      animate={reducedMotion ? { opacity: 1 } : "visible"}
-                      exit={reducedMotion ? { opacity: 0 } : "exit"}
-                      whileHover={reducedMotion ? {} : { scale: 1.1, rotate: 5 }}
-                      whileTap={reducedMotion ? {} : { scale: 0.95 }}
-                    >
-                      <Play className="h-4 w-4" />
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        </div>
 
         {/* Content below card */}
         <div className="space-y-1 px-0.5">

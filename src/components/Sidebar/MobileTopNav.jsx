@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { Menu, Sparkles, Search } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 import { useSidebar } from "../../contexts/SidebarContext";
-import { useCommandPalette } from "../../contexts/CommandPaletteContext";
 import { UpNextLogo } from "../ui/UpNextLogo";
 import { getRandomQuery } from "../../lib/categories";
 import { haptics } from "../../lib/haptics";
@@ -11,21 +10,12 @@ import { haptics } from "../../lib/haptics";
  * Shows on mobile only - brand-red horizontal bar with quick actions
  */
 export function MobileTopNav({ onSurpriseMe }) {
-  const { toggle, isMobile } = useSidebar();
-  const { open: openPalette } = useCommandPalette();
-
-  // Only show on mobile
-  if (!isMobile) return null;
+  const { toggle } = useSidebar();
 
   const handleSurpriseMe = () => {
     haptics.light();
     const query = getRandomQuery();
     onSurpriseMe?.(query);
-  };
-
-  const handleOpenSearch = () => {
-    haptics.light();
-    openPalette();
   };
 
   const handleOpenMenu = () => {
@@ -38,7 +28,7 @@ export function MobileTopNav({ onSurpriseMe }) {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 28, delay: 0.1 }}
-      className="fixed top-0 left-0 right-0 z-[60] md:hidden"
+      className="fixed top-0 left-0 right-0 z-[60]"
       style={{
         paddingTop: "env(safe-area-inset-top)",
       }}
@@ -77,18 +67,6 @@ export function MobileTopNav({ onSurpriseMe }) {
             aria-label="Surprise me"
           >
             <Sparkles className="h-4 w-4" />
-          </motion.button>
-
-          {/* Search */}
-          <motion.button
-            type="button"
-            onClick={handleOpenSearch}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.92 }}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors"
-            aria-label="Open search"
-          >
-            <Search className="h-4 w-4" />
           </motion.button>
         </div>
       </div>

@@ -185,6 +185,18 @@ export const getDiagonalDelay = (index, columns, baseDelay = 0.04) => {
 };
 
 /**
+ * Capped diagonal delay - only animates first row for mobile perf
+ * Items beyond first row appear instantly
+ */
+export const getCappedDiagonalDelay = (index, columns, baseDelay = 0.03) => {
+  const row = Math.floor(index / columns);
+  // Only stagger first row
+  if (row > 0) return 0;
+  const col = index % columns;
+  return col * baseDelay;
+};
+
+/**
  * Grid item variants with diagonal wave animation
  */
 export const gridItemVariants = {
@@ -209,7 +221,7 @@ export const gridItemVariants = {
 
 /**
  * Enhanced grid item variants matching query pill smoothness
- * Includes blur effect for polished entrance
+ * Includes blur effect for polished entrance (desktop only)
  */
 export const enhancedGridItemVariants = {
   hidden: {
@@ -236,6 +248,38 @@ export const enhancedGridItemVariants = {
     filter: "blur(2px)",
     transition: { duration: 0.18, ease: "easeIn" },
   },
+};
+
+/**
+ * Mobile-optimized grid item variants
+ * No blur filter, simpler transitions for better iOS Safari perf
+ */
+export const mobileGridItemVariants = {
+  hidden: {
+    opacity: 0,
+    y: 12,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.25,
+      ease: [0.25, 0.1, 0.25, 1], // CSS ease equivalent
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.15 },
+  },
+};
+
+/**
+ * Mobile-optimized spring - simpler, less computation
+ */
+export const mobileSpring = {
+  type: "tween",
+  duration: 0.25,
+  ease: [0.25, 0.1, 0.25, 1],
 };
 
 /**
@@ -957,5 +1001,92 @@ export const mentionBackdropVariants = {
   exit: {
     opacity: 0,
     transition: { duration: 0.12, ease: "easeIn" },
+  },
+};
+
+// ============================================
+// MOVIE DETAIL CARD STACK ANIMATIONS
+// ============================================
+
+/**
+ * Synopsis card - emerges from hero with overlap
+ */
+export const synopsisCardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 28,
+      delay: 0.1,
+    },
+  },
+};
+
+/**
+ * Provider strip - staggered logos
+ */
+export const providerStripContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+export const providerLogoVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 25,
+    },
+  },
+};
+
+/**
+ * Cast list - staggered entrance
+ */
+export const castListContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+export const castListItemVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: "spring",
+      stiffness: 380,
+      damping: 26,
+    },
+  },
+};
+
+/**
+ * CTA float animation - subtle upward idle pulse
+ */
+export const ctaFloatAnimation = {
+  y: [0, -3, 0],
+  transition: {
+    duration: 2.5,
+    repeat: Infinity,
+    ease: "easeInOut",
   },
 };

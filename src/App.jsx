@@ -28,13 +28,10 @@ import { haptics } from "./lib/haptics";
 import { findSimilar } from "./lib/api";
 
 /**
- * Mobile hamburger menu button
- * Opens sidebar drawer on tap
+ * Hamburger menu button - opens sidebar drawer
  */
-function MobileMenuButton() {
-  const { toggle, isMobile } = useSidebar();
-
-  if (!isMobile) return null;
+function MenuButton() {
+  const { toggle } = useSidebar();
 
   return (
     <motion.button
@@ -42,7 +39,7 @@ function MobileMenuButton() {
       onClick={toggle}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors md:hidden"
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15 hover:text-brand-golden transition-colors"
       aria-label="Open menu"
     >
       <Menu className="h-4 w-4" />
@@ -51,29 +48,21 @@ function MobileMenuButton() {
 }
 
 /**
- * Sticky results header with sidebar-aware positioning
- * Red gradient background matching mobile top nav
+ * Sticky results header - full width with hamburger menu
+ * Red gradient background matching top nav
  */
 function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit, onBackToHero, compactInputRef }) {
-  const { isOpen, isMobile } = useSidebar();
-
-  // Calculate left position for header (full-width, responds to sidebar)
-  const headerLeft = isMobile ? 0 : isOpen ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)";
-
   return (
-    <motion.header
-      className="fixed top-0 right-0 z-50 border-b border-brand-red/20 shadow-[0_4px_20px_rgba(0,0,0,0.15)] pt-[env(safe-area-inset-top)]"
+    <header
+      className="fixed top-0 left-0 right-0 z-50 border-b border-brand-red/20 shadow-[0_4px_20px_rgba(0,0,0,0.15)] pt-[env(safe-area-inset-top)]"
       style={{
         background: `linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(156, 14, 14, 1) 100%)`,
       }}
-      initial={false}
-      animate={{ left: headerLeft }}
-      transition={{ type: "spring", stiffness: 300, damping: 24 }}
     >
       <div className="container px-4 sm:px-6">
         <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8 flex h-16 items-center gap-4">
-            {/* Mobile Menu Button - only visible on mobile */}
-            <MobileMenuButton />
+            {/* Menu Button - opens drawer */}
+            <MenuButton />
 
             {/* Logo */}
             <button
@@ -130,7 +119,7 @@ function StickyResultsHeader({ compactQuery, setCompactQuery, loading, onSubmit,
             </form>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
 
@@ -152,6 +141,30 @@ function AppContent() {
   const hasResults = results.length > 0;
   const hasSearched = !!searchMetadata;
   const viewState = hasResults || loading || error || (hasSearched && results.length === 0) ? "results" : "hero";
+
+  // Lock scroll when in hero view (iOS Safari fix)
+  useEffect(() => {
+    if (viewState === "hero") {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.height = "100%";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [viewState]);
 
   // Track scroll position for back-to-top button
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -296,13 +309,13 @@ function AppContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
               transition={pageTransition}
-              className="flex flex-1 flex-col"
+              className="fixed inset-0 flex flex-col overflow-hidden overscroll-none touch-none"
             >
-              {/* Mobile Top Nav - Only on hero, only on mobile */}
+              {/* Top Nav - Hero view only */}
               <MobileTopNav onSurpriseMe={handleSurpriseMe} />
 
               {/* Hero Content - Centered search area */}
-              <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 py-12 pt-[calc(6rem+env(safe-area-inset-top))] md:pt-12">
+              <div className="flex flex-1 flex-col items-center justify-center px-4 pt-20 overflow-y-auto">
                 <div className="w-full max-w-2xl space-y-10">
                   {/* Logo/Wordmark */}
                   <motion.div
@@ -343,15 +356,6 @@ function AppContent() {
                   </motion.div>
                 </div>
               </div>
-
-              {/* Discovery Section - Below hero */}
-              <DiscoverySection
-                recommendations={recommendations}
-                loading={recsLoading}
-                error={recsError}
-                onCardClick={(item) => handleSearch(item.title, null)}
-                onMoodClick={(query) => handleSearch(query, null)}
-              />
             </motion.div>
           ) : (
             <motion.div
@@ -448,8 +452,6 @@ function AppContent() {
                         currentPage={currentPage}
                         totalPages={totalPages}
                         onPageChange={goToPage}
-                        onRefresh={refresh}
-                        isRefreshing={refreshing}
                         totalCount={searchMetadata?.totalCount}
                         onMoreLikeThis={handleMoreLikeThis}
                         onVibeSearch={handleVibeSearch}
@@ -470,7 +472,7 @@ function AppContent() {
                     exit={{ opacity: 0, scale: 0.8, y: 20 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     onClick={handleBackToTop}
-                    className="fixed right-6 bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/90 text-white shadow-lg shadow-amber-500/30 backdrop-blur-sm hover:bg-amber-500 active:scale-95 transition-colors"
+                    className="fixed right-6 bottom-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-brand-golden text-amber-900 shadow-lg shadow-brand-golden/30 backdrop-blur-sm hover:bg-brand-orange hover:text-white active:scale-95 transition-colors"
                     aria-label="Back to top"
                   >
                     <ArrowUp className="h-5 w-5" strokeWidth={2.5} />

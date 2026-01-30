@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MovieCard } from "./MovieCard";
 import { MovieDrawer } from "./MovieDrawer";
 import { MovieBottomSheet } from "./MovieBottomSheet";
@@ -18,9 +18,9 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "./ui/pagination";
-import { getDiagonalDelay, enhancedGridItemVariants, springConfigs } from "../lib/animations";
+import { getDiagonalDelay, getCappedDiagonalDelay, enhancedGridItemVariants, mobileGridItemVariants, springConfigs, mobileSpring } from "../lib/animations";
 import { haptics } from "../lib/haptics";
-import { prefetchTrailers } from "../lib/trailerCache";
+
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 /**
@@ -57,8 +57,6 @@ export function ResultsGrid({
   currentPage = 1,
   totalPages = 1,
   onPageChange,
-  onRefresh,
-  isRefreshing = false,
   totalCount,
   onMoreLikeThis,
   onVibeSearch,
@@ -77,7 +75,6 @@ export function ResultsGrid({
     return results.find((m) => String(m.id) === movieIdFromUrl) || null;
   }, [movieIdFromUrl, results]);
 
-  const [sortOrder, setSortOrder] = useState("match");
   const containerRef = useRef(null);
   const columns = useGridColumns();
 
@@ -104,21 +101,6 @@ export function ResultsGrid({
     onMoreLikeThis?.(movie);
   }, [navigate, location.pathname, onMoreLikeThis]);
 
-  // Sort results (type filtering is now server-side)
-  const sortedResults = useMemo(() => {
-    if (sortOrder === "year") {
-      return [...results].sort((a, b) => {
-        const yearA = a.release_date ? new Date(a.release_date).getFullYear() : 0;
-        const yearB = b.release_date ? new Date(b.release_date).getFullYear() : 0;
-        return yearB - yearA;
-      });
-    } else if (sortOrder === "rating") {
-      return [...results].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
-    }
-    // Default "match" sort uses original order (already sorted by score)
-    return results;
-  }, [results, sortOrder]);
-
   // Preload first 6 visible results' backdrops for instant modal display
   useEffect(() => {
     results.slice(0, 6).forEach((movie) => {
@@ -129,12 +111,7 @@ export function ResultsGrid({
     });
   }, [results]);
 
-  // Prefetch trailers for first 10 results
-  useEffect(() => {
-    if (results.length > 0) {
-      prefetchTrailers(results, 10);
-    }
-  }, [results]);
+
 
   const isMobile = useIsMobile();
 
@@ -167,11 +144,10 @@ export function ResultsGrid({
 
   return (
     <>
-      <LayoutGroup>
-        <div
-          ref={containerRef}
-          className="space-y-8 relative pb-16"
-        >
+      <div
+        ref={containerRef}
+        className="space-y-8 relative pb-16"
+      >
           {/* Movie results grid */}
           <div className="mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8">
             {/* Similar Search Header */}
@@ -199,10 +175,6 @@ export function ResultsGrid({
             <FilterBar
               activeType={typeFilter}
               onTypeChange={onTypeFilterChange}
-              activeSort={sortOrder}
-              onSortChange={setSortOrder}
-              onRefresh={onRefresh}
-              isRefreshing={isRefreshing}
             />
 
             <motion.div
@@ -212,19 +184,22 @@ export function ResultsGrid({
               exit="exit"
             >
               <AnimatePresence mode="popLayout">
-                {sortedResults.map((movie, index) => {
+                {results.map((movie, index) => {
                   const isSelected = selectedMovie?.id === movie.id;
+                  // Use mobile-optimized animations on mobile
+                  const variants = isMobile ? mobileGridItemVariants : enhancedGridItemVariants;
+                  const delayFn = isMobile ? getCappedDiagonalDelay : getDiagonalDelay;
+                  const transitionConfig = isMobile ? mobileSpring : springConfigs.snappy;
                   return (
                     <motion.div
                       key={movie.id}
-                      layout
-                      variants={enhancedGridItemVariants}
+                      variants={variants}
                       initial="hidden"
                       animate="visible"
                       exit="exit"
                       transition={{
-                        ...springConfigs.snappy,
-                        delay: getDiagonalDelay(index, columns, 0.03),
+                        ...transitionConfig,
+                        delay: delayFn(index, columns, 0.03),
                       }}
                       className={isSelected ? "ring-2 ring-brand-golden/60 rounded-xl shadow-[0_0_24px_rgba(238,199,69,0.25)]" : ""}
                     >
@@ -371,9 +346,8 @@ export function ResultsGrid({
             )}
           </div>
         </div>
-      </LayoutGroup>
 
-      {/* Movie Detail - Outside LayoutGroup to prevent grid re-animation */}
+      {/* Movie Detail */}
       {/* Use bottom sheet on mobile, drawer on desktop */}
       {isMobile ? (
         <MovieBottomSheet

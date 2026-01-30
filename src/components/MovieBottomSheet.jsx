@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Star, Calendar, Clock, User, PlayCircle, Sparkles, Tag, X } from "lucide-react";
-import { Badge } from "./ui/badge";
+import { Sparkles, X, Tv, Clapperboard } from "lucide-react";
 import { TrailerPlayer } from "./TrailerPlayer";
+import { ProviderBadges } from "./ProviderBadges";
 import { haptics } from "../lib/haptics";
 import {
   Drawer,
@@ -11,7 +11,13 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "./ui/drawer";
-import { prefersReducedMotion } from "../lib/animations";
+import {
+  prefersReducedMotion,
+  synopsisCardVariants,
+  castListContainerVariants,
+  castListItemVariants,
+  ctaFloatAnimation,
+} from "../lib/animations";
 
 const formatRuntime = (minutes) => {
   if (!minutes) return "";
@@ -20,51 +26,42 @@ const formatRuntime = (minutes) => {
   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 };
 
+const capitalize = (str) => {
+  if (typeof str !== 'string') return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+/**
+ * Golden dot separator for inline metadata
+ */
+const Dot = () => <span className="text-brand-golden">·</span>;
+
 /**
  * Mobile bottom sheet for movie details using shadcn Drawer
- * Styled for Cinematic Command Center aesthetic
+ * Cinematic Card Stack design - consistent with MovieDetail
  */
 export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
   const cachedMovie = useRef(null);
-  const scrollRef = useRef(null);
 
-  // Update cached movie and open state when movie changes
   useEffect(() => {
     if (movie) {
       cachedMovie.current = movie;
-      setScrollY(0);
       setIsOpen(true);
     }
   }, [movie]);
 
-  // Handle scroll to shrink backdrop
-  const handleScroll = useCallback((e) => {
-    setScrollY(e.target.scrollTop);
-  }, []);
-
-  // Calculate backdrop height: 220px -> 80px over 140px of scroll
-  const maxHeight = 220;
-  const minHeight = 80;
-  const scrollRange = 140;
-  const clampedScroll = Math.max(0, scrollY); // Prevent negative scroll from overscroll bounce
-  const backdropHeight = Math.max(minHeight, maxHeight - (clampedScroll / scrollRange) * (maxHeight - minHeight));
-
-  // Handle close
   const handleClose = useCallback(() => {
     haptics.light();
     setIsOpen(false);
   }, []);
 
-  // Handle drawer open state change
   const handleOpenChange = useCallback((open) => {
     if (!open) {
       handleClose();
     }
   }, [handleClose]);
 
-  // After close animation, call parent onClose
   useEffect(() => {
     if (!isOpen && cachedMovie.current) {
       const timer = setTimeout(() => {
@@ -74,7 +71,6 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
     }
   }, [isOpen, onClose]);
 
-  // Handle "More Like This" - close sheet and trigger callback
   const handleMoreLikeThis = useCallback((m) => {
     handleClose();
     setTimeout(() => {
@@ -94,15 +90,16 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
     genres,
     director,
     cast,
-    vote_average,
     runtime_minutes,
     poster_path,
     backdrop_path,
+    providers,
   } = displayMovie;
 
-  // Parse genres (may be JSON strings from DB)
+  const streamingProviders = providers?.flatrate || [];
   const safeGenres = Array.isArray(genres) ? genres :
     (typeof genres === 'string' ? JSON.parse(genres) : []);
+  const year = release_date ? new Date(release_date).getFullYear() : null;
 
   const backdropUrl = backdrop_path
     ? `https://image.tmdb.org/t/p/w780${backdrop_path}`
@@ -110,18 +107,25 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : null;
 
-  const year = release_date ? new Date(release_date).getFullYear() : "N/A";
   const parsedCast = typeof cast === "string" ? JSON.parse(cast) : cast;
-  const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 8) : [];
+  const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 5) : [];
 
   const reducedMotion = prefersReducedMotion();
+
+  // Build metadata pieces for inline display (capitalize genres)
+  const metaPieces = [];
+  if (safeGenres.length > 0) {
+    metaPieces.push(...safeGenres.slice(0, 2).map(capitalize));
+  }
+  if (year) metaPieces.push(year);
+  if (runtime_minutes) metaPieces.push(formatRuntime(runtime_minutes));
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange} snapPoints={[1]}>
       <DrawerContent
         className="h-[85vh] rounded-t-[28px] overflow-hidden bg-black border-t border-white/20 shadow-[0_-20px_80px_rgba(0,0,0,0.8)] focus:outline-none"
       >
-        {/* Drawer handle - high contrast */}
+        {/* Drawer handle */}
         <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/40 rounded-full z-10" />
 
         {/* Close button */}
@@ -142,17 +146,10 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
           <DrawerDescription>Movie information and trailer</DrawerDescription>
         </DrawerHeader>
 
-        {/* Scrollable Content Area - hero scrolls with content */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto overscroll-none"
-        >
-          {/* Hero Image Zone - scrolls away */}
-          <div
-            className="relative overflow-hidden"
-            style={{ height: backdropHeight }}
-          >
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Hero Image Zone */}
+          <div className="relative h-44 overflow-hidden">
             {backdropUrl && (
               <img
                 src={backdropUrl}
@@ -163,132 +160,148 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
             {!backdropUrl && (
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
             )}
-            {/* Gradient overlays - pure black */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
 
-            {/* Title overlay at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 px-5 pb-4">
+            {/* Title + metadata overlay */}
+            <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+              {/* Type badge - matches MovieCard colors */}
+              <div
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wide mb-2 ${
+                  kind === "tv"
+                    ? "bg-brand-orange/90 text-white"
+                    : "bg-brand-golden text-amber-900"
+                }`}
+              >
+                {kind === "tv" ? (
+                  <Tv className="w-2.5 h-2.5" />
+                ) : (
+                  <Clapperboard className="w-2.5 h-2.5" />
+                )}
+                <span>{kind === "tv" ? "TV" : "Film"}</span>
+              </div>
+
+              {/* Title */}
               <h1 className="text-xl font-bold text-white mb-2 drop-shadow-2xl tracking-tight font-heading line-clamp-2">
                 {title}
               </h1>
 
-              {/* Metadata row - high contrast */}
-              <div className="flex flex-wrap items-center gap-2.5 text-sm">
-                <span className="flex items-center gap-1 text-white/90 font-medium">
-                  <Calendar className="h-3.5 w-3.5 text-white/60" /> {year}
-                </span>
-                {runtime_minutes && (
-                  <>
-                    <span className="text-white/30">•</span>
-                    <span className="flex items-center gap-1 text-white/90 font-medium">
-                      <Clock className="h-3.5 w-3.5 text-white/60" /> {formatRuntime(runtime_minutes)}
+              {/* Inline metadata: Genre · Genre · Year · Runtime */}
+              {metaPieces.length > 0 && (
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-white/80">
+                  {metaPieces.map((piece, i) => (
+                    <span key={i} className="flex items-center gap-1.5">
+                      <span>{piece}</span>
+                      {i < metaPieces.length - 1 && <Dot />}
                     </span>
-                  </>
-                )}
-                {vote_average && (
-                  <>
-                    <span className="text-white/30">•</span>
-                    <span className="flex items-center gap-1 text-brand-golden font-bold">
-                      <Star className="h-3.5 w-3.5 fill-brand-golden" /> {vote_average.toFixed(1)}
-                    </span>
-                  </>
-                )}
-                <Badge className="bg-brand-golden text-black text-xs py-0.5 px-2.5 h-6 font-bold uppercase">
-                  {kind === "tv" ? "TV" : "Film"}
-                </Badge>
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Synopsis Card */}
+          {overview && (
+            <motion.div
+              variants={synopsisCardVariants}
+              initial="hidden"
+              animate="visible"
+              className="relative mt-4 mx-4 p-4 bg-gradient-to-br from-neutral-900/95 to-neutral-950/95 rounded-2xl border border-white/10 shadow-xl"
+            >
+              <p className="text-sm leading-relaxed text-white/90">
+                {overview}
+              </p>
+            </motion.div>
+          )}
+
           {/* Content sections */}
-          <div className="px-5 py-5 space-y-5">
-          {/* Overview */}
-          <section>
-            <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
-              Synopsis
-            </h3>
-            <p className="text-sm leading-relaxed text-white/90">
-              {overview || "No overview available."}
-            </p>
-          </section>
+          <div className="px-4 pt-5 pb-6 space-y-6">
+            {/* Where to Watch */}
+            {streamingProviders.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                  Where to Watch
+                </h3>
+                <ProviderBadges providers={streamingProviders} title={title} />
+              </section>
+            )}
 
-          {/* Genres */}
-          {safeGenres.length > 0 && (
-            <section>
-              <h3 className="text-xs font-bold text-brand-golden mb-2 flex items-center gap-1.5 uppercase tracking-widest">
-                <Tag className="h-3 w-3" /> Genres
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {safeGenres.map((g, i) => (
-                  <span key={i} className="text-sm text-white/80 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                    {g}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Trailer */}
-          {id && (
-            <section>
-              <h3 className="text-xs font-bold text-brand-golden mb-2 flex items-center gap-1.5 uppercase tracking-widest">
-                <PlayCircle className="h-3 w-3" /> Trailer
-              </h3>
-              <div className="overflow-hidden rounded-xl border-2 border-white/20 bg-black">
-                <TrailerPlayer
-                  tmdbId={id}
-                  mediaType={kind === "tv" ? "tv" : "movie"}
-                  title={title}
-                />
-              </div>
-            </section>
-          )}
-
-          {/* Cast - horizontal scroll */}
-          {topCast.length > 0 && (
-            <section>
-              <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
-                Cast
-              </h3>
-              <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-5 px-5">
-                {topCast.map((actor, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-white/10 rounded-full border border-white/20 shrink-0"
-                  >
-                    <User className="h-3.5 w-3.5 text-white/60" />
-                    <span className="text-sm text-white/90 whitespace-nowrap">
-                      {actor.name || actor}
-                    </span>
+            {/* Trailer */}
+            {id && (
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                  Trailer
+                </h3>
+                <div className="-mx-4">
+                  <div className="overflow-hidden">
+                    <TrailerPlayer
+                      tmdbId={id}
+                      mediaType={kind === "tv" ? "tv" : "movie"}
+                      title={title}
+                    />
                   </div>
-                ))}
-              </div>
-            </section>
-          )}
+                </div>
+              </section>
+            )}
 
-          {/* Director */}
-          {director && (
-            <section>
-              <h3 className="text-xs font-bold text-brand-golden mb-2 uppercase tracking-widest">
-                Director
-              </h3>
-              <p className="text-sm text-white/90">{director}</p>
-            </section>
-          )}
+            {/* Cast */}
+            {topCast.length > 0 && (
+              <motion.section
+                variants={castListContainerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-3"
+              >
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                  Cast
+                </h3>
+                <div className="space-y-2">
+                  {topCast.map((actor, i) => {
+                    const name = actor.name || actor;
+                    const character = actor.character;
+                    return (
+                      <motion.div
+                        key={i}
+                        variants={castListItemVariants}
+                        className="text-sm"
+                      >
+                        <span className="text-white/90 font-medium">{name}</span>
+                        {character && (
+                          <span className="text-white/50 ml-1.5">as {character}</span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.section>
+            )}
+
+            {/* Director */}
+            {director && (
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                  Director
+                </h3>
+                <p className="text-sm text-brand-golden font-medium">
+                  {director}
+                </p>
+              </section>
+            )}
           </div>
         </div>
 
         {/* Sticky "More Like This" Button */}
         {onMoreLikeThis && (
-          <div className="shrink-0 px-5 pb-5 pt-3 bg-gradient-to-t from-black via-black to-transparent">
+          <div className="shrink-0 px-4 pb-6 pt-3 bg-gradient-to-t from-black via-black to-transparent">
             <motion.button
               onClick={() => {
                 haptics.light();
                 handleMoreLikeThis(displayMovie);
               }}
-              className="w-full h-11 flex items-center justify-center gap-1.5 rounded-full bg-brand-golden text-black text-sm font-bold uppercase tracking-wide transition-all duration-200 hover:bg-brand-golden/90 hover:shadow-[0_0_30px_rgba(238,199,69,0.4)] active:scale-[0.98]"
+              className="w-full h-12 flex items-center justify-center gap-1.5 rounded-full bg-brand-golden text-black text-sm font-bold uppercase tracking-wide transition-all duration-200 hover:bg-brand-golden/90 hover:shadow-[0_0_30px_rgba(238,199,69,0.4)] active:scale-[0.98]"
               whileHover={reducedMotion ? {} : { scale: 1.02, y: -1 }}
               whileTap={reducedMotion ? {} : { scale: 0.98 }}
+              animate={reducedMotion ? {} : ctaFloatAnimation}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
               <Sparkles className="w-4 h-4" />

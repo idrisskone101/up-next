@@ -1,24 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
+  ChevronRight,
   Home,
   Sparkles,
   Grid3X3,
-  Clock,
   Heart,
   Flame,
   Brain,
   Skull,
   Popcorn,
-  Moon
+  Moon,
+  Clock
 } from "lucide-react";
 import { useSidebar } from "../../contexts/SidebarContext";
-import { QUERY_CATEGORIES, getRandomQuery, getRandomQueryFromCategory } from "../../lib/categories";
-import { springConfigs } from "../../lib/animations";
+import { QUERY_CATEGORIES, getRandomQuery } from "../../lib/categories";
+import { springConfigs, listContainerVariants, listItemVariants } from "../../lib/animations";
 import { SidebarNav } from "./SidebarNav";
 import { SidebarSection } from "./SidebarSection";
-import { SidebarSearch } from "./SidebarSearch";
 import { RecentSearches } from "./RecentSearches";
 import { MobileDrawer } from "./MobileDrawer";
 import { UpNextLogo } from "../ui/UpNextLogo";
@@ -54,6 +54,7 @@ const navItemVariants = {
  */
 function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onClose, isExpanded = true }) {
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState(null);
 
   const handleSurpriseMe = () => {
     const query = getRandomQuery();
@@ -62,25 +63,16 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onCl
   };
 
   const handleCategoryClick = (categoryId) => {
-    const query = getRandomQueryFromCategory(categoryId);
-    if (query) {
-      onCategorySelect?.(query);
-      onClose?.();
-    }
+    setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
   };
 
-  const handleSearchSubmit = (query) => {
-    onSearch?.(query);
+  const handleQueryClick = (query) => {
+    onCategorySelect?.(query);
     onClose?.();
   };
 
   return (
     <>
-      {/* Search input */}
-      <div className="shrink-0 px-4 mb-3">
-        <SidebarSearch onSearch={handleSearchSubmit} collapsed={!isExpanded} />
-      </div>
-
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none px-4 space-y-4 pb-4">
         {/* DISCOVER section */}
@@ -155,27 +147,70 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onCl
                       <div className="space-y-0.5 py-1 border-l border-brand-golden/30 pl-3">
                         {QUERY_CATEGORIES.map((category, index) => {
                           const Icon = ICON_MAP[category.icon];
+                          const isExpanded = expandedCategory === category.id;
                           return (
-                            <motion.button
-                              key={category.id}
-                              type="button"
-                              onClick={() => handleCategoryClick(category.id)}
-                              initial={{ opacity: 0, x: -8 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ ...springConfigs.snappy, delay: index * 0.02 }}
-                              whileHover={{ x: 2, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-                              whileTap={{ scale: 0.98 }}
-                              className="
-                                flex items-center gap-2 w-full
-                                px-2 py-2 rounded-lg text-sm
-                                text-white/60 hover:text-brand-golden
-                                transition-colors duration-150
-                                min-h-[44px]
-                              "
-                            >
-                              <Icon className="w-3.5 h-3.5" />
-                              {category.label}
-                            </motion.button>
+                            <div key={category.id}>
+                              <motion.button
+                                type="button"
+                                onClick={() => handleCategoryClick(category.id)}
+                                initial={{ opacity: 0, x: -8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ ...springConfigs.snappy, delay: index * 0.02 }}
+                                whileHover={{ x: 2, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+                                whileTap={{ scale: 0.98 }}
+                                className="
+                                  flex items-center justify-between w-full
+                                  px-2 py-2 rounded-lg text-sm
+                                  text-white/60 hover:text-brand-golden
+                                  transition-colors duration-150
+                                  min-h-[44px]
+                                "
+                              >
+                                <span className="flex items-center gap-2">
+                                  <Icon className="w-3.5 h-3.5" />
+                                  {category.label}
+                                </span>
+                                <motion.span
+                                  animate={{ rotate: isExpanded ? 90 : 0 }}
+                                  transition={springConfigs.snappy}
+                                >
+                                  <ChevronRight className="w-3 h-3" />
+                                </motion.span>
+                              </motion.button>
+
+                              {/* Query submenu */}
+                              <AnimatePresence>
+                                {isExpanded && (
+                                  <motion.div
+                                    variants={listContainerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    className="ml-4 pl-3 border-l border-white/10 py-1 space-y-0.5"
+                                  >
+                                    {category.queries.map((query) => (
+                                      <motion.button
+                                        key={query}
+                                        variants={listItemVariants}
+                                        type="button"
+                                        onClick={() => handleQueryClick(query)}
+                                        whileHover={{ x: 2, backgroundColor: "rgba(255, 255, 255, 0.08)" }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="
+                                          block w-full text-left
+                                          px-2 py-2 rounded-lg text-xs
+                                          text-white/50 hover:text-brand-golden
+                                          transition-colors duration-150
+                                          min-h-[44px] flex items-center
+                                        "
+                                      >
+                                        {query}
+                                      </motion.button>
+                                    ))}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
                           );
                         })}
                       </div>
@@ -203,242 +238,22 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onCl
 }
 
 /**
- * Desktop sidebar - collapsible icon rail / expanded nav
- */
-function DesktopSidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
-  const { isOpen, toggle, close } = useSidebar();
-  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-
-  const handleSurpriseMe = () => {
-    const query = getRandomQuery();
-    onSurpriseMe?.(query);
-    close();
-  };
-
-  const handleCategoryClick = (categoryId) => {
-    const query = getRandomQueryFromCategory(categoryId);
-    if (query) {
-      onCategorySelect?.(query);
-      close();
-    }
-  };
-
-  const handleSearchClick = (query) => {
-    onSearch?.(query);
-    close();
-  };
-
-  return (
-    <motion.aside
-      className="fixed top-0 left-0 h-dvh z-[60] flex flex-col border-r border-brand-red/30 overflow-hidden will-change-[width] bg-brand-red"
-      style={{
-        backgroundImage: `
-          linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%),
-          radial-gradient(ellipse at 30% 10%, rgba(238, 199, 69, 0.08) 0%, transparent 60%)
-        `
-      }}
-      initial={false}
-      animate={{ width: isOpen ? "var(--sidebar-expanded)" : "var(--sidebar-collapsed)" }}
-      transition={{ type: "spring", stiffness: 300, damping: 24 }}
-    >
-      {/* Header: Logo + Toggle */}
-      <div className="relative flex items-center h-16 px-2.5 shrink-0">
-        {/* Subtle golden accent line at bottom */}
-        <div className="absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-brand-golden/0 via-brand-golden/40 to-brand-golden/0" />
-
-        <motion.button
-          type="button"
-          onClick={toggle}
-          whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-          whileTap={{ scale: 0.95 }}
-          className="flex-none flex items-center justify-center w-10 h-10 rounded-full text-white/70 hover:text-brand-golden transition-colors duration-200"
-          aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-        >
-          <motion.span
-            initial={false}
-            animate={{ rotate: isOpen ? 0 : 180 }}
-            transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </motion.span>
-        </motion.button>
-
-        {/* Logo text */}
-        <AnimatePresence>
-          {isOpen && (
-            <UpNextLogo size="md" animated variant="light" className="ml-2" />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Search input */}
-      <div className="shrink-0 mb-4">
-        <SidebarSearch onSearch={onSearch} collapsed={!isOpen} />
-      </div>
-
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none px-2.5 space-y-6">
-        {/* DISCOVER section */}
-        <SidebarSection title="Discover" collapsed={!isOpen}>
-          <AnimatePresence mode="wait">
-            {isOpen && (
-              <motion.div
-                variants={navContainerVariants}
-                initial="collapsed"
-                animate="expanded"
-                exit="collapsed"
-                className="space-y-0.5"
-              >
-                <motion.div variants={navItemVariants}>
-                  <SidebarNav
-                    icon={Home}
-                    label="Home"
-                    active={false}
-                    onClick={() => {
-                      onHome?.();
-                      close();
-                    }}
-                    collapsed={!isOpen}
-                  />
-                </motion.div>
-
-                <motion.div variants={navItemVariants}>
-                  <SidebarNav
-                    icon={Sparkles}
-                    label="Surprise Me"
-                    active={false}
-                    onClick={handleSurpriseMe}
-                    collapsed={!isOpen}
-                  />
-                </motion.div>
-
-                {/* Categories toggle */}
-                <motion.div variants={navItemVariants}>
-                  <button
-                    type="button"
-                    onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-                    className="
-                      flex items-center justify-between w-full
-                      px-3 py-2.5 rounded-lg text-sm font-medium
-                      text-white/70 hover:text-brand-golden hover:bg-white/10
-                      transition-colors duration-200
-                    "
-                  >
-                    <span className="flex items-center gap-3">
-                      <Grid3X3 className="w-4 h-4" />
-                      Categories
-                    </span>
-                    <motion.span
-                      animate={{ rotate: categoriesExpanded ? 180 : 0 }}
-                      transition={springConfigs.snappy}
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5 rotate-[-90deg]" />
-                    </motion.span>
-                  </button>
-                </motion.div>
-
-                {/* Categories submenu */}
-                <AnimatePresence>
-                  {categoriesExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ ...springConfigs.snappy, opacity: { duration: 0.15 } }}
-                      className="overflow-hidden pl-3"
-                    >
-                      <div className="space-y-0.5 py-1 border-l border-brand-golden/30 pl-3">
-                        {QUERY_CATEGORIES.map((category, index) => {
-                          const Icon = ICON_MAP[category.icon];
-                          return (
-                            <motion.button
-                              key={category.id}
-                              type="button"
-                              onClick={() => handleCategoryClick(category.id)}
-                              initial={{ opacity: 0, x: -8 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ ...springConfigs.snappy, delay: index * 0.02 }}
-                              whileHover={{ x: 2, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-                              whileTap={{ scale: 0.98 }}
-                              className="
-                                flex items-center gap-2 w-full
-                                px-2 py-2 rounded-lg text-sm
-                                text-white/60 hover:text-brand-golden
-                                transition-colors duration-150
-                              "
-                            >
-                              <Icon className="w-3.5 h-3.5" />
-                              {category.label}
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Collapsed state icons */}
-          {!isOpen && (
-            <div className="flex flex-col items-center gap-1">
-              <SidebarNav icon={Home} label="Home" collapsed onClick={() => onHome?.()} />
-              <SidebarNav icon={Sparkles} label="Surprise Me" collapsed onClick={handleSurpriseMe} />
-              <SidebarNav icon={Grid3X3} label="Categories" collapsed onClick={() => toggle()} />
-            </div>
-          )}
-        </SidebarSection>
-
-        {/* RECENT SEARCHES section */}
-        <SidebarSection title="Recent Searches" collapsed={!isOpen}>
-          <RecentSearches onSearchClick={handleSearchClick} collapsed={!isOpen} />
-        </SidebarSection>
-
-        {/* Collapsed recent icon */}
-        {!isOpen && (
-          <div className="flex flex-col items-center">
-            <SidebarNav icon={Clock} label="Recent" collapsed onClick={() => toggle()} />
-          </div>
-        )}
-      </div>
-
-      {/* Bottom spacer */}
-      <div className="h-4 shrink-0" />
-    </motion.aside>
-  );
-}
-
-/**
  * Main sidebar component
- * Renders desktop sidebar or mobile drawer based on viewport
+ * Always renders as drawer overlay (unified mobile/desktop pattern)
  */
 export function Sidebar({ onSearch, onSurpriseMe, onCategorySelect, onHome }) {
-  const { isOpen, close, isMobile } = useSidebar();
+  const { isOpen, close } = useSidebar();
 
-  // Mobile: render as slide-in drawer
-  if (isMobile) {
-    return (
-      <MobileDrawer isOpen={isOpen} onClose={close} logo={<UpNextLogo size="md" variant="light" />}>
-        <SidebarContent
-          onSearch={onSearch}
-          onSurpriseMe={onSurpriseMe}
-          onCategorySelect={onCategorySelect}
-          onHome={onHome}
-          onClose={close}
-          isExpanded={true}
-        />
-      </MobileDrawer>
-    );
-  }
-
-  // Desktop: render fixed sidebar
   return (
-    <DesktopSidebar
-      onSearch={onSearch}
-      onSurpriseMe={onSurpriseMe}
-      onCategorySelect={onCategorySelect}
-      onHome={onHome}
-    />
+    <MobileDrawer isOpen={isOpen} onClose={close} logo={<UpNextLogo size="md" variant="light" />}>
+      <SidebarContent
+        onSearch={onSearch}
+        onSurpriseMe={onSurpriseMe}
+        onCategorySelect={onCategorySelect}
+        onHome={onHome}
+        onClose={close}
+        isExpanded={true}
+      />
+    </MobileDrawer>
   );
 }

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Film, Tv, LayoutGrid, RefreshCw } from "lucide-react";
+import { Film, Tv, LayoutGrid } from "lucide-react";
 import { haptics } from "../lib/haptics";
 import { springConfigs } from "../lib/animations";
 
@@ -9,22 +9,9 @@ const typeOptions = [
   { value: "tv", label: "TV", icon: Tv },
 ];
 
-const sortOptions = [
-  { value: "match", label: "Match" },
-  { value: "year", label: "Year" },
-  { value: "rating", label: "Rating" },
-];
-
-/**
- * Filter bar with type filter, sort controls, and refresh button
- */
 export function FilterBar({
   activeType = "all",
   onTypeChange,
-  activeSort = "match",
-  onSortChange,
-  onRefresh,
-  isRefreshing = false,
 }) {
   return (
     <div className="flex items-center gap-3 mb-6 overflow-x-auto scrollbar-none py-1">
@@ -54,61 +41,6 @@ export function FilterBar({
           );
         })}
       </div>
-
-      {/* Divider */}
-      <div className="w-px h-6 bg-gray-300 shrink-0" />
-
-      {/* Sort dropdown */}
-      <select
-        value={activeSort}
-        onChange={(e) => {
-          haptics.light();
-          onSortChange?.(e.target.value);
-        }}
-        className="bg-white/80 border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-700 font-medium cursor-pointer hover:bg-white hover:border-brand-golden hover:text-brand-orange focus:outline-none focus:border-brand-golden focus:bg-white transition-all appearance-none pr-7 shrink-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "right 8px center",
-        }}
-      >
-        {sortOptions.map(({ value, label }) => (
-          <option key={value} value={value} className="bg-white text-gray-900">
-            Sort: {label}
-          </option>
-        ))}
-      </select>
-
-      {/* Refresh button */}
-      {onRefresh && (
-        <>
-          <div className="w-px h-6 bg-gray-300 shrink-0" />
-          <motion.button
-            onClick={() => {
-              if (!isRefreshing) {
-                haptics.light();
-                onRefresh();
-              }
-            }}
-            disabled={isRefreshing}
-            className="w-10 h-10 flex items-center justify-center rounded-full shrink-0 bg-white/80 border border-gray-300 text-gray-600 hover:text-brand-red hover:bg-white hover:border-brand-red/40 disabled:opacity-40 transition-all"
-            whileHover={!isRefreshing ? { scale: 1.05 } : undefined}
-            whileTap={!isRefreshing ? { scale: 0.95 } : undefined}
-            aria-label="Refresh results"
-          >
-            <motion.div
-              animate={{ rotate: isRefreshing ? 360 : 0 }}
-              transition={{
-                duration: 1,
-                repeat: isRefreshing ? Infinity : 0,
-                ease: "linear",
-              }}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </motion.div>
-          </motion.button>
-        </>
-      )}
     </div>
   );
 }

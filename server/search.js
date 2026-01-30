@@ -40,7 +40,7 @@ export async function searchTitles(
   matchThreshold = config.search.defaultMatchThreshold,
   kindFilter = null,
   minReleaseYear = null,
-  excludeGenres = null,
+  excludeGenres = ['documentary', 'reality'],
 ) {
   try {
     console.log('[Search] Query: "' + query + '"');
@@ -163,7 +163,7 @@ export async function searchTitles(
       weight_content: weights.content,
       weight_vibe: weights.vibe,
       weight_metadata: weights.metadata,
-      weight_popularity: 0,
+      weight_popularity: config.fixedWeights.popularity,
       match_threshold: matchThreshold,
       match_count: dbMatchCount,
       filter_kind: kindFilter,
@@ -204,11 +204,38 @@ export async function searchTitles(
       metadata_score: row.metadata_score,
       combined_score: row.combined_score,
       strongest_signal: row.strongest_signal,
+      providers: row.providers,
     }));
 
     console.log("[Search] Found " + results.length + " results from database");
 
-    // Language and reality filters now handled by is_searchable column in database
+    // Filter non-Latin-script titles without English language data (CJK, Arabic, Cyrillic, Thai, Devanagari)
+    const beforeLangFilter = results.length;
+    const NON_LATIN_RE = /[\u0400-\u04ff\u0600-\u06ff\u0900-\u097f\u0e00-\u0e7f\u3000-\u9fff\uac00-\ud7af]/;
+    results = results.filter(r => {
+      if (NON_LATIN_RE.test(r.title)) {
+        return (r.languages || []).includes('en');
+      }
+      return true;
+    });
+    if (results.length < beforeLangFilter) {
+      console.log(`[Search] Language filter: removed ${beforeLangFilter - results.length} non-Latin titles`);
+    }
+
+    // Apply combined_score floor to remove noise
+    const MIN_COMBINED_SCORE = 0.33;
+    const beforeScoreFilter = results.length;
+    results = results.filter(r => r.combined_score >= MIN_COMBINED_SCORE);
+    if (results.length < beforeScoreFilter) {
+      console.log(`[Search] Score floor: removed ${beforeScoreFilter - results.length} results below ${MIN_COMBINED_SCORE}`);
+    }
+
+    // Cap results to prevent excessive pagination with low-quality tail
+    const MAX_RESULTS = 150;
+    if (results.length > MAX_RESULTS) {
+      console.log(`[Search] Capping results from ${results.length} to ${MAX_RESULTS}`);
+      results = results.slice(0, MAX_RESULTS);
+    }
 
     // Apply vibe conflict filter if enabled (excludes tonally incompatible results)
     let queryIntent = null;

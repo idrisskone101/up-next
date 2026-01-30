@@ -18,20 +18,20 @@ const POSTER_BASE = "https://image.tmdb.org/t/p/w92";
 function SkeletonItem({ isMobile = false }) {
   return (
     <div
-      className={`flex items-center gap-3 ${
-        isMobile ? "min-h-[48px] px-4 py-3" : "px-3 py-2.5"
+      className={`flex items-center gap-3 mx-1.5 ${
+        isMobile ? "min-h-[48px] px-3 py-3" : "px-2.5 py-2.5"
       }`}
     >
       {/* Poster skeleton */}
       <div
-        className={`rounded bg-white/10 shrink-0 animate-pulse ${
+        className={`rounded bg-gray-100 shrink-0 animate-pulse ${
           isMobile ? "w-10 h-[60px]" : "w-9 h-[54px]"
         }`}
       />
       {/* Text skeleton */}
       <div className="flex-1 space-y-2">
-        <div className="h-4 w-3/4 rounded bg-white/10 animate-pulse" />
-        <div className="h-3 w-1/2 rounded bg-white/10 animate-pulse" />
+        <div className="h-4 w-3/4 rounded bg-gray-100 animate-pulse" />
+        <div className="h-3 w-1/2 rounded bg-gray-100 animate-pulse" />
       </div>
     </div>
   );
@@ -124,7 +124,7 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
     >
       <CommandList
         ref={listRef}
-        className={`scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent overflow-x-hidden ${
+        className={`scrollbar-thin scrollbar-thumb-brand-golden/30 scrollbar-track-transparent overflow-x-hidden ${
           loading ? "overflow-hidden" : ""
         } ${isMobileView ? "h-full overflow-y-auto" : "h-[222px] max-h-[222px]"}`}
       >
@@ -146,7 +146,7 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
 
         {/* Empty state */}
         {!loading && results.length === 0 && (
-          <CommandEmpty className="px-4 py-6 text-center text-sm text-white/40">
+          <CommandEmpty className="px-4 py-6 text-center text-sm text-gray-500">
             {activeSearchText
               ? `No titles found for "${activeSearchText}"`
               : "Type to search titles..."}
@@ -156,64 +156,71 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
         {/* Results */}
         {!loading &&
           results.length > 0 &&
-          results.map((title, index) => (
-            <CommandItem
-              key={title.id}
-              value={title.id.toString()}
-              onSelect={() => handleSelect(title)}
-              data-selected={index === selectedIndex}
-              className={`flex items-center gap-3 cursor-pointer rounded-none hover:bg-white/[0.04] ${
-                index === selectedIndex ? "bg-amber-500/15" : ""
-              } ${isMobileView ? "min-h-[48px] px-4 py-3" : "px-3 py-2.5"}`}
-            >
-              {/* Poster thumbnail */}
-              <div className="shrink-0">
-                {title.poster_path ? (
-                  <img
-                    src={`${POSTER_BASE}${title.poster_path}`}
-                    alt=""
-                    className={`rounded object-cover bg-white/5 ${
-                      isMobileView ? "w-10 h-[60px]" : "w-9 h-[54px]"
-                    }`}
-                  />
-                ) : (
-                  <div
-                    className={`rounded bg-white/5 flex items-center justify-center ${
-                      isMobileView ? "w-10 h-[60px]" : "w-9 h-[54px]"
-                    }`}
-                  >
-                    <span className="text-white/20 text-xs">?</span>
-                  </div>
-                )}
-              </div>
+          results.map((title, index) => {
+            const isSelected = index === selectedIndex;
+            return (
+              <CommandItem
+                key={title.id}
+                value={title.id.toString()}
+                onSelect={() => handleSelect(title)}
+                data-selected={isSelected}
+                className={`flex items-center gap-3 cursor-pointer rounded-lg mx-1.5 transition-colors duration-150 ${
+                  isMobileView ? "min-h-[48px] px-3 py-3" : "px-2.5 py-2.5"
+                } ${
+                  isSelected
+                    ? "bg-brand-golden/25 border border-brand-golden/40 shadow-sm"
+                    : "hover:bg-gray-100 border border-transparent"
+                }`}
+              >
+                {/* Poster thumbnail */}
+                <div className="shrink-0">
+                  {title.poster_path ? (
+                    <img
+                      src={`${POSTER_BASE}${title.poster_path}`}
+                      alt=""
+                      className={`rounded object-cover bg-gray-100 ${
+                        isMobileView ? "w-10 h-[60px]" : "w-9 h-[54px]"
+                      }`}
+                    />
+                  ) : (
+                    <div
+                      className={`rounded bg-gray-100 flex items-center justify-center ${
+                        isMobileView ? "w-10 h-[60px]" : "w-9 h-[54px]"
+                      }`}
+                    >
+                      <span className="text-gray-400 text-xs">?</span>
+                    </div>
+                  )}
+                </div>
 
-              {/* Title info */}
-              <div className="flex-1 min-w-0">
-                <div
-                  className={`font-medium truncate ${
-                    index === selectedIndex ? "text-amber-300" : "text-white/90"
-                  } ${isMobileView ? "text-base" : "text-sm"}`}
-                >
-                  {title.title}
-                </div>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-white/40">
-                    {getYear(title.release_date)}
-                  </span>
-                  {/* Type badge */}
-                  <span
-                    className={`text-xs px-1.5 py-0.5 rounded ${
-                      title.kind === "tv"
-                        ? "bg-violet-500/20 text-violet-400"
-                        : "bg-amber-500/20 text-amber-400"
-                    }`}
+                {/* Title info */}
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={`font-medium truncate ${
+                      isMobileView ? "text-base" : "text-sm"
+                    } ${isSelected ? "text-gray-900" : "text-gray-800"}`}
                   >
-                    {title.kind === "tv" ? "TV" : "Movie"}
-                  </span>
+                    {title.title}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-gray-500">
+                      {getYear(title.release_date)}
+                    </span>
+                    {/* Type badge */}
+                    <span
+                      className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                        title.kind === "tv"
+                          ? "bg-violet-100 text-violet-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {title.kind === "tv" ? "TV" : "Movie"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </CommandItem>
-          ))}
+              </CommandItem>
+            );
+          })}
       </CommandList>
     </Command>
   );
@@ -234,7 +241,7 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
       <Drawer open={isOpen} onOpenChange={handleDrawerOpenChange}>
         <DrawerContent
           ref={ref}
-          className="h-[80dvh] rounded-t-2xl bg-[#121214] border-t border-white/[0.08] focus:outline-none"
+          className="h-[70dvh] rounded-t-2xl bg-white border-t border-gray-200 focus:outline-none"
         >
           <div className="flex flex-col h-full overflow-hidden">
             {/* Screen reader title */}
@@ -245,7 +252,7 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
 
             {/* Handle bar */}
             <div className="flex justify-center py-2 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-white/20" />
+              <div className="w-10 h-1 rounded-full bg-gray-300" />
             </div>
 
             {/* Drawer search input */}
@@ -256,7 +263,7 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
                 value={drawerSearchText}
                 onChange={(e) => setDrawerSearchText(e.target.value)}
                 placeholder="Search titles..."
-                className="w-full h-11 bg-white/5 border border-white/10 rounded-lg px-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all"
+                className="w-full h-11 bg-gray-50 border border-gray-200 rounded-xl px-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-golden/50 focus:border-brand-golden/50 focus:bg-white transition-all"
               />
             </div>
 
@@ -293,7 +300,7 @@ export const MentionDropdown = forwardRef(function MentionDropdown(
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="bg-[#121214] overflow-hidden border border-white/10 rounded-md shadow-md"
+              className="bg-white overflow-hidden border border-gray-200 rounded-xl shadow-xl shadow-gray-200/50"
             >
               {renderDropdownContent(false)}
             </motion.div>

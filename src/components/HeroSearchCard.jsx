@@ -67,7 +67,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
   } = useMentions();
 
   // Dropdown keyboard navigation state (lifted from MentionDropdown)
-  const [dropdownSelectedIndex, setDropdownSelectedIndex] = useState(0);
+  const [dropdownSelectedIndex, setDropdownSelectedIndex] = useState(-1);
   const [dropdownResults, setDropdownResults] = useState([]);
 
   useEffect(() => {
@@ -88,17 +88,11 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
   const prevActiveRef = useRef(false);
   useEffect(() => {
     if (triggerInfo.active && !prevActiveRef.current) {
-      setDropdownSelectedIndex(0);
+      setDropdownSelectedIndex(-1);
     }
     prevActiveRef.current = triggerInfo.active;
   }, [triggerInfo.active]);
 
-  // Always select first result when results update (prevents flickering)
-  useEffect(() => {
-    if (dropdownResults.length > 0) {
-      setDropdownSelectedIndex(0);
-    }
-  }, [dropdownResults]);
 
   const getKindFilter = () => {
     if (moviesEnabled && !tvEnabled) return ["movie"];
@@ -135,7 +129,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
         setDropdownSelectedIndex(prev => Math.max(prev - 1, 0));
         return;
       }
-      if (event.key === 'Enter' && dropdownResults.length > 0) {
+      if (event.key === 'Enter' && dropdownResults.length > 0 && dropdownSelectedIndex >= 0) {
         event.preventDefault();
         handleMentionSelect(dropdownResults[dropdownSelectedIndex]);
         return;
@@ -339,7 +333,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 className={`h-9 rounded-full border px-4 text-sm font-semibold transition-all duration-200 ${
                   moviesEnabled
-                    ? "bg-gradient-to-r from-brand-golden/30 to-brand-orange/20 text-brand-orange border-brand-golden/40 shadow-[0_0_16px_rgba(238,199,69,0.2)]"
+                    ? "bg-brand-golden text-[#481B13] border-brand-golden shadow-[0_0_16px_rgba(238,199,69,0.35)]"
                     : "bg-brand-cream/20 border-brand-cream/40 text-gray-600 hover:bg-brand-cream/30 hover:text-gray-800 hover:border-brand-golden/30"
                 }`}
               >
@@ -353,7 +347,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 className={`h-9 rounded-full border px-4 text-sm font-semibold transition-all duration-200 ${
                   tvEnabled
-                    ? "bg-gradient-to-r from-brand-golden/30 to-brand-orange/20 text-brand-orange border-brand-golden/40 shadow-[0_0_16px_rgba(238,199,69,0.2)]"
+                    ? "bg-brand-golden text-[#481B13] border-brand-golden shadow-[0_0_16px_rgba(238,199,69,0.35)]"
                     : "bg-brand-cream/20 border-brand-cream/40 text-gray-600 hover:bg-brand-cream/30 hover:text-gray-800 hover:border-brand-golden/30"
                 }`}
               >
@@ -421,42 +415,33 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
             })}
           </div>
 
-          {/* Query Pills - Enhanced with stagger and warm hover */}
-          <AnimatePresence mode="wait">
+          {/* Query Pills - Smooth crossfade */}
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={activeCategory}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
               ref={queryScrollRef}
               className="flex gap-2 overflow-x-auto scrollbar-none px-1 pb-2 -mx-1 scroll-smooth"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              {QUERY_CATEGORIES.find(c => c.id === activeCategory)?.queries.map((q, index) => {
-                return (
-                  <motion.button
-                    key={q}
-                    type="button"
-                    onClick={() => handleExampleClick(q)}
-                    disabled={loading}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{
-                      delay: index * 0.02,
-                      duration: 0.2,
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap shrink-0
-                      bg-white border border-gray-200 text-gray-600
-                      hover:bg-brand-red hover:border-brand-red hover:text-white hover:shadow-md
-                      active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed
-                      transition-all duration-200`}
-                  >
-                    {q}
-                  </motion.button>
-                );
-              })}
+              {QUERY_CATEGORIES.find(c => c.id === activeCategory)?.queries.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => handleExampleClick(q)}
+                  disabled={loading}
+                  className={`px-4 py-2.5 rounded-2xl text-sm font-medium whitespace-nowrap shrink-0
+                    bg-white border border-gray-200 text-gray-600
+                    hover:bg-brand-red hover:border-brand-red hover:text-white hover:shadow-md
+                    active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed
+                    transition-all duration-200`}
+                >
+                  {q}
+                </button>
+              ))}
             </motion.div>
           </AnimatePresence>
         </div>

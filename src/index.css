@@ -4,10 +4,6 @@
 
 @layer base {
   :root {
-    /* Layout - Sidebar dimensions */
-    --sidebar-collapsed: 64px;
-    --sidebar-expanded: 280px;
-
     /* Surface colors - cream-tinted for warmth */
     --surface-elevated: #FFFCF5;
     --surface-card: #FFFCF5;

@@ -83,7 +83,7 @@ export function MentionChip({ mention, onRemove, onKeyDown, autoFocus = true }) 
       onHoverEnd={() => setIsHovered(false)}
       onKeyDown={handleKeyDown}
       whileTap={{ scale: 0.97 }}
-      className="inline-flex items-center gap-1.5 h-8 md:h-7 px-2.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-sm font-medium group relative overflow-hidden cursor-default select-none outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0a0f] hover:bg-amber-500/25 hover:border-amber-500/40 hover:shadow-[0_0_12px_rgba(245,158,11,0.15)] transition-shadow"
+      className="inline-flex items-center gap-1.5 h-8 md:h-7 px-2.5 rounded-full bg-brand-golden text-[#481B13] border border-brand-golden shadow-[0_0_12px_rgba(238,199,69,0.25)] text-sm font-medium group relative overflow-hidden cursor-default select-none outline-none focus-visible:ring-2 focus-visible:ring-brand-golden/40 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0a0a0f] hover:bg-brand-golden/90 hover:shadow-[0_0_16px_rgba(238,199,69,0.35)] transition-shadow"
     >
       {/* Hover glow effect */}
       <motion.div
@@ -92,7 +92,7 @@ export function MentionChip({ mention, onRemove, onKeyDown, autoFocus = true }) 
         animate={{
           opacity: isHovered ? 1 : 0,
           boxShadow: isHovered
-            ? "inset 0 0 12px rgba(245,158,11,0.15), 0 0 8px rgba(245,158,11,0.1)"
+            ? "inset 0 0 12px rgba(238,199,69,0.15), 0 0 8px rgba(238,199,69,0.1)"
             : "none",
         }}
         transition={{ duration: 0.2 }}
@@ -107,11 +107,11 @@ export function MentionChip({ mention, onRemove, onKeyDown, autoFocus = true }) 
           <img
             src={`${POSTER_BASE}${mention.poster_path}`}
             alt=""
-            className="w-6 h-6 md:w-5 md:h-5 rounded-full object-cover shrink-0 ring-1 ring-amber-500/20"
+            className="w-6 h-6 md:w-5 md:h-5 rounded-full object-cover shrink-0 ring-1 ring-brand-golden/20"
           />
         ) : (
-          <div className="w-6 h-6 md:w-5 md:h-5 rounded-full bg-amber-500/20 shrink-0 flex items-center justify-center">
-            <span className="text-[10px] text-amber-400/60">?</span>
+          <div className="w-6 h-6 md:w-5 md:h-5 rounded-full bg-brand-golden/20 shrink-0 flex items-center justify-center">
+            <span className="text-[10px] text-brand-orange/60">?</span>
           </div>
         )}
       </motion.div>
@@ -121,7 +121,7 @@ export function MentionChip({ mention, onRemove, onKeyDown, autoFocus = true }) 
         className="max-w-[100px] md:max-w-[120px] truncate relative z-10"
         animate={{
           textShadow: isHovered
-            ? "0 0 8px rgba(252,211,77,0.4)"
+            ? "0 0 8px rgba(224,74,40,0.3)"
             : "none",
         }}
         transition={{ duration: 0.2 }}
@@ -154,7 +154,7 @@ export function MentionChip({ mention, onRemove, onKeyDown, autoFocus = true }) 
           stiffness: 400,
           damping: 25,
         }}
-        className="ml-0.5 p-0.5 rounded-full hover:bg-amber-500/25 text-amber-400/70 hover:text-amber-300 transition-colors relative z-10 cursor-pointer"
+        className="ml-0.5 p-0.5 rounded-full hover:bg-brand-golden/25 text-brand-orange/70 hover:text-brand-orange transition-colors relative z-10 cursor-pointer"
         aria-label="Remove mention"
       >
         <X className="w-3 h-3" />

@@ -38,7 +38,7 @@ export async function findSimilarTitles(
   titleId,
   kindFilter = null,
   minReleaseYear = null,
-  excludeGenres = null
+  excludeGenres = ['documentary', 'reality']
 ) {
   const startTime = Date.now();
   console.log(`[Similar] Finding titles similar to ID: ${titleId}`);
@@ -78,7 +78,7 @@ export async function findSimilarTitles(
     weight_content: SIMILAR_WEIGHTS.content,
     weight_vibe: SIMILAR_WEIGHTS.vibe,
     weight_metadata: SIMILAR_WEIGHTS.metadata,
-    weight_popularity: 0,
+    weight_popularity: config.fixedWeights.popularity,
     match_threshold: 0.0,
     match_count: 301, // Extra to account for excluding source
     filter_kind: kindFilter,
@@ -92,7 +92,7 @@ export async function findSimilarTitles(
   }
 
   // Process results, excluding source title
-  const results = (data || [])
+  let results = (data || [])
     .filter(row => row.id !== titleId)
     .slice(0, 300)
     .map(row => ({
@@ -120,6 +120,18 @@ export async function findSimilarTitles(
       combined_score: row.combined_score,
       strongest_signal: row.strongest_signal,
     }));
+
+  // Filter non-Latin-script titles without English language data
+  const NON_LATIN_RE = /[\u0400-\u04ff\u0600-\u06ff\u0900-\u097f\u0e00-\u0e7f\u3000-\u9fff\uac00-\ud7af]/;
+  results = results.filter(r => {
+    if (NON_LATIN_RE.test(r.title)) {
+      return (r.languages || []).includes('en');
+    }
+    return true;
+  });
+
+  // Apply combined_score floor and cap
+  results = results.filter(r => r.combined_score >= 0.33).slice(0, 150);
 
   const duration = Date.now() - startTime;
   console.log(`[Similar] Found ${results.length} similar titles in ${duration}ms`);

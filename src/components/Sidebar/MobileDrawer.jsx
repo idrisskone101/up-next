@@ -16,15 +16,15 @@ const drawerVariants = {
   },
 };
 
-// Animation variants for backdrop
+// Animation variants for backdrop - synced with drawer spring
 const backdropVariants = {
   closed: {
     opacity: 0,
-    transition: { duration: 0.2 },
+    transition: { duration: 0.25, ease: [0.4, 0, 1, 1] }, // easeIn for exit
   },
   open: {
     opacity: 1,
-    transition: { duration: 0.2 },
+    transition: { duration: 0.3, ease: [0, 0, 0.2, 1] }, // easeOut for entry
   },
 };
 
@@ -109,7 +109,7 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-hidden border-r border-brand-red/30"
+            className="fixed top-0 left-0 bottom-0 z-[100] flex w-[85vw] max-w-[320px] flex-col overflow-x-hidden overflow-y-visible border-r border-brand-red/30"
             style={{
               background: `linear-gradient(180deg, rgba(176, 17, 16, 1) 0%, rgba(140, 14, 13, 1) 100%)`,
               paddingTop: "env(safe-area-inset-top)",
@@ -144,6 +144,17 @@ export function MobileDrawer({ isOpen, onClose, children, logo }) {
             <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none pt-3">
               {children}
             </div>
+
+            {/* iOS Safari bottom safe area extension */}
+            <div
+              className="absolute left-0 right-0 bottom-0"
+              style={{
+                height: "env(safe-area-inset-bottom)",
+                transform: "translateY(100%)",
+                background: "rgba(140, 14, 13, 1)",
+              }}
+              aria-hidden="true"
+            />
           </motion.aside>
         </>
       )}

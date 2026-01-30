@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 /**
  * Skeleton loader for movie cards matching the updated MovieCard design
- * Uses shimmer effect with amber brand colors
+ * Uses shimmer effect with colors that work on light backgrounds
  */
 export function SkeletonCard({ index = 0 }) {
   return (
@@ -13,30 +13,30 @@ export function SkeletonCard({ index = 0 }) {
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       {/* Poster skeleton */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-white/[0.03] border border-white/[0.06]">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-200/80 border border-gray-200">
         {/* Shimmer effect */}
-        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
 
         {/* Match badge skeleton */}
         <div className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2">
-          <div className="h-5 w-10 sm:h-6 sm:w-12 rounded-full bg-white/[0.08]" />
+          <div className="h-5 w-10 sm:h-6 sm:w-12 rounded-full bg-gray-300/80" />
         </div>
 
         {/* Kind badge skeleton */}
         <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 hidden xs:block">
-          <div className="h-4 w-10 sm:h-5 sm:w-12 rounded-full bg-white/[0.06]" />
+          <div className="h-4 w-10 sm:h-5 sm:w-12 rounded-full bg-gray-300/60" />
         </div>
       </div>
 
       {/* Content skeleton */}
       <div className="space-y-1.5 px-0.5">
         {/* Title */}
-        <div className="h-4 sm:h-5 w-3/4 rounded bg-white/[0.08]" />
+        <div className="h-4 sm:h-5 w-3/4 rounded bg-gray-200/80" />
 
         {/* Year and rating */}
         <div className="flex items-center gap-2">
-          <div className="h-3 w-10 rounded bg-white/[0.06]" />
-          <div className="h-3 w-8 rounded bg-white/[0.06]" />
+          <div className="h-3 w-10 rounded bg-gray-200/60" />
+          <div className="h-3 w-8 rounded bg-gray-200/60" />
         </div>
       </div>
     </motion.div>

@@ -8,6 +8,7 @@ const useDynamicWeights = process.env.USE_DYNAMIC_WEIGHTS === "true";
 const fixedContentWeight = parseFloat(process.env.FIXED_WEIGHT_CONTENT || "0.40");
 const fixedVibeWeight = parseFloat(process.env.FIXED_WEIGHT_VIBE || "0.35");
 const fixedMetadataWeight = parseFloat(process.env.FIXED_WEIGHT_METADATA || "0.25");
+const fixedPopularityWeight = parseFloat(process.env.FIXED_WEIGHT_POPULARITY || "0.20");
 
 // Parse re-ranking configuration (simplified: just recency + mainstream boost)
 const enableReranking = process.env.ENABLE_RERANKING !== "false"; // Default ON
@@ -44,6 +45,7 @@ export const config = {
   supabaseUrl: process.env.SUPABASE_URL,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
   tmdbToken: process.env.TMDB_TOKEN,
+  youtubeApiKey: process.env.YOUTUBE_API_KEY,
   port: process.env.PORT || 5001,
 
   // Weight configuration
@@ -52,6 +54,7 @@ export const config = {
     content: fixedContentWeight,
     vibe: fixedVibeWeight,
     metadata: fixedMetadataWeight,
+    popularity: fixedPopularityWeight,
   },
 
   // Re-ranking configuration (simplified: recency + mainstream boost)
