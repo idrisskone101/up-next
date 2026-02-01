@@ -1,22 +1,40 @@
-import posthog from 'posthog-js';
+let ph = null;
 
 const isDev = import.meta.env.MODE === 'development';
 
+// Dynamically import and init posthog — no-ops if blocked by content blocker
+import('posthog-js')
+  .then((mod) => {
+    const posthog = mod.default;
+    const key = import.meta.env.VITE_PUBLIC_POSTHOG_KEY;
+    if (!key) return;
+    posthog.init(key, {
+      api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+      capture_exceptions: true,
+      debug: isDev,
+    });
+    ph = posthog;
+  })
+  .catch(() => {
+    if (isDev) console.warn('[analytics] PostHog blocked or unavailable');
+  });
+
 function capture(event, properties) {
+  if (!ph) return;
   try {
-    posthog.capture(event, properties);
+    ph.capture(event, properties);
   } catch (e) {
     if (isDev) console.warn('[analytics]', event, e);
   }
 }
 
-// Increments total_searches and sets date properties
 function trackSearchProperties() {
+  if (!ph) return;
   try {
     const now = new Date().toISOString();
-    posthog.people.set_once({ first_search_date: now });
-    posthog.people.increment('total_searches');
-    posthog.people.set({ last_search_date: now });
+    ph.people.set_once({ first_search_date: now });
+    ph.people.increment('total_searches');
+    ph.people.set({ last_search_date: now });
   } catch (e) {
     if (isDev) console.warn('[analytics] search properties', e);
   }
