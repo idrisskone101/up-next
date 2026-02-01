@@ -47,6 +47,15 @@ export async function searchTitles(
     const searchStartTime = Date.now();
     const normalizedQuery = normalizeQuery(query);
 
+    // Performance tracking
+    const timings = {
+      llm: 0,
+      embedding: 0,
+      database: 0,
+      reranking: 0,
+      total: 0
+    };
+
     // Check full search cache first (instant response for repeated queries)
     if (config.enableSearchCache) {
       const cacheKey = getSearchCacheKey(query, matchThreshold, kindFilter, minReleaseYear, excludeGenres);
@@ -111,8 +120,11 @@ export async function searchTitles(
 
     // Run parallel operations
     if (parallelOps.length > 0) {
+      const llmStartTime = Date.now();
       console.log(`[Search] Running ${parallelOps.length} LLM operation(s) in parallel...`);
       const results = await Promise.all(parallelOps);
+      timings.llm = Date.now() - llmStartTime;
+      console.log(`[Search] LLM operations completed in ${timings.llm}ms`);
       for (const result of results) {
         if (result.type === "weights") {
           weights = result.value;
@@ -132,10 +144,12 @@ export async function searchTitles(
     if (embeddings) {
       console.log("[Search] Embedding cache HIT");
     } else {
+      const embeddingStartTime = Date.now();
       console.log("[Search] Generating embeddings from structured text...");
       embeddings = await generateEmbeddingsFromStructured(structuredText);
+      timings.embedding = Date.now() - embeddingStartTime;
       embeddingCache.set(normalizedQuery, embeddings);
-      console.log("[Search] Embeddings generated and cached");
+      console.log(`[Search] Embeddings generated and cached in ${timings.embedding}ms`);
     }
 
     // Step 3: Call match_titles_multi RPC with three structured embeddings
@@ -177,8 +191,8 @@ export async function searchTitles(
       throw new Error("Database search failed: " + error.message);
     }
 
-    const dbEndTime = Date.now();
-    console.log("[Search] RPC completed in " + (dbEndTime - dbStartTime) + "ms, returned " + (data?.length || 0) + " results");
+    timings.database = Date.now() - dbStartTime;
+    console.log("[Search] RPC completed in " + timings.database + "ms, returned " + (data?.length || 0) + " results");
 
     // Step 4: Process results (rename movie_cast to cast for frontend compatibility)
     let results = (data || []).map(row => ({
@@ -263,9 +277,9 @@ export async function searchTitles(
       try {
         const rerankStartTime = Date.now();
         finalResults = rerankResults(finalResults, query, config);
-        const rerankEndTime = Date.now();
+        timings.reranking = Date.now() - rerankStartTime;
         rerankingApplied = true;
-        console.log("[Search] Re-ranking completed for " + finalResults.length + " results (" + (rerankEndTime - rerankStartTime) + "ms)");
+        console.log("[Search] Re-ranking completed for " + finalResults.length + " results (" + timings.reranking + "ms)");
       } catch (rerankError) {
         console.error("[Search] Re-ranking failed, using original results:", rerankError);
         finalResults = results;
@@ -274,8 +288,18 @@ export async function searchTitles(
       console.log("[Search] Re-ranking DISABLED in config");
     }
 
-    const searchEndTime = Date.now();
-    console.log("[Search] Total search time: " + (searchEndTime - searchStartTime) + "ms");
+    timings.total = Date.now() - searchStartTime;
+
+    // Log detailed timing breakdown for performance analysis
+    console.log("[Search] ===== PERFORMANCE BREAKDOWN =====");
+    console.log(`[Search] Total: ${timings.total}ms`);
+    console.log(`[Search]   ├─ LLM ops (weights/structuring): ${timings.llm}ms (${((timings.llm/timings.total)*100).toFixed(1)}%)`);
+    console.log(`[Search]   ├─ Embedding generation: ${timings.embedding}ms (${((timings.embedding/timings.total)*100).toFixed(1)}%)`);
+    console.log(`[Search]   ├─ Database RPC: ${timings.database}ms (${((timings.database/timings.total)*100).toFixed(1)}%)`);
+    console.log(`[Search]   ├─ Re-ranking: ${timings.reranking}ms (${((timings.reranking/timings.total)*100).toFixed(1)}%)`);
+    const overhead = timings.total - timings.llm - timings.embedding - timings.database - timings.reranking;
+    console.log(`[Search]   └─ Other (filtering/processing): ${overhead}ms (${((overhead/timings.total)*100).toFixed(1)}%)`);
+    console.log("[Search] ===================================");
 
     // Return all 150 candidates - frontend handles pagination
     const totalResults = finalResults.length;
