@@ -97,8 +97,21 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
   } = displayMovie;
 
   const streamingProviders = providers?.flatrate || [];
-  const safeGenres = Array.isArray(genres) ? genres :
-    (typeof genres === 'string' ? JSON.parse(genres) : []);
+
+  let safeGenres = [];
+  if (Array.isArray(genres)) {
+    safeGenres = genres;
+  } else if (typeof genres === 'string') {
+    try {
+      safeGenres = JSON.parse(genres);
+    } catch (e) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to parse genres:', e);
+      }
+      safeGenres = [];
+    }
+  }
+
   const year = release_date ? new Date(release_date).getFullYear() : null;
 
   const backdropUrl = backdrop_path
@@ -107,7 +120,17 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : null;
 
-  const parsedCast = typeof cast === "string" ? JSON.parse(cast) : cast;
+  let parsedCast = cast;
+  if (typeof cast === "string") {
+    try {
+      parsedCast = JSON.parse(cast);
+    } catch (e) {
+      if (import.meta.env.DEV) {
+        console.warn('Failed to parse cast:', e);
+      }
+      parsedCast = [];
+    }
+  }
   const topCast = Array.isArray(parsedCast) ? parsedCast.slice(0, 5) : [];
 
   const reducedMotion = prefersReducedMotion();
