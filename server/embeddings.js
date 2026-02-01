@@ -272,9 +272,9 @@ export async function generateQueryEmbedding(query) {
  */
 export function createFallbackStructuredText(query) {
   return {
-    content: `Story: ${query}. Overview: ${query}. Themes: ${query}`,
-    vibe: `Vibes: ${query}. Tone: ${query}. Tagline: ${query}`,
-    metadata: `Genres: ${query}. Type: ${query}. Keywords: ${query}`,
+    content: `Story: ${query}. Overview: ${query}. Themes: ${query}. Plot: ${query}`,
+    vibe: `Vibes: ${query}. Mood: ${query}. Tone: ${query}. Atmosphere: ${query}. Feeling: ${query}`,
+    metadata: `Genres: ${query}. Keywords: ${query}. Similar to: ${query}. Category: ${query}`,
   };
 }
 

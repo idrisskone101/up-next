@@ -30,7 +30,7 @@ const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
  *
  * @param {string} query - The user's search query
  * @param {number} matchCount - Ignored, always fetches 150 candidates
- * @param {number} matchThreshold - Minimum similarity score (default: from config)
+ * @param {number} matchThreshold - DEPRECATED: No longer used by RPC (kept for backward compatibility)
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
  * @returns {Promise<Object>} All search results sorted by vibe_score descending
  */
@@ -139,7 +139,8 @@ export async function searchTitles(
     }
 
     // Step 3: Call match_titles_multi RPC with three structured embeddings
-    // Fetch 150 candidates — SQL caps at 150/embedding, post-processing caps at 150 results
+    // Fetch 150 candidates — RPC uses LEAST(match_count * 2, 250) per embedding
+    // Post-migration optimization: ~44% fewer HNSW traversals (250 vs 450 per embedding)
     const dbMatchCount = 150;
 
     console.log("[Search] Calling match_titles_multi RPC with 3 embeddings...");
@@ -164,7 +165,7 @@ export async function searchTitles(
       weight_vibe: weights.vibe,
       weight_metadata: weights.metadata,
       weight_popularity: config.fixedWeights.popularity,
-      match_threshold: matchThreshold,
+      match_threshold: matchThreshold, // DEPRECATED: RPC ignores this, kept for backward compatibility
       match_count: dbMatchCount,
       filter_kind: kindFilter,
       min_release_year: minReleaseYear,
