@@ -186,28 +186,43 @@ searchCache TTL: 5min → 1hr
 
 ## Immediate Action Plan (Pre-Launch)
 
-### ✅ MUST DO (Eliminate 504s)
+### ✅ COMPLETED
+
+1. **Add performance monitoring** ✅
+   - Detailed breakdown logging implemented
+   - Shows LLM/embedding/database/reranking timing
+   - Percentage breakdown for bottleneck identification
+
+2. **Increase cache TTLs** ✅ (MANUAL CHANGE IN .env)
+   ```bash
+   # Already updated in .env:
+   SEARCH_CACHE_TTL_MINUTES=60        # Was: 5
+   EMBEDDING_CACHE_TTL_MINUTES=1440   # Was: 30
+   ```
+   - Reduces repeated query latency
+   - Decreases OpenAI API load
+
+### ⚠️ OPTIONAL (If 504s persist)
 
 1. **Disable query structuring**
    ```bash
-   echo "USE_QUERY_STRUCTURING=false" >> .env
+   # In .env, change:
+   USE_QUERY_STRUCTURING=false
    ```
-   - Restart server
-   - Test 20 varied searches
-   - Verify all complete in <3s
+   - Drops search time from 7s → 2.5s
+   - Eliminates primary bottleneck
+   - Restart server and test
 
-2. **Increase cache TTLs**
+2. **Increase server timeout** (NOT RECOMMENDED)
    ```javascript
-   // server/cache.js
-   embeddingCache: 30min → 24hr
-   structuredQueryCache: 30min → 24hr
-   searchCache: 5min → 1hr
+   // server/index.js
+   const SERVER_TIMEOUT = 120000; // 120 seconds
    ```
 
-3. **Add performance monitoring**
-   - Already implemented ✅ (detailed breakdown logging)
-   - Monitor logs for any searches >5s
-   - Alert if >10% of searches exceed 5s
+3. **Monitor production logs**
+   - Watch for searches >10s
+   - Check OpenAI API status during 504s
+   - Alert if >10% of searches exceed 8s
 
 ---
 
