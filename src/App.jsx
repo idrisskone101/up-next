@@ -326,6 +326,7 @@ function AppContent() {
                     transition={{ delay: 0.1, duration: 0.3 }}
                   >
                     <motion.h1
+                      className="flex items-center justify-center gap-2"
                       initial={{ opacity: 0, y: 15, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{
@@ -335,6 +336,7 @@ function AppContent() {
                         delay: 0.15
                       }}
                     >
+                      <img src="/upnext-logo.svg" alt="" className="w-[65px] h-[65px] sm:w-20 sm:h-20" />
                       <UpNextLogo size="hero" variant="dark" />
                     </motion.h1>
                     <motion.p

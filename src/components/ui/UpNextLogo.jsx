@@ -16,7 +16,7 @@ const PADDING_CLASSES = {
   lg: "py-3 px-1",
   xl: "py-4 px-2",
   "2xl": "py-5 px-2",
-  hero: "py-6 px-3"
+  hero: "py-6 px-0"
 };
 
 export function UpNextLogo({

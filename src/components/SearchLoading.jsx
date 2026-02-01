@@ -93,14 +93,18 @@ export default function SearchLoading({ query }) {
       transition={springConfigs.gentle}
     >
       {/* Card container */}
-      <div className="rounded-2xl bg-[#FFFCF5] border border-brand-cream/40 shadow-xl shadow-gray-200/50 p-8">
+      <motion.div
+        className="rounded-2xl bg-[#FFFCF5] border border-brand-cream/40 shadow-xl shadow-gray-200/50 p-8"
+        layout
+        transition={springConfigs.gentle}
+      >
         {/* Pipeline progress bar */}
         <div className="h-1 rounded-full bg-brand-cream/30 mb-8 overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-brand-golden to-brand-orange shadow-[0_0_12px_rgba(238,199,69,0.3)]"
             initial={{ width: "0%" }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={springConfigs.gentle}
           />
         </div>
 
@@ -108,10 +112,10 @@ export default function SearchLoading({ query }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStage.id}
-            initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+            initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
-            transition={springConfigs.snappy}
+            exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
+            transition={springConfigs.gentle}
             className="text-center space-y-3"
           >
             {/* Pulsing emoji icon */}
@@ -137,10 +141,15 @@ export default function SearchLoading({ query }) {
         </AnimatePresence>
 
         {/* Subtle query echo */}
-        <p className="text-sm text-gray-400 text-center mt-6 italic">
+        <motion.p
+          className="text-sm text-gray-400 text-center mt-6 italic"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, ...springConfigs.gentle }}
+        >
           "{query}"
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     </motion.div>
   );
 }
