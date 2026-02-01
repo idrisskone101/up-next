@@ -201,7 +201,7 @@ export function MovieModal({ movie, onClose, onMoreLikeThis }) {
                   </>
                 )}
                 <Badge className="bg-brand-red text-white text-xs py-0 h-5 ml-1 font-medium hover:bg-brand-orange transition-colors">
-                  {kind === "tv" ? "TV Show" : "Movie"}
+                  {kind === "tv" ? "TV" : "Movie"}
                 </Badge>
               </div>
             </div>

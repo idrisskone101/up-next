@@ -20,6 +20,7 @@ import {
 } from "./ui/pagination";
 import { getDiagonalDelay, getCappedDiagonalDelay, enhancedGridItemVariants, mobileGridItemVariants, springConfigs, mobileSpring } from "../lib/animations";
 import { haptics } from "../lib/haptics";
+import * as analytics from "../lib/analytics";
 
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
@@ -77,6 +78,7 @@ export function ResultsGrid({
 
   const containerRef = useRef(null);
   const columns = useGridColumns();
+  const isMobile = useIsMobile();
 
   // Clear URL param if movie not found in results
   useEffect(() => {
@@ -87,13 +89,25 @@ export function ResultsGrid({
 
   // Open drawer via URL
   const handleCardClick = useCallback((movie) => {
+    analytics.trackMovieDetailOpened({
+      movieId: movie.id,
+      title: movie.title,
+      kind: movie.kind,
+      viewType: isMobile ? 'bottom_sheet' : 'drawer',
+      matchScore: movie.combined_score,
+      positionInResults: results.indexOf(movie),
+    });
     navigate(`?movie=${movie.id}`, { replace: false });
-  }, [navigate]);
+  }, [navigate, isMobile, results]);
 
   // Close drawer by removing param
   const handleCloseDrawer = useCallback(() => {
+    analytics.trackMovieDetailClosed({
+      movieId: selectedMovie?.id,
+      viewType: isMobile ? 'bottom_sheet' : 'drawer',
+    });
     navigate(location.pathname, { replace: true });
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, selectedMovie, isMobile]);
 
   // More Like This - close drawer first, then trigger search
   const handleMoreLikeThis = useCallback((movie) => {
@@ -111,9 +125,12 @@ export function ResultsGrid({
     });
   }, [results]);
 
-
-
-  const isMobile = useIsMobile();
+  const handlePageChange = useCallback((page) => {
+    haptics.light();
+    analytics.trackPageChanged({ pageNumber: page, totalPages });
+    onPageChange(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [onPageChange, totalPages]);
 
   if (results.length === 0) {
     return (
@@ -236,11 +253,7 @@ export function ResultsGrid({
                     {/* Previous button */}
                     <PaginationItem>
                       <motion.button
-                        onClick={() => {
-                          haptics.light();
-                          onPageChange(currentPage - 1);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
+                        onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
                         whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
                         whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
@@ -303,11 +316,7 @@ export function ResultsGrid({
                         return (
                           <PaginationItem key={page}>
                             <motion.button
-                              onClick={() => {
-                                haptics.light();
-                                onPageChange(page);
-                                window.scrollTo({ top: 0, behavior: "smooth" });
-                              }}
+                              onClick={() => handlePageChange(page)}
                               whileHover={{ scale: isActive ? 1 : 1.1 }}
                               whileTap={{ scale: 0.95 }}
                               className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-all ${
@@ -326,11 +335,7 @@ export function ResultsGrid({
                     {/* Next button */}
                     <PaginationItem>
                       <motion.button
-                        onClick={() => {
-                          haptics.light();
-                          onPageChange(currentPage + 1);
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
+                        onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
                         whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
                         whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}

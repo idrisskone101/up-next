@@ -201,7 +201,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
                 ) : (
                   <Film className="w-2.5 h-2.5" />
                 )}
-                <span>{kind === "tv" ? "TV Show" : "Movie"}</span>
+                <span>{kind === "tv" ? "TV" : "Movie"}</span>
               </div>
 
               {/* Title */}

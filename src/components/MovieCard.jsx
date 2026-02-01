@@ -180,7 +180,7 @@ export function MovieCard({
               ) : (
                 <Film className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               )}
-              <span>{kind === "tv" ? "TV Show" : "Movie"}</span>
+              <span>{kind === "tv" ? "TV" : "Movie"}</span>
             </div>
           </div>
 

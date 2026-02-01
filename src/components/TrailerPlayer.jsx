@@ -115,11 +115,12 @@ export function TrailerPlayer({ tmdbId, mediaType = "movie", title }) {
     <div className="w-full">
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
         <iframe
-          src={trailer.embedUrl}
+          src={`${trailer.embedUrl}?origin=${encodeURIComponent(window.location.origin)}`}
           title={trailer.name || `${title} Trailer`}
           className="absolute inset-0 w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          referrerPolicy="origin"
         />
       </div>
       {trailer.name && (

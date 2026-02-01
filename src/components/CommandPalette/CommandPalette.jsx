@@ -6,6 +6,7 @@ import { CommandList } from "./CommandList";
 import { useSidebar } from "../../contexts/SidebarContext";
 import { useRecentSearches } from "../../hooks/useRecentSearches";
 import { springConfigs } from "../../lib/animations";
+import * as analytics from "../../lib/analytics";
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -48,6 +49,7 @@ export function CommandPalette() {
   useEffect(() => {
     if (isOpen) {
       previousActiveElement.current = document.activeElement;
+      analytics.trackCommandPaletteOpened();
     } else if (previousActiveElement.current) {
       previousActiveElement.current.focus?.();
     }
@@ -72,6 +74,9 @@ export function CommandPalette() {
   const handleSelect = (item) => {
     switch (item.type) {
       case "recent":
+        analytics.trackRecentSearchClicked({ query: item.query });
+        handleSearch(item.query);
+        break;
       case "suggested":
         handleSearch(item.query);
         break;

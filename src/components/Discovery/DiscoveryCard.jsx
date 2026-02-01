@@ -79,7 +79,7 @@ export function DiscoveryCard({
         {/* Kind badge (TV only) */}
         {kind === "tv" && (
           <div className="absolute left-2 top-2 px-1.5 py-0.5 rounded bg-white/90 backdrop-blur-sm border border-gray-200 text-[9px] font-medium text-gray-700 uppercase tracking-wider">
-            TV Show
+            TV
           </div>
         )}
 

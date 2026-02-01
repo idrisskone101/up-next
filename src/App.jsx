@@ -27,6 +27,7 @@ import { useSidebar } from "./contexts/SidebarContext";
 import { springConfigs } from "./lib/animations";
 import { haptics } from "./lib/haptics";
 import { findSimilar } from "./lib/api";
+import * as analytics from "./lib/analytics";
 
 /**
  * Hamburger menu button - opens sidebar drawer
@@ -137,6 +138,7 @@ function AppContent() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all");
   const compactInputRef = useRef(null);
+  const searchSourceRef = useRef(null);
   const { scrollY } = useScroll();
 
   const hasResults = results.length > 0;
@@ -179,13 +181,44 @@ function AppContent() {
     }
   }, [searchMetadata?.query]);
 
+  // Track search results
+  useEffect(() => {
+    if (searchMetadata && !loading && !error) {
+      analytics.trackSearchExecuted({
+        query: searchMetadata.query,
+        source: searchSourceRef.current || 'hero',
+        filter: typeFilter,
+        resultCount: searchMetadata.totalCount ?? results.length,
+      });
+      searchSourceRef.current = null;
+    }
+  }, [searchMetadata]);
+
+  // Track search errors
+  useEffect(() => {
+    if (error && !loading) {
+      analytics.trackSearchError({
+        errorType: typeof error === 'object' && error.timeout ? 'timeout' : 'generic',
+        query: compactQuery,
+      });
+    }
+  }, [error, loading]);
+
+  // Track empty results
+  useEffect(() => {
+    if (!loading && hasSearched && results.length === 0 && !error) {
+      analytics.trackEmptyResults({ query: searchMetadata?.query });
+    }
+  }, [loading, hasSearched, results.length, error]);
+
   // Convert typeFilter ("all", "movie", "tv") to kindFilter array for API
   const getKindFilterArray = (filter) => {
     if (filter === "all") return null;
     return [filter];
   };
 
-  const handleSearch = (query, kindFilter) => {
+  const handleSearch = (query, kindFilter, source = 'hero') => {
+    searchSourceRef.current = source;
     window.scrollTo({ top: 0, behavior: "smooth" });
     setCompactQuery(query);
     addSearch(query);
@@ -208,6 +241,7 @@ function AppContent() {
     try {
       const data = await findSimilar(titleId, kindFilter);
       setSimilarResults(data, data.sourceTitle);
+      analytics.trackSimilarSearchExecuted({ sourceTitleId: titleId, sourceTitle: data.sourceTitle });
     } catch (err) {
       setSimilarError(err);
     }
@@ -215,6 +249,8 @@ function AppContent() {
 
   // Handle type filter change - re-run current search with new filter
   const handleTypeFilterChange = (newFilter) => {
+    analytics.trackFilterChanged({ filterType: newFilter, previousFilter: typeFilter });
+    searchSourceRef.current = 'filter_change';
     window.scrollTo({ top: 0, behavior: "smooth" });
     setTypeFilter(newFilter);
     if (searchMetadata?.query) {
@@ -224,22 +260,24 @@ function AppContent() {
 
   // Sidebar search handler
   const handleSidebarSearch = (query) => {
-    handleSearch(query, null);
+    handleSearch(query, null, 'sidebar');
   };
 
   // Surprise Me - picks random query and searches
   const handleSurpriseMe = (query) => {
-    handleSearch(query, null);
+    analytics.trackSurpriseMeClicked({ queryGenerated: query });
+    handleSearch(query, null, 'surprise');
   };
 
   // Category select - picks random from category and searches
   const handleCategorySelect = (query) => {
-    handleSearch(query, null);
+    handleSearch(query, null, 'category');
   };
 
   const handleCompactSubmit = (e) => {
     e?.preventDefault();
     if (compactQuery.trim()) {
+      searchSourceRef.current = 'header';
       window.scrollTo({ top: 0, behavior: "smooth" });
       addSearch(compactQuery.trim());
       search(compactQuery.trim(), 80, 0, getKindFilterArray(typeFilter));
@@ -247,6 +285,7 @@ function AppContent() {
   };
 
   const handleBackToHero = () => {
+    analytics.trackBackToHero();
     reset();
     setCompactQuery("");
     setTypeFilter("all");
@@ -259,11 +298,13 @@ function AppContent() {
 
   // Vibe search - search for a specific vibe term
   const handleVibeSearch = (vibe) => {
-    handleSearch(vibe, null);
+    analytics.trackVibeSearched({ vibeText: vibe });
+    handleSearch(vibe, null, 'vibe');
   };
 
   // More Like This - search for similar movies based on vibes/genres
   const handleMoreLikeThis = (movie) => {
+    analytics.trackMoreLikeThisClicked({ sourceMovieId: movie.id, sourceTitle: movie.title });
     window.scrollTo({ top: 0, behavior: "smooth" });
     const vibes = movie.vibes || [];
     const genres = movie.genres || [];
@@ -278,7 +319,7 @@ function AppContent() {
       query = `Movies similar to ${movie.title}`;
     }
 
-    handleSearch(query, movie.kind === "tv" ? "tv" : "movie");
+    handleSearch(query, movie.kind === "tv" ? "tv" : "movie", 'more_like_this');
   };
 
   return (

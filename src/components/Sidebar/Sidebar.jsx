@@ -22,6 +22,7 @@ import { SidebarSection } from "./SidebarSection";
 import { RecentSearches } from "./RecentSearches";
 import { MobileDrawer } from "./MobileDrawer";
 import { UpNextLogo } from "../ui/UpNextLogo";
+import * as analytics from "../../lib/analytics";
 
 // Icon map for categories
 const ICON_MAP = {
@@ -226,6 +227,7 @@ function SidebarContent({ onSearch, onSurpriseMe, onCategorySelect, onHome, onCl
         <SidebarSection title="Recent Searches" collapsed={!isExpanded}>
           <RecentSearches
             onSearchClick={(query) => {
+              analytics.trackRecentSearchClicked({ query });
               onSearch?.(query);
               onClose?.();
             }}

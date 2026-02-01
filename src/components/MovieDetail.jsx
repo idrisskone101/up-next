@@ -114,7 +114,7 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
             ) : (
               <Film className="w-3 h-3" />
             )}
-            <span>{kind === "tv" ? "TV Show" : "Movie"}</span>
+            <span>{kind === "tv" ? "TV" : "Movie"}</span>
           </div>
 
           {/* Title */}

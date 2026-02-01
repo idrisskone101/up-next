@@ -7,6 +7,7 @@ import { useMentions } from "../hooks/useMentions";
 import { MentionDropdown } from "./MentionDropdown";
 import { MentionChip } from "./MentionChip";
 import { submitReadyPulse, prefersReducedMotion, springConfigs } from "../lib/animations";
+import * as analytics from "../lib/analytics";
 
 // Icon map for dynamic icon lookup
 const ICON_MAP = {
@@ -156,6 +157,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
 
   // Handle mention selection from dropdown
   const handleMentionSelect = (title) => {
+    analytics.trackMentionSelected({ titleId: title.id, titleName: title.title });
     setMention({
       id: title.id,
       title: title.title,
@@ -197,6 +199,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
   };
 
   const handleExampleClick = (exampleQuery) => {
+    analytics.trackQueryPillClicked({ queryText: exampleQuery, categoryId: activeCategory });
     setQuery(exampleQuery);
     onSearch(exampleQuery, getKindFilter());
   };
@@ -395,6 +398,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
                   key={category.id}
                   type="button"
                   onClick={() => {
+                    analytics.trackCategorySelected({ categoryId: category.id, categoryLabel: category.label });
                     setActiveCategory(category.id);
                     // Reset query scroll position when category changes
                     if (queryScrollRef.current) {
