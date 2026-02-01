@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Film, Star, Sparkles, Tv, Clapperboard } from "lucide-react";
+import { Film, Star, Sparkles, Tv } from "lucide-react";
 import {
   use3DTilt,
   prefersReducedMotion,
@@ -178,9 +178,9 @@ export function MovieCard({
               {kind === "tv" ? (
                 <Tv className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               ) : (
-                <Clapperboard className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <Film className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               )}
-              <span>{kind === "tv" ? "TV" : "Film"}</span>
+              <span>{kind === "tv" ? "TV Show" : "Movie"}</span>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, X, Tv, Clapperboard } from "lucide-react";
+import { Sparkles, X, Tv, Film } from "lucide-react";
 import { TrailerPlayer } from "./TrailerPlayer";
 import { ProviderBadges } from "./ProviderBadges";
 import { haptics } from "../lib/haptics";
@@ -199,9 +199,9 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
                 {kind === "tv" ? (
                   <Tv className="w-2.5 h-2.5" />
                 ) : (
-                  <Clapperboard className="w-2.5 h-2.5" />
+                  <Film className="w-2.5 h-2.5" />
                 )}
-                <span>{kind === "tv" ? "TV" : "Film"}</span>
+                <span>{kind === "tv" ? "TV Show" : "Movie"}</span>
               </div>
 
               {/* Title */}

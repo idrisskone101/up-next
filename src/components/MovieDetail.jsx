@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, Tv, Clapperboard } from "lucide-react";
+import { Sparkles, Tv, Film } from "lucide-react";
 import { TrailerPlayer } from "./TrailerPlayer";
 import { ProviderBadges } from "./ProviderBadges";
 import { haptics } from "../lib/haptics";
@@ -112,9 +112,9 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
             {kind === "tv" ? (
               <Tv className="w-3 h-3" />
             ) : (
-              <Clapperboard className="w-3 h-3" />
+              <Film className="w-3 h-3" />
             )}
-            <span>{kind === "tv" ? "TV" : "Film"}</span>
+            <span>{kind === "tv" ? "TV Show" : "Movie"}</span>
           </div>
 
           {/* Title */}
