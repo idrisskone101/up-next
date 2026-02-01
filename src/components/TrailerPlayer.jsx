@@ -15,7 +15,9 @@ export function TrailerPlayer({ tmdbId, mediaType = "movie", title }) {
 
     async function loadTrailer() {
       if (!tmdbId) {
-        console.warn("[TrailerPlayer] No TMDB ID provided");
+        if (import.meta.env.DEV) {
+          console.warn("[TrailerPlayer] No TMDB ID provided");
+        }
         setLoading(false);
         return;
       }
@@ -23,16 +25,20 @@ export function TrailerPlayer({ tmdbId, mediaType = "movie", title }) {
       // Check cache first
       const cached = getTrailer(tmdbId);
       if (cached) {
-        console.log("[TrailerPlayer] Using cached trailer:", cached.name);
+        if (import.meta.env.DEV) {
+          console.log("[TrailerPlayer] Using cached trailer:", cached.name);
+        }
         setTrailer(cached);
         setLoading(false);
         return;
       }
 
       try {
-        console.log(
-          `[TrailerPlayer] Loading trailer for TMDB ID: ${tmdbId}, type: ${mediaType}`,
-        );
+        if (import.meta.env.DEV) {
+          console.log(
+            `[TrailerPlayer] Loading trailer for TMDB ID: ${tmdbId}, type: ${mediaType}`,
+          );
+        }
         setLoading(true);
         setError(null);
 
@@ -40,19 +46,25 @@ export function TrailerPlayer({ tmdbId, mediaType = "movie", title }) {
 
         if (mounted) {
           if (trailerData) {
-            console.log(
-              "[TrailerPlayer] Trailer loaded successfully:",
-              trailerData.name,
-            );
+            if (import.meta.env.DEV) {
+              console.log(
+                "[TrailerPlayer] Trailer loaded successfully:",
+                trailerData.name,
+              );
+            }
             setTrailer(trailerData);
           } else {
-            console.warn("[TrailerPlayer] No trailer available for this title");
+            if (import.meta.env.DEV) {
+              console.warn("[TrailerPlayer] No trailer available for this title");
+            }
             setError("No trailer available");
           }
           setLoading(false);
         }
       } catch (err) {
-        console.error("[TrailerPlayer] Error loading trailer:", err);
+        if (import.meta.env.DEV) {
+          console.error("[TrailerPlayer] Error loading trailer:", err);
+        }
         if (mounted) {
           setError("Failed to load trailer");
           setLoading(false);

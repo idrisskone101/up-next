@@ -69,7 +69,9 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
       // Retry on timeout or 504 errors if we haven't exceeded max retries
       if ((error.timeout || response.status === 504) && retryCount < MAX_RETRIES) {
         const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // Exponential backoff, max 5s
-        console.log(`[API] Retrying search (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+        if (import.meta.env.DEV) {
+          console.log(`[API] Retrying search (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+        }
         await sleep(delay);
         return searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
       }
@@ -90,7 +92,9 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
       // Retry on timeout if we haven't exceeded max retries
       if (retryCount < MAX_RETRIES) {
         const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-        console.log(`[API] Retrying search after timeout (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+        if (import.meta.env.DEV) {
+          console.log(`[API] Retrying search after timeout (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
+        }
         await sleep(delay);
         return searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
       }
@@ -98,7 +102,9 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
       throw timeoutError;
     }
 
-    console.error('API Error:', error);
+    if (import.meta.env.DEV) {
+      console.error('API Error:', error);
+    }
     throw error;
   }
 }
@@ -115,7 +121,9 @@ export async function checkHealth() {
     }
     return await response.json();
   } catch (error) {
-    console.error('Health check failed:', error);
+    if (import.meta.env.DEV) {
+      console.error('Health check failed:', error);
+    }
     throw error;
   }
 }
@@ -142,7 +150,9 @@ export async function fetchTrailer(tmdbId, mediaType = 'movie') {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Trailer fetch error:', error);
+    if (import.meta.env.DEV) {
+      console.error('Trailer fetch error:', error);
+    }
     return null; // Return null instead of throwing to gracefully handle missing trailers
   }
 }
@@ -163,7 +173,9 @@ export async function fetchRecommendations() {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Recommendations fetch error:', error);
+    if (import.meta.env.DEV) {
+      console.error('Recommendations fetch error:', error);
+    }
     throw error;
   }
 }

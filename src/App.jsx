@@ -19,6 +19,7 @@ import { ResultsGrid } from "./components/ResultsGrid";
 import { HeroSearchCard } from "./components/HeroSearchCard";
 import { DiscoverySection } from "./components/Discovery";
 import { AppLayout } from "./components/Layout/AppLayout";
+import SearchLoading from "./components/SearchLoading";
 import { useSearch } from "./hooks/useSearch";
 import { useRecentSearches } from "./hooks/useRecentSearches";
 import { useRecommendations } from "./hooks/useRecommendations";
@@ -371,20 +372,7 @@ function AppContent() {
                 {/* Loading State */}
                 <AnimatePresence mode="wait">
                   {loading && (
-                    <motion.div
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="mx-auto w-full max-w-7xl"
-                    >
-                      <div className="grid grid-cols-2 gap-3 xs:gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                        {[...Array(10)].map((_, index) => (
-                          <SkeletonCard key={index} index={index} />
-                        ))}
-                      </div>
-                    </motion.div>
+                    <SearchLoading key="loading" query={compactQuery} />
                   )}
 
                   {/* Error State */}
