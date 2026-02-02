@@ -233,10 +233,11 @@ function AppContent() {
   };
 
   // Handle @mention similar search
-  const handleSimilarSearch = async (titleId, kindFilter) => {
+  const handleSimilarSearch = async (titleId, kindFilter, titleName) => {
+    const similarQuery = `Similar to "${titleName || 'title'}"`;
     window.scrollTo({ top: 0, behavior: "smooth" });
     startSimilarLoading();
-    setCompactQuery(""); // Clear compact query for similar search
+    setCompactQuery(similarQuery);
 
     try {
       const data = await findSimilar(titleId, kindFilter);
