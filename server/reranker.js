@@ -1,9 +1,10 @@
 /**
  * Simple Re-Ranker for upNext
  *
- * Two factors:
+ * Three factors:
  * 1. Recency - boost 2000+ titles by 10%
  * 2. Animation - penalize animated by 30% unless query mentions animation
+ * 3. Low vote count - penalize titles with few votes (unreliable ratings)
  */
 
 const ANIMATION_QUERY_TERMS = [
@@ -54,6 +55,17 @@ function getAnimationMultiplier(genres, queryWantsAnimation) {
 }
 
 /**
+ * Penalize titles with low vote counts (unreliable ratings)
+ * >= 100 votes: no penalty (1.0)
+ * < 100 votes: linear penalty down to 0.7 at 0 votes
+ */
+function getLowVoteMultiplier(voteCount) {
+  const count = voteCount || 0;
+  if (count >= 100) return 1.0;
+  return 0.7 + (count / 100) * 0.3;
+}
+
+/**
  * Main re-ranking function
  */
 export function rerankResults(results, query, config) {
@@ -66,13 +78,15 @@ export function rerankResults(results, query, config) {
     const semanticScore = result.combined_score || 0;
     const recencyMultiplier = getRecencyMultiplier(result.release_date);
     const animationMultiplier = getAnimationMultiplier(result.genres, queryWantsAnimation);
-    const rerankedScore = semanticScore * recencyMultiplier * animationMultiplier;
+    const lowVoteMultiplier = getLowVoteMultiplier(result.vote_count);
+    const rerankedScore = semanticScore * recencyMultiplier * animationMultiplier * lowVoteMultiplier;
 
     return {
       ...result,
       reranked_score: calibrateScore(rerankedScore),
       recency_multiplier: recencyMultiplier,
       animation_multiplier: animationMultiplier,
+      low_vote_multiplier: lowVoteMultiplier,
     };
   });
 

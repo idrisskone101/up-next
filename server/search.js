@@ -208,6 +208,7 @@ export async function searchTitles(
       keywords: row.keywords,
       runtime_minutes: row.runtime_minutes,
       vote_average: row.vote_average,
+      vote_count: row.vote_count,
       certification: row.certification,
       poster_path: row.poster_path,
       backdrop_path: row.backdrop_path,

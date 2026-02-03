@@ -8,9 +8,9 @@ const useDynamicWeights = process.env.USE_DYNAMIC_WEIGHTS === "true";
 const fixedContentWeight = parseFloat(process.env.FIXED_WEIGHT_CONTENT || "0.40");
 const fixedVibeWeight = parseFloat(process.env.FIXED_WEIGHT_VIBE || "0.35");
 const fixedMetadataWeight = parseFloat(process.env.FIXED_WEIGHT_METADATA || "0.25");
-const fixedPopularityWeight = parseFloat(process.env.FIXED_WEIGHT_POPULARITY || "0.20");
+const fixedPopularityWeight = parseFloat(process.env.FIXED_WEIGHT_POPULARITY || "0");
 
-// Parse re-ranking configuration (simplified: just recency + mainstream boost)
+// Parse re-ranking configuration (recency + animation + low-vote penalty)
 const enableReranking = process.env.ENABLE_RERANKING !== "false"; // Default ON
 
 // Parse vibe conflict filter configuration
@@ -57,7 +57,7 @@ export const config = {
     popularity: fixedPopularityWeight,
   },
 
-  // Re-ranking configuration (simplified: recency + mainstream boost)
+  // Re-ranking configuration (recency + animation + low-vote penalty)
   enableReranking,
 
   // Vibe conflict filter configuration
@@ -97,7 +97,7 @@ if (!useDynamicWeights) {
 }
 
 // Log re-ranking configuration on startup
-console.log(`\n🎯 Re-ranking: ${enableReranking ? "ENABLED (recency + mainstream boost)" : "DISABLED"}`);
+console.log(`\n🎯 Re-ranking: ${enableReranking ? "ENABLED (recency + animation + low-vote penalty)" : "DISABLED"}`);
 
 // Log vibe conflict filter configuration on startup
 console.log(`\n🎭 Vibe Conflict Filter: ${enableVibeConflictFilter ? "ENABLED (auto-excludes tonal conflicts)" : "DISABLED"}`);
