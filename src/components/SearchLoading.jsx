@@ -9,14 +9,14 @@ const PIPELINE_STAGES = [
     icon: '🧠'
   },
   {
-    id: 'embedding',
-    message: 'Translating to movie language',
+    id: 'thinking',
+    message: 'Asking GPT-6 Luna for picks',
     duration: 2000,
     icon: '✨'
   },
   {
     id: 'searching',
-    message: 'Searching 60,000 titles',
+    message: 'Pulling posters & details from TMDB',
     duration: 2500,
     icon: '🔍'
   },

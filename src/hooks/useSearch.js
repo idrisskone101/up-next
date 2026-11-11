@@ -5,18 +5,16 @@ const PAGE_SIZE = 20;
 
 /**
  * Custom hook for managing search state with local frontend pagination
- * All 300 candidates are fetched once and paginated locally
+ * All results are fetched once and paginated locally
  */
 export function useSearch() {
-  const [allResults, setAllResults] = useState([]); // All 300 candidates
+  const [allResults, setAllResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [searchMetadata, setSearchMetadata] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentQuery, setCurrentQuery] = useState(null);
-  const [currentMatchCount, setCurrentMatchCount] = useState(80);
-  const [currentMatchThreshold, setCurrentMatchThreshold] = useState(0);
   const [currentKindFilter, setCurrentKindFilter] = useState(null);
   const [currentMinReleaseYear, setCurrentMinReleaseYear] = useState(null);
   const [currentExcludeGenres, setCurrentExcludeGenres] = useState(null);
@@ -29,7 +27,7 @@ export function useSearch() {
     return allResults.slice(start, start + PAGE_SIZE);
   }, [allResults, currentPage]);
 
-  const search = useCallback(async (query, matchCount = 80, matchThreshold = 0, kindFilter = null, minReleaseYear = null, excludeGenres = null) => {
+  const search = useCallback(async (query, kindFilter = null, minReleaseYear = null, excludeGenres = null) => {
     if (!query || query.trim().length === 0) {
       setAllResults([]);
       setSearchMetadata(null);
@@ -42,21 +40,16 @@ export function useSearch() {
     setError(null);
     setCurrentPage(1);
     setCurrentQuery(query);
-    setCurrentMatchCount(matchCount);
-    setCurrentMatchThreshold(matchThreshold);
     setCurrentKindFilter(kindFilter);
     setCurrentMinReleaseYear(minReleaseYear);
     setCurrentExcludeGenres(excludeGenres);
 
     try {
-      // Fetch all candidates - backend returns them sorted by reranked_score
-      const data = await searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres);
+      const data = await searchMovies(query, kindFilter, minReleaseYear, excludeGenres);
 
       setAllResults(data.results || []);
       setSearchMetadata({
         query: data.query,
-        weights: data.weights,
-        weightReasoning: data.weightReasoning,
         count: data.count,
         totalCount: data.totalCount,
         metadata: data.metadata
@@ -109,14 +102,11 @@ export function useSearch() {
     setCurrentPage(1);
 
     try {
-      // Fetch all candidates - backend returns them sorted by reranked_score
-      const data = await searchMovies(currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, currentMinReleaseYear, currentExcludeGenres);
+      const data = await searchMovies(currentQuery, currentKindFilter, currentMinReleaseYear, currentExcludeGenres);
 
       setAllResults(data.results || []);
       setSearchMetadata({
         query: data.query,
-        weights: data.weights,
-        weightReasoning: data.weightReasoning,
         count: data.count,
         totalCount: data.totalCount,
         metadata: data.metadata
@@ -133,14 +123,13 @@ export function useSearch() {
     } finally {
       setRefreshing(false);
     }
-  }, [currentQuery, currentMatchCount, currentMatchThreshold, currentKindFilter, currentMinReleaseYear, currentExcludeGenres, refreshing]);
+  }, [currentQuery, currentKindFilter, currentMinReleaseYear, currentExcludeGenres, refreshing]);
 
   // Set results directly (for similar search)
   const setSimilarResults = useCallback((similarData, sourceTitle) => {
     setAllResults(similarData.results || []);
     setSearchMetadata({
       query: `Similar to "${sourceTitle}"`,
-      weights: similarData.weights,
       count: similarData.count,
       totalCount: similarData.count,
       isSimilarSearch: true,

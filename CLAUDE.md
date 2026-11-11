@@ -6,7 +6,7 @@ Guidance for Claude Code when working with this repository.
 
 ## Project Overview
 
-upNext: AI-powered semantic movie/TV search using multi-embedding vector search. Three embeddings (content, vibe, metadata) per title with configurable weighting.
+upNext: AI-powered movie/TV search. LLM (GPT-6 Luna) suggests titles from a natural-language request; TMDB supplies all title data.
 
 ## Quick Reference
 
@@ -77,15 +77,15 @@ Touch:      h-11 (44px) minimum for all interactive elements
 ### Adding Search Parameters
 
 1. Update `POST /api/search` in `server/index.js`
-2. Pass to `searchTitles()` in `server/search.js`
-3. Update Supabase RPC call
+2. Pass to `searchTitles()` in `server/search.js` (filters object)
+3. Add to prompt constraints (`describeFilters()`) and/or post-filter in `hydrate()`
 4. Modify `searchMovies()` in `src/lib/api.js`
 5. Update `useSearch` hook
 
-### Modifying Weights
+### Tuning Suggestions
 
-**Fixed:** Edit `.env`, restart server
-**Dynamic:** Edit `server/embeddings.js:analyzeQueryIntent()`
+**Prompt:** `SYSTEM_PROMPT` in `server/search.js`. Re-run a diverse query set after edits
+**Model/speed:** `OPENAI_MODEL`, `REASONING_EFFORT`, `OPENAI_SERVICE_TIER` in `.env`
 
 ## Planning
 

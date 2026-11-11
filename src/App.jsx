@@ -222,25 +222,26 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setCompactQuery(query);
     addSearch(query);
-    // If kindFilter explicitly passed, use it (and update typeFilter state)
-    if (kindFilter) {
-      setTypeFilter(kindFilter === "tv" ? "tv" : "movie");
-      search(query, 80, 0, [kindFilter]);
+    // If kindFilter explicitly passed ("tv" or ["tv"]), use it (and update typeFilter state)
+    const kind = Array.isArray(kindFilter) ? kindFilter[0] : kindFilter;
+    if (kind) {
+      setTypeFilter(kind === "tv" ? "tv" : "movie");
+      search(query, [kind === "tv" ? "tv" : "movie"]);
     } else {
       // Use current typeFilter
-      search(query, 80, 0, getKindFilterArray(typeFilter));
+      search(query, getKindFilterArray(typeFilter));
     }
   };
 
-  // Handle @mention similar search
-  const handleSimilarSearch = async (titleId, kindFilter, titleName) => {
+  // Handle @mention / "More Like This" similar search
+  const handleSimilarSearch = async (titleId, kind, kindFilter, titleName) => {
     const similarQuery = `Similar to "${titleName || 'title'}"`;
     window.scrollTo({ top: 0, behavior: "smooth" });
     startSimilarLoading();
     setCompactQuery(similarQuery);
 
     try {
-      const data = await findSimilar(titleId, kindFilter);
+      const data = await findSimilar(titleId, kind, kindFilter);
       setSimilarResults(data, data.sourceTitle);
       analytics.trackSimilarSearchExecuted({ sourceTitleId: titleId, sourceTitle: data.sourceTitle });
     } catch (err) {
@@ -255,7 +256,7 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setTypeFilter(newFilter);
     if (searchMetadata?.query) {
-      search(searchMetadata.query, 80, 0, getKindFilterArray(newFilter));
+      search(searchMetadata.query, getKindFilterArray(newFilter));
     }
   };
 
@@ -281,7 +282,7 @@ function AppContent() {
       searchSourceRef.current = 'header';
       window.scrollTo({ top: 0, behavior: "smooth" });
       addSearch(compactQuery.trim());
-      search(compactQuery.trim(), 80, 0, getKindFilterArray(typeFilter));
+      search(compactQuery.trim(), getKindFilterArray(typeFilter));
     }
   };
 
@@ -303,24 +304,10 @@ function AppContent() {
     handleSearch(vibe, null, 'vibe');
   };
 
-  // More Like This - search for similar movies based on vibes/genres
+  // More Like This - similar search seeded by the selected title
   const handleMoreLikeThis = (movie) => {
     analytics.trackMoreLikeThisClicked({ sourceMovieId: movie.id, sourceTitle: movie.title });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    const vibes = movie.vibes || [];
-    const genres = movie.genres || [];
-
-    // Build a query from vibes and genres
-    let query;
-    if (vibes.length > 0) {
-      query = `${vibes.slice(0, 2).join(" ")} ${movie.kind === "tv" ? "TV shows" : "movies"}`;
-    } else if (genres.length > 0) {
-      query = `${genres.slice(0, 2).join(" ")} ${movie.kind === "tv" ? "TV shows" : "movies"} like ${movie.title}`;
-    } else {
-      query = `Movies similar to ${movie.title}`;
-    }
-
-    handleSearch(query, movie.kind === "tv" ? "tv" : "movie", 'more_like_this');
+    handleSimilarSearch(movie.id, movie.kind, getKindFilterArray(typeFilter), movie.title);
   };
 
   return (
@@ -515,7 +502,7 @@ function AppContent() {
               {/* Footer */}
               <footer className="pb-safe pb-8 pt-4">
                 <div className="container flex flex-col items-center gap-2 text-center text-xs text-gray-400">
-                  <p>Powered by multi-embedding semantic search</p>
+                  <p>Picks by GPT-6 Luna · Data from TMDB</p>
                 </div>
               </footer>
             </motion.div>

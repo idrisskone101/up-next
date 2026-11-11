@@ -1,311 +1,81 @@
 # upNext - AI-Powered Movie & TV Search
 
-A beautiful, semantic search application for movies and TV shows using multi-embedding vector search with LLM-powered dynamic weight adjustment.
+Describe a vibe ("that 3am can't-sleep melancholy", "like Severance but funnier") and get movie and TV picks, each with a one-line reason it fits. GPT-6 Luna picks the titles, and TMDB supplies posters, metadata, streaming providers and trailers.
 
 ## 🌟 Features
 
-- **Multi-Embedding Semantic Search**: Uses 3 separate embeddings (content, vibe, metadata) for nuanced search results
-- **LLM-Powered Weight Adjustment**: GPT-4o-mini analyzes queries to determine optimal embedding weights
-- **YouTube Trailers**: Watch official trailers directly in the movie details modal
-- **Apple-Inspired UI**: Clean, minimal design with glass-morphism effects and smooth animations
-- **Responsive Design**: Works beautifully on mobile, tablet, and desktop
-- **Rich Movie Details**: View posters, scores, genres, vibes, themes, cast, and more
-- **Real-time Score Breakdown**: See how each embedding type contributed to the match
+- **Natural-language search**: moods, plots, people, eras, comparisons, typos and other languages
+- **"Why it's a match"**: every pick comes with a specific, model-written reason
+- **More Like This / @mentions**: type `@title` or tap More Like This for similar titles
+- **Rich details**: posters, synopsis, cast, director/creator, US streaming providers, YouTube trailers
+- **Movie / TV filters**, Surprise Me, curated vibe categories, Cmd+K command palette
+- **Responsive**: drawer on desktop, bottom sheet on mobile
 
-## 🏗️ Architecture
+## 🏗️ How It Works
 
-### Backend (Express.js - Port 5001)
-- Query analysis using GPT-4o-mini
-- Embedding generation with OpenAI text-embedding-3-small
-- Multi-vector search via Supabase PostgreSQL with pgvector
-- RESTful API endpoints
+```
+query ──► GPT-6 Luna (structured JSON: title, year, kind, reason)
+            │  up to 20 picks, ranked by fit
+            ▼
+        TMDB search ──► match each pick (title + year, tolerant of "12 Monkeys"/"Twelve Monkeys")
+            ▼
+        TMDB details ──► genres, cast, director, certification, runtime, providers
+            ▼
+        filter (type, year, excluded genres) ──► dedupe ──► interleave movies/TV ──► cache 30 min
+```
 
-### Frontend (React + Vite - Port 3001)
-- Modern React with hooks
-- Tailwind CSS for styling
-- Responsive grid layouts
-- Modal-based detail views
+Typical search takes 7-10s: about 6-9s for the model and about 1s for TMDB, which looks up every pick in parallel. Repeat searches return instantly from the cache.
 
-### Database (Supabase)
-- PostgreSQL with pgvector extension
-- 990 movies/TV shows with 3 embeddings each
-- Custom RPC function `match_titles_multi()`
+### History
 
-## 📋 Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Supabase account (database already set up)
-- OpenAI API key
+v1 used a Supabase/pgvector database of ~60k titles, each with three embeddings (content, vibe, metadata), searched with LLM-weighted multi-vector similarity and a custom reranker. The database has been retired; v2 swaps the retrieval layer for an LLM curator plus live TMDB data, keeping the same UI and API shape.
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
-
 ```bash
 npm install
+cp .env.example .env   # add OPENAI_API_KEY and TMDB_TOKEN
+npm run dev            # frontend :3001 + backend :5001
 ```
 
-### 2. Environment Variables
+Get a TMDB "API Read Access Token" at [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api).
 
-Create a `.env` file based on `.env.example`:
+## 📝 Environment Variables
 
-```bash
-# TMDB (Required for trailer feature)
-# Get your token from: https://www.themoviedb.org/settings/api
-TMDB_TOKEN=your-tmdb-read-access-token-here
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OPENAI_API_KEY` | OpenAI API key | required |
+| `TMDB_TOKEN` | TMDB API Read Access Token | required |
+| `OPENAI_MODEL` | Model that picks titles | `gpt-6-luna` |
+| `REASONING_EFFORT` | `none` / `low` / `medium` / `high` / `xhigh` | `low` |
+| `OPENAI_SERVICE_TIER` | `priority` (~1.5-2x faster, pricier) or `default` | `priority` |
+| `SEARCH_CACHE_TTL_MINUTES` | In-memory result cache TTL | `30` |
+| `PORT` | Backend port | `5001` |
 
-# Supabase
-SUPABASE_URL=REDACTED
-SUPABASE_ANON_KEY=your-anon-key
+## 🔧 API
 
-# OpenAI
-OPENAI_API_KEY=your-openai-key
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/search` | `{ query, kindFilter?, minReleaseYear?, excludeGenres? }` → `{ query, model, results, count }` |
+| `POST /api/similar` | `{ titleId, kind, kindFilter?, ... }` → titles similar to a TMDB title |
+| `GET /api/titles/search?q=` | TMDB title autocomplete for `@mentions` |
+| `GET /api/trailer/:tmdbId?mediaType=` | YouTube trailer from TMDB |
+| `GET /api/recommendations` | TMDB trending titles |
+| `GET /api/health` | Status + active model |
 
-# Server
-PORT=5001
-```
-
-**Note:** To enable the trailer feature, you need a TMDB API Read Access Token. Get one by:
-1. Creating an account at [themoviedb.org](https://www.themoviedb.org/)
-2. Going to Settings > API
-3. Copying your "API Read Access Token" (v4 auth)
-
-### 3. Start Development Servers
-
-Start both frontend and backend:
-
-```bash
-npm run dev
-```
-
-Or start them separately:
-
-```bash
-# Terminal 1 - Backend
-npm run dev:server
-
-# Terminal 2 - Frontend  
-npm run dev:client
-```
-
-### 4. Open Your Browser
-
-Navigate to [http://localhost:3001](http://localhost:3001)
-
-## 🎯 How It Works
-
-### Query Processing Flow
-
-1. **User submits query** → Frontend sends to `/api/search`
-2. **LLM analyzes intent** → Determines optimal weights (content/vibe/metadata)
-3. **Generate embeddings** → Creates 3 separate query embeddings
-4. **Database search** → Calls Supabase RPC with weighted multi-vector search
-5. **Return results** → Sorted by combined similarity score
-
-### Example Weight Distributions
-
-- **"cozy romantic comedies"** → Vibe: 50%, Metadata: 25%, Content: 25%
-- **"Christopher Nolan films"** → Metadata: 70%, Content: 20%, Vibe: 10%
-- **"time travel paradox story"** → Content: 60%, Metadata: 25%, Vibe: 15%
-- **"dark revenge thriller"** → Vibe: 45%, Content: 35%, Metadata: 20%
-
-## 📁 Project Structure
-
-```
-upNext/
-├── server/
-│   ├── config.js          # Environment config
-│   ├── embeddings.js      # OpenAI integration
-│   ├── search.js          # Supabase queries
-│   ├── tmdb.js            # TMDB API integration
-│   └── index.js           # Express server
-├── src/
-│   ├── components/
-│   │   ├── SearchBar.jsx
-│   │   ├── LoadingSpinner.jsx
-│   │   ├── MovieCard.jsx
-│   │   ├── ResultsGrid.jsx
-│   │   ├── MovieModal.jsx
-│   │   ├── ScoreBreakdown.jsx
-│   │   └── TrailerPlayer.jsx
-│   ├── hooks/
-│   │   └── useSearch.js
-│   ├── lib/
-│   │   └── api.js
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-├── .env
-├── package.json
-├── vite.config.js
-└── tailwind.config.js
-```
-
-## 🎨 UI Components
-
-### SearchBar
-- Auto-focus on page load
-- Clear button when text is present
-- Loading state with spinner
-- Gradient submit button
-
-### MovieCard
-- Poster image with fallback
-- Combined score badge
-- Genre and vibe tags
-- Truncated overview
-- Hover animations
-
-### MovieModal
-- Full movie details
-- YouTube trailer embed with auto-loading
-- Backdrop image
-- Cast and crew
-- Score breakdown visualization
-- Keyboard navigation (ESC to close)
-
-### ScoreBreakdown
-- Combined score progress bar
-- Individual scores (content/vibe/metadata)
-- Strongest signal indicator
-- Color-coded visualization
-
-## 🔧 API Endpoints
-
-### GET /api/trailer/:tmdbId
-
-Fetch trailer information from TMDB.
-
-**Query Parameters:**
-- `mediaType`: "movie" or "tv" (default: "movie")
-
-**Response:**
-```json
-{
-  "key": "dQw4w9WgXcQ",
-  "name": "Official Trailer",
-  "site": "YouTube",
-  "type": "Trailer",
-  "official": true,
-  "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "embedUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ"
-}
-```
-
-### POST /api/search
-
-Search for movies and TV shows.
-
-**Request:**
-```json
-{
-  "query": "cozy romantic comedies",
-  "matchCount": 10,
-  "matchThreshold": 0.3
-}
-```
-
-**Response:**
-```json
-{
-  "query": "cozy romantic comedies",
-  "weights": {
-    "content": 0.25,
-    "vibe": 0.50,
-    "metadata": 0.25
-  },
-  "weightReasoning": "Query emphasizes mood/atmosphere...",
-  "results": [...],
-  "count": 10,
-  "metadata": {
-    "duration_ms": 4536,
-    "timestamp": "2025-10-23T03:56:51.121Z"
-  }
-}
-```
-
-### GET /api/health
-
-Check server and database health.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "timestamp": "2025-10-23T03:56:41.285Z",
-  "database": {
-    "connected": true
-  }
-}
-```
-
-## 🧪 Testing
-
-### Test Backend API
+Each result has TMDB fields (`id`, `title`, `kind`, `release_date`, `overview`, `genres`, `director`, `cast`, `runtime_minutes`, `vote_average`, `certification`, `poster_path`, `backdrop_path`, `providers`) plus the model's `reason`.
 
 ```bash
 curl -X POST http://localhost:5001/api/search \
   -H "Content-Type: application/json" \
-  -d '{"query":"cozy romantic comedies","matchCount":5}'
-```
-
-### Example Search Queries
-
-Try these in the UI to see different weight distributions:
-
-- "cozy romantic comedies" (vibe-focused)
-- "Christopher Nolan films" (metadata-focused)
-- "time travel paradox story" (content-focused)
-- "dark revenge thriller" (balanced)
-- "heartwarming coming-of-age" (mixed)
-
-## 🎯 Performance
-
-- Average search time: **3-5 seconds**
-  - LLM analysis: ~1-2s
-  - Embedding generation: ~1s
-  - Database search: ~0.5s
-- No client-side re-ranking (search results are final)
-- Concurrent request handling
-
-## 🚢 Building for Production
-
-```bash
-# Build frontend
-npm run build
-
-# Preview production build
-npm run preview
+  -d '{"query":"slow burn sci-fi with big ideas","kindFilter":["movie"]}'
 ```
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- React 18
-- Vite 6
-- Tailwind CSS 3
-- Modern JavaScript (ES modules)
-
-### Backend
-- Node.js
-- Express.js
-- OpenAI API (GPT-4o-mini + text-embedding-3-small)
-- Supabase (PostgreSQL + pgvector)
-
-## 📝 Environment Variables Reference
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `TMDB_TOKEN` | TMDB API Read Access Token | ✅ (for trailers) |
-| `SUPABASE_URL` | Supabase project URL | ✅ |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ |
-| `OPENAI_API_KEY` | OpenAI API key | ✅ |
-| `PORT` | Backend server port | Optional (default: 5001) |
-
-## 🤝 Contributing
-
-This is a demonstration project showcasing multi-embedding semantic search with LLM-powered weight adjustment.
+- **Frontend**: React 18, Vite 6, Tailwind CSS 3, Framer Motion, shadcn/Radix
+- **Backend**: Node.js, Express, OpenAI SDK (structured outputs), TMDB API
+- **Deploy**: Railway via `nixpacks.toml` (Express serves the built frontend)
 
 ## 📄 License
 
@@ -313,10 +83,5 @@ MIT
 
 ## 🙏 Acknowledgments
 
-- OpenAI for GPT-4o-mini and text-embedding-3-small
-- Supabase for PostgreSQL + pgvector hosting
-- TMDB for movie/TV metadata and images
-
----
-
-Built with ❤️ using AI-powered semantic search
+- OpenAI for GPT-6 Luna
+- [TMDB](https://www.themoviedb.org/) for movie/TV metadata and images. This product uses the TMDB API but is not endorsed or certified by TMDB.

@@ -4,23 +4,20 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createClient } from "@supabase/supabase-js";
 import { config } from "./config.js";
-import { searchTitles, checkConnection } from "./search.js";
-import { fetchTrailer } from "./tmdb.js";
-import { findSimilarTitles } from "./similar.js";
+import { searchTitles, findSimilarTitles } from "./search.js";
+import { fetchTrailer, searchTitlesByName, getTrending } from "./tmdb.js";
 
 // ESM module path resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Supabase client for recommendations
-const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
-
 const app = express();
+// Behind Railway's proxy: use client IP from X-Forwarded-For so rate limits are per user
+app.set("trust proxy", 1);
 const PORT = config.port;
 
-// Server timeout configuration (60 seconds for vector searches)
+// Server timeout configuration (60 seconds for LLM searches)
 const SERVER_TIMEOUT = 60000; // 60 seconds
 
 // Middleware
@@ -34,7 +31,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10kb' }));
 
-// Rate limiting for search/similar endpoints (OpenAI embedding calls = $$$)
+// Rate limiting for search/similar endpoints (LLM calls = $$$)
 const searchLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
@@ -63,47 +60,6 @@ app.use((req, res, next) => {
 });
 
 /**
- * Helper function to select diverse titles by genre and release year
- */
-function selectDiverseTitles(titles, count = 8) {
-  if (!titles || titles.length === 0) return [];
-  if (titles.length <= count) return titles;
-
-  const selected = [];
-  const genresSeen = new Set();
-  const yearsSeen = new Set();
-
-  // First pass: prioritize diversity
-  for (const title of titles) {
-    if (selected.length >= count) break;
-
-    const genres = title.genres || [];
-    const year = title.release_date
-      ? new Date(title.release_date).getFullYear()
-      : null;
-    const hasNewGenre = genres.some((g) => !genresSeen.has(g));
-    const hasNewYear = year && !yearsSeen.has(year);
-
-    // Prefer titles that add genre or year diversity
-    if (hasNewGenre || hasNewYear || selected.length < count / 2) {
-      selected.push(title);
-      genres.forEach((g) => genresSeen.add(g));
-      if (year) yearsSeen.add(year);
-    }
-  }
-
-  // Second pass: fill remaining slots with highest rated
-  for (const title of titles) {
-    if (selected.length >= count) break;
-    if (!selected.includes(title)) {
-      selected.push(title);
-    }
-  }
-
-  return selected.slice(0, count);
-}
-
-/**
  * Title autocomplete endpoint
  * GET /api/titles/search?q=inception&limit=6
  * Returns titles matching search text for @mention feature
@@ -120,32 +76,8 @@ app.get("/api/titles/search", async (req, res) => {
     }
 
     const searchLimit = Math.min(Math.max(parseInt(limit, 10) || 6, 1), 20);
-    const searchTerm = `%${q.trim()}%`;
-
-    console.log(`[TitleSearch] Searching for "${q}" (limit: ${searchLimit})`);
-
-    const { data, error } = await supabase
-      .from("titles")
-      .select("id, title, poster_path, kind, release_date")
-      .ilike("title", searchTerm)
-      .not("poster_path", "is", null)
-      .not("content_embedding", "is", null)
-      .not("vibe_embedding", "is", null)
-      .not("metadata_embedding", "is", null)
-      .order("vote_average", { ascending: false })
-      .limit(searchLimit);
-
-    if (error) {
-      console.error("[TitleSearch] Database error:", error);
-      return res.status(500).json({
-        error: "Database query failed",
-        message: error.message,
-      });
-    }
-
-    console.log(`[TitleSearch] Found ${data?.length || 0} results`);
-
-    res.json({ results: data || [] });
+    const results = await searchTitlesByName(q.trim(), searchLimit);
+    res.json({ results });
   } catch (error) {
     console.error("[TitleSearch] Error:", error);
     res.status(500).json({
@@ -159,66 +91,25 @@ app.get("/api/titles/search", async (req, res) => {
  * Health check endpoint
  */
 app.get("/api/health", async (req, res) => {
-  const dbStatus = await checkConnection();
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    database: dbStatus,
+    model: config.openaiModel,
   });
 });
 
 /**
  * Recommendations endpoint
  * GET /api/recommendations
- * Returns 8 curated/popular titles for homepage
+ * Returns TMDB trending titles for homepage
  */
 app.get("/api/recommendations", async (req, res) => {
   try {
-    console.log("[Recommendations] Fetching curated titles...");
-
-    // Query for high-quality titles with posters
-    // Only select fields needed for rendering movie cards and trailers
-    const { data, error } = await supabase
-      .from("titles")
-      .select(`
-        id,
-        title,
-        kind,
-        release_date,
-        overview,
-        genres,
-        vibes,
-        themes,
-        director,
-        cast,
-        vote_average,
-        certification,
-        runtime_minutes,
-        poster_path,
-        backdrop_path
-      `)
-      .not("poster_path", "is", null)
-      .not("overview", "is", null)
-      .contains("languages", ["en"])
-      .limit(20);
-
-    if (error) {
-      console.error("[Recommendations] Database error:", error);
-      return res.status(500).json({
-        error: "Database query failed",
-        message: error.message,
-      });
-    }
-
-    // Select 8 diverse titles
-    const recommendations = selectDiverseTitles(data, 20);
-
-    console.log(`[Recommendations] Returning ${recommendations.length} titles`);
-
+    const results = await getTrending();
     res.json({
-      results: recommendations,
+      results,
       metadata: {
-        count: recommendations.length,
+        count: results.length,
         timestamp: new Date().toISOString(),
       },
     });
@@ -230,12 +121,11 @@ app.get("/api/recommendations", async (req, res) => {
     });
   }
 });
+
 app.post("/api/search", searchLimiter, async (req, res) => {
   try {
     const {
       query,
-      matchCount = config.search.defaultMatchCount,
-      matchThreshold = config.search.defaultMatchThreshold,
       kindFilter = null,
       minReleaseYear = null,
       excludeGenres = ['documentary', 'reality'],
@@ -249,18 +139,10 @@ app.post("/api/search", searchLimiter, async (req, res) => {
       });
     }
 
-    // Validate parameters
-    if (matchCount < 1 || matchCount > 400) {
+    if (query.length > 500) {
       return res.status(400).json({
         error: "Invalid request",
-        message: "matchCount must be between 1 and 400",
-      });
-    }
-
-    if (matchThreshold < 0 || matchThreshold > 1) {
-      return res.status(400).json({
-        error: "Invalid request",
-        message: "matchThreshold must be between 0 and 1",
+        message: "Query must be 500 characters or fewer",
       });
     }
 
@@ -299,32 +181,23 @@ app.post("/api/search", searchLimiter, async (req, res) => {
       });
     }
 
-    // Perform search - returns all 300 candidates sorted by VIBE score
     const startTime = Date.now();
-    const results = await searchTitles(
-      query.trim(),
-      matchCount,
-      matchThreshold,
-      kindFilter,
-      minReleaseYear,
-      excludeGenres,
-    );
+    const results = await searchTitles(query.trim(), { kindFilter, minReleaseYear, excludeGenres });
     const duration = Date.now() - startTime;
 
     console.log(`[Search] Completed in ${duration}ms`);
 
-    // Add performance metadata
-    results.metadata = {
-      duration_ms: duration,
-      timestamp: new Date().toISOString(),
-    };
-
-    res.json(results);
+    res.json({
+      ...results,
+      metadata: {
+        duration_ms: duration,
+        timestamp: new Date().toISOString(),
+      },
+    });
   } catch (error) {
     console.error("[API] Search error:", error);
 
-    // Handle timeout errors specifically
-    if (error.message && (error.message.includes("timeout") || error.message.includes("canceling statement"))) {
+    if (error.message?.toLowerCase().includes("timeout")) {
       return res.status(504).json({
         error: "Search timeout",
         message: "The search took too long to complete. Try reducing the number of results or simplifying your query.",
@@ -332,12 +205,9 @@ app.post("/api/search", searchLimiter, async (req, res) => {
       });
     }
 
-    // Return error response with fallback weights
     res.status(500).json({
       error: "Search failed",
       message: error.message,
-      fallbackUsed: true,
-      weights: { content: 0.4, vibe: 0.35, metadata: 0.25 },
     });
   }
 });
@@ -345,12 +215,12 @@ app.post("/api/search", searchLimiter, async (req, res) => {
 /**
  * Similar titles endpoint
  * POST /api/similar
- * Body: { titleId, kindFilter?, minReleaseYear?, excludeGenres? }
- * Returns titles similar to the given title using vibe-heavy embedding search
+ * Body: { titleId, kind, kindFilter?, minReleaseYear?, excludeGenres? }
+ * Returns LLM-suggested titles similar to the given TMDB title
  */
 app.post("/api/similar", searchLimiter, async (req, res) => {
   try {
-    const { titleId, kindFilter = null, minReleaseYear = null, excludeGenres = ['documentary', 'reality'] } = req.body;
+    const { titleId, kind = "movie", kindFilter = null, minReleaseYear = null, excludeGenres = ['documentary', 'reality'] } = req.body;
 
     // Validate titleId (required, positive integer)
     const id = parseInt(titleId, 10);
@@ -358,6 +228,13 @@ app.post("/api/similar", searchLimiter, async (req, res) => {
       return res.status(400).json({
         error: "Invalid request",
         message: "titleId must be a positive integer",
+      });
+    }
+
+    if (kind !== "movie" && kind !== "tv") {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: 'kind must be "movie" or "tv"',
       });
     }
 
@@ -386,7 +263,7 @@ app.post("/api/similar", searchLimiter, async (req, res) => {
     }
 
     const startTime = Date.now();
-    const result = await findSimilarTitles(id, kindFilter, minReleaseYear, excludeGenres);
+    const result = await findSimilarTitles(id, kind, { kindFilter, minReleaseYear, excludeGenres });
     const duration = Date.now() - startTime;
 
     console.log(`[Similar] Completed in ${duration}ms`);
@@ -395,7 +272,7 @@ app.post("/api/similar", searchLimiter, async (req, res) => {
   } catch (error) {
     console.error("[API] Similar error:", error);
 
-    if (error.message.includes("not found")) {
+    if (error.message.includes("404")) {
       return res.status(404).json({
         error: "Not found",
         message: error.message,
@@ -425,14 +302,6 @@ app.get("/api/trailer/:tmdbId", async (req, res) => {
       return res.status(400).json({
         error: "Invalid request",
         message: "Invalid TMDB ID",
-      });
-    }
-
-    // Check if TMDB token is configured
-    if (!config.tmdbToken) {
-      return res.status(503).json({
-        error: "Service unavailable",
-        message: "TMDB API not configured",
       });
     }
 
@@ -477,52 +346,15 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-/**
- * Pre-warm vector indexes on startup
- * Runs a lightweight dummy search to traverse HNSW graphs and pull nodes into OS page cache
- */
-async function prewarmVectorIndexes() {
-  try {
-    console.log('🔥 Pre-warming vector indexes...');
-    const startTime = Date.now();
-
-    // Zero vector triggers HNSW traversal on all 3 indexes without needing real embeddings
-    const zeroVector = new Array(1536).fill(0);
-
-    const { error } = await supabase.rpc('match_titles_multi', {
-      query_content_embedding: zeroVector,
-      query_vibe_embedding: zeroVector,
-      query_metadata_embedding: zeroVector,
-      match_count: 10,
-      match_threshold: 0.0,
-    });
-
-    if (error) {
-      console.warn('⚠️  Pre-warming failed (non-critical):', error.message);
-      return;
-    }
-
-    const duration = Date.now() - startTime;
-    console.log(`✅ Vector indexes pre-warmed in ${duration}ms (dummy search on 3 HNSW indexes)`);
-  } catch (error) {
-    console.warn('⚠️  Pre-warming failed (non-critical):', error.message);
-  }
-}
-
 // Start server
-const server = app.listen(PORT, async () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 API endpoint: http://localhost:${PORT}/api/search`);
   console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
   if (process.env.NODE_ENV === "production") {
     console.log(`🎨 Serving static frontend from dist/`);
   }
-  console.log(`⏱️  Server timeout: ${SERVER_TIMEOUT}ms`);
-  console.log();
-  
-  // Pre-warm vector indexes (non-blocking)
-  await prewarmVectorIndexes();
-  console.log(`🎯 Server ready to accept requests\n`);
+  console.log(`⏱️  Server timeout: ${SERVER_TIMEOUT}ms\n`);
 });
 
 // Set server-level timeout

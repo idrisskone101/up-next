@@ -107,7 +107,7 @@ export function HeroSearchCard({ onSearch, onSimilarSearch, loading }) {
 
     // If mention exists, use similar search
     if (hasMention && mention) {
-      onSimilarSearch?.(mention.id, getKindFilter(), mention.title);
+      onSimilarSearch?.(mention.id, mention.kind, getKindFilter(), mention.title);
       return;
     }
 

@@ -48,6 +48,7 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
     poster_path,
     backdrop_path,
     providers,
+    reason,
   } = movie;
 
   const streamingProviders = providers?.flatrate || [];
@@ -138,6 +139,20 @@ export function MovieDetail({ movie, onMoreLikeThis }) {
 
       {/* Scrollable Content - Card Stack */}
       <div className="flex-1 overflow-y-auto">
+        {/* Why it's a match - the model's reason for this pick */}
+        {reason && (
+          <motion.div
+            variants={synopsisCardVariants}
+            className="relative mt-4 mx-4 p-5 bg-brand-golden/10 rounded-2xl border border-brand-golden/30 shadow-xl"
+          >
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-golden mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              Why it's a match
+            </h3>
+            <p className="text-sm leading-relaxed text-white/90">{reason}</p>
+          </motion.div>
+        )}
+
         {/* Synopsis Card - Overlaps hero */}
         {overview && (
           <motion.div

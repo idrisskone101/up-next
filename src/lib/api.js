@@ -24,17 +24,15 @@ function sleep(ms) {
 
 /**
  * Search for movies and TV shows with timeout and retry logic
- * Returns all 300 candidates sorted by VIBE score - frontend handles pagination
+ * Returns LLM-suggested titles, best match first
  * @param {string} query - Search query
- * @param {number} matchCount - Ignored, backend always fetches 300 candidates
- * @param {number} matchThreshold - Minimum similarity threshold
  * @param {string[]|null} kindFilter - Filter by media type: ['movie'], ['tv'], or null for both
  * @param {number|null} minReleaseYear - Filter out titles before this year
  * @param {string[]|null} excludeGenres - Filter out titles with these genres
  * @param {number} retryCount - Current retry attempt (internal use)
- * @returns {Promise<Object>} All search results sorted by vibe_score
+ * @returns {Promise<Object>} Search results, best match first
  */
-export async function searchMovies(query, matchCount = 80, matchThreshold = 0, kindFilter = null, minReleaseYear = null, excludeGenres = null, retryCount = 0) {
+export async function searchMovies(query, kindFilter = null, minReleaseYear = null, excludeGenres = null, retryCount = 0) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
 
@@ -47,8 +45,6 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
         },
         body: JSON.stringify({
           query,
-          matchCount,
-          matchThreshold,
           kindFilter,
           minReleaseYear,
           excludeGenres,
@@ -73,7 +69,7 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
           console.log(`[API] Retrying search (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
         }
         await sleep(delay);
-        return searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
+        return searchMovies(query, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
       }
 
       throw error;
@@ -96,7 +92,7 @@ export async function searchMovies(query, matchCount = 80, matchThreshold = 0, k
           console.log(`[API] Retrying search after timeout (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms...`);
         }
         await sleep(delay);
-        return searchMovies(query, matchCount, matchThreshold, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
+        return searchMovies(query, kindFilter, minReleaseYear, excludeGenres, retryCount + 1);
       }
 
       throw timeoutError;
@@ -198,17 +194,18 @@ export async function searchTitles(query, limit = 6, signal = null) {
 
 /**
  * Find titles similar to a given title
- * @param {number} titleId - Source title ID
+ * @param {number} titleId - Source TMDB ID
+ * @param {string} kind - Source media type ('movie' or 'tv')
  * @param {string[]|null} kindFilter - Filter by media type
  * @param {number|null} minReleaseYear - Minimum release year
  * @param {string[]|null} excludeGenres - Genres to exclude
  * @returns {Promise<Object>} Similar titles
  */
-export async function findSimilar(titleId, kindFilter = null, minReleaseYear = null, excludeGenres = null) {
+export async function findSimilar(titleId, kind, kindFilter = null, minReleaseYear = null, excludeGenres = null) {
   const response = await fetch(`${API_BASE_URL}/similar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ titleId, kindFilter, minReleaseYear, excludeGenres })
+    body: JSON.stringify({ titleId, kind, kindFilter, minReleaseYear, excludeGenres })
   });
   if (!response.ok) throw new Error('Similar search failed');
   return response.json();

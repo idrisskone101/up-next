@@ -94,6 +94,7 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
     poster_path,
     backdrop_path,
     providers,
+    reason,
   } = displayMovie;
 
   const streamingProviders = providers?.flatrate || [];
@@ -222,6 +223,22 @@ export function MovieBottomSheet({ movie, onClose, onMoreLikeThis }) {
               )}
             </div>
           </div>
+
+          {/* Why it's a match - the model's reason for this pick */}
+          {reason && (
+            <motion.div
+              variants={synopsisCardVariants}
+              initial="hidden"
+              animate="visible"
+              className="relative mt-4 mx-4 p-4 bg-brand-golden/10 rounded-2xl border border-brand-golden/30 shadow-xl"
+            >
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand-golden mb-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Why it's a match
+              </h3>
+              <p className="text-sm leading-relaxed text-white/90">{reason}</p>
+            </motion.div>
+          )}
 
           {/* Synopsis Card */}
           {overview && (
